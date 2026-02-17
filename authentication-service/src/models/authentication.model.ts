@@ -3,7 +3,7 @@ import { JwtRole } from "../utils/jwt";
 import sequelize from '../config/database';
 import { Model, DataTypes } from 'sequelize';
 
-class User extends Model {
+class auth extends Model {
 	id?: number;
 	email?: string;
 	password?: string;
@@ -18,7 +18,7 @@ class User extends Model {
 	}
 }
 
-User.init({
+auth.init({
 	id: {
 		type: DataTypes.INTEGER,
 		autoIncrement: true,
@@ -42,20 +42,20 @@ User.init({
 	},
 }, {
 	sequelize,
-	tableName: 'users',
+	tableName: 'auths',
 	timestamps: false,
 });
 
-User.beforeCreate(async (user: User) => {
-	if(user.password) {
-		await user.hashPassword();
+auth.beforeCreate(async (auth: auth) => {
+	if(auth.password) {
+		await auth.hashPassword();
 	}
 });
 
-User.beforeUpdate(async (user: User) => {
-	if (user.changed("password")) {
-		await user.hashPassword();
+auth.beforeUpdate(async (auth: auth) => {
+	if (auth.changed("password")) {
+		await auth.hashPassword();
 	}
 });
 
-export default User;
+export default auth;

@@ -1,6 +1,8 @@
 import cors from "cors";
 import express from 'express';
-import authRoutes from './routes/authentication.Routes';
+
+import userRoutes from './routes/user.routes';
+import cnhRoutes from './routes/cnh.routes';
 
 
 const app = express();
@@ -8,5 +10,8 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/", (req, res) => { res.send("Hello World!"); });
-app.use('/auth', authRoutes);
+
+app.use('/user', userRoutes);
+app.use('/cnh', cnhRoutes);
+
 export default app;
