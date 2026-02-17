@@ -1,0 +1,19 @@
+{
+    "folders": [
+        {
+            "name": "authentication-service",
+            "path": "./authentication-service"
+        }
+    ],
+    "settings": {
+        "files.exclude": {
+            "**/node_modules": true,
+            "**/dist": true,
+            "**/build": true,
+            "**/.vscode": true,
+            "**/.git": true
+        },
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    }
+}
