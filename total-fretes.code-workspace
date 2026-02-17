@@ -5,6 +5,18 @@
             "path": "./authentication-service"
         }
     ],
+    "folders": [
+        {
+            "name": "user-service",
+            "path": "./user-service"
+        }
+    ],  
+    "folders": [
+        {
+            "name": "vehicle-service",
+            "path": "./vehicle-service"
+        }
+    ],
     "settings": {
         "files.exclude": {
             "**/node_modules": true,
