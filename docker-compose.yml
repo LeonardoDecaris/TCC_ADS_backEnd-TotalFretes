@@ -1,0 +1,115 @@
+services:
+
+  authentication-service:
+    build: ./authentication-service
+    container_name: authentication-service
+    restart: always
+    env_file:
+      - ./authentication-service/.env
+    depends_on:
+      authentication-service-database:
+        condition: service_healthy
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  authentication-service-database:
+    image: mysql:8.0
+    container_name: authentication-service-database
+    restart: always
+    env_file:
+      - ./authentication-service/.env
+    volumes:
+      - authentication-service-database-data:/var/lib/mysql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "3306:3306"
+
+  user-service:
+    build: ./user-service
+    container_name: user-service
+    restart: always
+    env_file:
+      - ./user-service/.env
+    depends_on:
+      user-service-database:
+        condition: service_healthy
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  user-service-database:
+    image: mysql:8.0
+    container_name: user-service-database
+    restart: always
+    env_file:
+      - ./user-service/.env
+    volumes:
+      - user-service-database-data:/var/lib/mysql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "3307:3306"
+
+  company-service:
+    build: ./company-service
+    container_name: company-service
+    restart: always
+    env_file:
+      - ./company-service/.env
+    depends_on:
+      company-service-database:
+        condition: service_healthy
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  company-service-database:
+    image: mysql:8.0
+    container_name: company-service-database
+    restart: always
+    env_file:
+      - ./company-service/.env
+    volumes:
+      - company-service-database-data:/var/lib/mysql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "3308:3306"
+
+volumes:
+  authentication-service-database-data:
+  user-service-database-data: 
+  company-service-database-data:
+
+networks:
+  app-network:
+    driver: bridge

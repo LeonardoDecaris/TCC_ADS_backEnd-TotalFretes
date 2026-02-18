@@ -1,16 +1,67 @@
 # Microserviço de Autenticação
 
-Microserviço responsável por autenticação, emissão de tokens JWT e autorização por roles (caminhoneiro/usuário, empresa, admin). Outros microserviços (ex.: Caminhoneiro, Empresa) podem validar o token via HTTP.
+Microserviço responsável por credenciais, login e emissão de JWT. As credenciais ficam centralizadas aqui (não no `user-service` e `company-service`).
+
+## Modelo de dados
+
+### `ACCOUNTS`
+
+- `id`
+- `email` (unique)
+- `password` (hash bcrypt)
+- `account_type_id` (FK → `ACCOUNT_TYPES`)
+- `subject_id` (id da entidade de negócio: USER/COMPANY)
+- `status_id` (FK → `ACCOUNT_STATUS_TYPES`)
+- `created_at`
+- `updated_at`
+- `userUpdate_at`
+
+### `ACCOUNT_TYPES`
+
+- `id`
+- `name` (`USER`, `COMPANY`, `ADMIN`)
+- `created_at`
+- `updated_at`
+- `userUpdate_at`
+
+### `ACCOUNT_STATUS_TYPES`
+
+- `id`
+- `name` (`ACTIVE`, `BLOCKED`, `DISABLED`)
+- `created_at`
+- `updated_at`
+- `userUpdate_at`
+
+> Na inicialização, o serviço garante automaticamente os registros padrão de tipo e status.
 
 ## Endpoints
 
 ### `POST /auth/login`
 
-Login com CPF e senha. Retorna um token JWT contendo `id` e `role`.
+Login com `email` e `password`. Retorna JWT com:
+
+- `id`: `subject_id` (id do usuário/empresa no respectivo microserviço)
+- `role`: `usuario` | `empresa` | `admin`
 
 ### `POST /auth/register`
 
-Registro de usuário (delega para o serviço de usuário configurado em `USER_SERVICE_URL`).
+Cria conta de autenticação.
+
+Payload mínimo:
+
+```json
+{
+  "email": "user@dominio.com",
+  "password": "123456",
+  "subject_id": 10,
+  "account_type": "USER"
+}
+```
+
+Campos opcionais:
+
+- `status`/`status_name` (`ACTIVE`, `BLOCKED`, `DISABLED`) — padrão: `ACTIVE`
+- `account_type_id` e `status_id` (alternativa aos nomes)
 
 ### `GET /auth/verify-token`
 
@@ -89,7 +140,7 @@ Health check para load balancer e orquestração.
 
 ---
 
-## Roles
+## Roles no token
 
 | Role      | Uso na regra de negócio |
 |-----------|--------------------------|

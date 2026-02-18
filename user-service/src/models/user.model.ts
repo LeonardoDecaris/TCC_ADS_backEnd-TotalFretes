@@ -3,22 +3,22 @@ import sequelize from '../config/database';
 import CnhType from './cnh.model';
 
 export class User extends Model {
-	id?: number;
-	name?: string;
-	email?: string;
-	birthDate?: Date;
-	phoneNumber?: string;
-	cpf?: string;
-	sex?: string;
-	useGlasses?: boolean;
-	isDeficient?: boolean;
-	cnhNumber?: string;
-	cnhType_id?: number;  // Foreign key to CnhType
-	vehicleType_id?: number;  // Foreign key to VehicleType (from vehicle-service)
-	userImage_id?: number;  // Foreign key to UserImage (from image-service)
-	created_at?: Date;
-	updated_at?: Date;
-	userUpdate_at?: Date;
+	id: number | undefined;
+	name: string | undefined;
+	email: string | undefined;
+	birthDate: Date | undefined;
+	phoneNumber: string | undefined;
+	cpf: string | undefined;
+	sex: string | undefined;
+	useGlasses: boolean | undefined;
+	isDeficient: boolean | undefined;
+	cnhNumber: string | undefined;
+	cnhType_id: number | undefined;
+	vehicleType_id: number | undefined;
+	userImage_id: number | undefined;
+	created_at: Date | undefined;
+	updated_at: Date | undefined;
+	userUpdate_at: Date | undefined;
 }
 
 User.init({
