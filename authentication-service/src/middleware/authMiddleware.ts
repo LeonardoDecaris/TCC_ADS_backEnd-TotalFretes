@@ -1,12 +1,12 @@
 import { NextFunction, Request, Response } from "express";
-import { verifyToken } from "../utils/jwt";
+import { verifyToken, type JwtRole } from "../utils/jwt";
 
 declare global {
   namespace Express {
     interface Request {
       user?: {
         id: number;
-        role: 'usuario' | 'empresa' | 'admin';
+        role: JwtRole;
       };
     }
   }
@@ -33,7 +33,7 @@ export const authMiddleware = (
   try {
     const decoded = verifyToken(token) as {
       id?: number;
-      role?: 'usuario' | 'empresa' | 'admin';
+      role?: JwtRole;
       [key: string]: any;
     };
 
@@ -55,7 +55,7 @@ export const authMiddleware = (
   }
 };
 
-type Role = 'usuario' | 'empresa' | 'admin';
+type Role = JwtRole;
 
 /*
  * @description: Permite que o usuário seja admin ou tenha um dos roles permitidos
@@ -68,7 +68,7 @@ export const authorizeRoles = (...allowedRoles: Role[]) => {
 
     const { role } = req.user;
 
-    if (role === 'admin') {
+    if (role === 'ADMIN') {
       return next();
     }
 
@@ -92,11 +92,11 @@ export const allowOwnerOrRoles = (...allowedRoles: Role[]) => {
     const { id, role } = req.user;
     const paramId = Number(req.params.id);
 
-    if (allowedRoles.includes(role) || role === 'admin') {
+    if (allowedRoles.includes(role) || role === 'ADMIN') {
       return next();
     }
 
-    if (role === 'usuario' && id === paramId) {
+    if (id === paramId) {
       return next();
     }
 

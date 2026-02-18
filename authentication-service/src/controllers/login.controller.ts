@@ -1,81 +1,89 @@
-import { Request, Response } from "express";
-import axios from "axios";
-import UserModel from "../models/authentication.model";
-import { generateToken, verifyToken } from "../utils/jwt";
+import bcrypt from 'bcrypt';
+import { Request, Response } from 'express';
+import { Account } from '../models/accounts.model';
+import AccountType from '../models/accounts_types.model';
+import { generateToken, verifyToken, type JwtRole } from '../utils/jwt';
+
+const normalizeRole = (name?: string): 'USER' | 'COMPANY' | 'ADMIN' => {
+  const normalized = (name || '').trim().toUpperCase();
+  if (normalized === 'COMPANY' || normalized === 'EMPRESA') return 'COMPANY';
+  if (normalized === 'ADMIN' || normalized === 'ADMINISTRADOR') return 'ADMIN';
+  return 'USER';
+};
 
 export const login = async (req: Request, res: Response) => {
-	try {
-		const { email, password } = req.body as { email?: string; password?: string };
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
 
-		const emailNorm = email?.trim();
+    const account = await Account.findOne({
+      where: { email },
+      include: [{ model: AccountType, attributes: ['name'] }],
+    });
 
-		if (!emailNorm) {
-			return res.status(400).json({ message: "Email é obrigatório" });
-		}
+    if (!account) {
+      return res.status(404).json({ message: 'Account not found' });
+    }
 
-		if (!password) {
-			return res.status(400).json({ message: "Senha é obrigatória" });
-		}
+    const validPassword = await bcrypt.compare(password, account.password || '');
+    if (!validPassword) {
+      return res.status(401).json({ message: 'Invalid password' });
+    }
 
-		const user = await UserModel.findOne({ where: { email: emailNorm } });
-		if (!user) {
-			return res.status(400).json({ message: "Email incorreto" });
-		}
+    const accountType = account.AccountType?.name;
+    const role = normalizeRole(accountType);
 
-		const isValidPassword = await user.validatePassword(password);
-		if (!isValidPassword) {
-			return res.status(400).json({ message: "Senha incorreta" });
-		}
+    const token = generateToken({
+      id: String(account.subject_id),
+      role,
+    });
 
-		const role = user.role!;
-		const token = generateToken({ id: String(user.id!), role });
-		return res.status(200).json({ message: "Login realizado com sucesso", token });
-	} catch (error) {
-		console.error(error);
-		return res.status(500).json({ message: "Erro interno do servidor" });
-	}
+    return res.status(200).json({
+      message: 'Login successful',
+      token,
+      user: {
+        id: account.subject_id,
+        role,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Error logging in', error });
+  }
 };
 
-export const register = async (req: Request, res: Response) => {
-	try {
-		const userServiceUrl = process.env.USER_SERVICE_URL;
+export const validateToken = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization?.trim();
+    const bodyToken = req.body?.token;
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : bodyToken;
 
-		if (!userServiceUrl) {
-			return res.status(500).json({
-				message: "USER_SERVICE_URL configuration not found",
-			});
-		}
+    if (!token) {
+      return res.status(401).json({ valid: false, message: 'Token inválido ou ausente.' });
+    }
 
-		const endpoint = `${userServiceUrl.replace(/\/$/, "")}/SingUpUser`;
-		const response = await axios.post(endpoint, req.body, {
-			headers: {
-				"Content-Type": "application/json",
-			},
-		});
+    const decoded = verifyToken(token) as { id?: number | string; role?: JwtRole };
+    if (!decoded?.id || !decoded?.role) {
+      return res.status(401).json({ valid: false, message: 'Token inválido ou expirado.' });
+    }
 
-		return res.status(response.status).json(response.data);
-	} catch (error: any) {
-		if (axios.isAxiosError(error) && error.response) {
-			return res.status(error.response.status).json(error.response.data);
-		}
-
-		console.error(error);
-		return res.status(500).json({
-			message: "Error to register user in user service",
-		});
-	}
+    return res.status(200).json({
+      valid: true,
+      user: {
+        id: Number(decoded.id),
+        role: decoded.role,
+      },
+    });
+  } catch (error) {
+    return res.status(401).json({
+      valid: false,
+      message: 'Token inválido ou expirado.',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
 };
 
-export const verifyAuthToken = async (req: Request, res: Response) => {
-	try {
-		const token = req.headers.authorization?.split(" ")[1];
-		if (!token) {
-			return res.status(401).json({ message: "Token not provided" });
-		}
-		const decoded = verifyToken(token);
-		return res.status(200).json({ message: "Token valid", valid: true, user: decoded });
-	} catch (error) {
-		console.error(error);
-		return res.status(401).json({ message: "Token invalid" });
-	}
+export const verifyTokenHandler = async (req: Request, res: Response) => {
+  return res.status(200).json({ user: req.user });
 };

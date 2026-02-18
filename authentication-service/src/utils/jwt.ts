@@ -10,7 +10,7 @@ if (!JWT_SECRET) {
   throw new Error("JWT_SECRET não foi configurado");
 }
 
-export type JwtRole = 'usuario' | 'empresa' | 'admin';
+export type JwtRole = 'USER' | 'COMPANY' | 'ADMIN';
 
 export const generateToken = (user: { id: string; role: JwtRole }): string => {
   const payload = { id: user.id, role: user.role };

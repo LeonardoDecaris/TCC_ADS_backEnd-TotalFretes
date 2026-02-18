@@ -1,6 +1,7 @@
 import app from './app';
 import dotenv from 'dotenv';
 import sequelize from './config/database';
+import { seedAccountTypes } from './config/seedAccountTypes';
 
 dotenv.config();
 
@@ -15,6 +16,8 @@ if (!PORT) {
     console.log('Database authenticated successfully');
     await sequelize.sync({ alter: false });
     console.log('Database synchronized successfully');
+    await seedAccountTypes();
+    console.log('Account types verified successfully');
     app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
   } catch (err) {
     console.error('error to start the server:', err);

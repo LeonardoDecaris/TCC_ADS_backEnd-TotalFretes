@@ -74,7 +74,7 @@ Company.init({
 	},	
 }, {
 	sequelize,
-	tableName: 'Company',
+	tableName: 'company',
 	timestamps: true,
 });
 

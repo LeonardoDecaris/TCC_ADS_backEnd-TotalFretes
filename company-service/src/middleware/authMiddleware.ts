@@ -96,7 +96,7 @@ export const allowOwnerOrRoles = (...allowedRoles: Role[]) => {
       return next();
     }
 
-    if (role === 'usuario' && id === paramId) {
+    if (id === paramId) {
       return next();
     }
 

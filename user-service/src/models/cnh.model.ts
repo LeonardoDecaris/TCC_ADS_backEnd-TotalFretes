@@ -2,13 +2,12 @@ import { Model, DataTypes } from 'sequelize';
 import sequelize from '../config/database';
 
 class CnhType extends Model {
-    id?: number;
-    name?: string;
-    shortName?: string;
-    description?: string;
-    createdAt?: Date;
-    updatedAt?: Date;
-    userUpdateAt?: Date;
+    id: number | undefined;
+    name: string | undefined;
+    description: string | undefined;
+    createdAt: Date | undefined;
+    updatedAt: Date | undefined;
+    userUpdateAt: Date | undefined;
 }
 
 CnhType.init({
@@ -18,10 +17,6 @@ CnhType.init({
         primaryKey: true,
     },
     name: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-    shortName: {
         type: DataTypes.STRING,
         allowNull: false,
     },
