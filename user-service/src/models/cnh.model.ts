@@ -5,9 +5,6 @@ class CnhType extends Model {
     id: number | undefined;
     name: string | undefined;
     description: string | undefined;
-    createdAt: Date | undefined;
-    updatedAt: Date | undefined;
-    userUpdateAt: Date | undefined;
 }
 
 CnhType.init({
@@ -23,19 +20,7 @@ CnhType.init({
     description: {
         type: DataTypes.STRING,
         allowNull: false,
-    },
-    createdAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
-    },
-    updatedAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
-    },
-    userUpdateAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
-    },
+    }
 }, {
     sequelize,
     tableName: 'cnh_types',

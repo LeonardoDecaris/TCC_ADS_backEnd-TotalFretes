@@ -12,9 +12,6 @@ export class Company extends Model {
 	company_image_id?: number;
 	vehicleType_id?: number;
 	companyAddress_id?: number;
-	created_at?: Date;
-	updated_at?: Date;
-	userUpdate_at?: Date;
 }
 
 Company.init({
@@ -56,22 +53,7 @@ Company.init({
 	companyAddress_id: {
 		type: DataTypes.INTEGER,
 		allowNull: false,
-	},
-	created_at: {
-		type: DataTypes.DATE,
-		allowNull: false,
-		defaultValue: DataTypes.NOW,
-	},
-	updated_at: {
-		type: DataTypes.DATE,
-		allowNull: false,
-		defaultValue: DataTypes.NOW,
-	},
-	userUpdate_at: {
-		type: DataTypes.DATE,
-		allowNull: false,
-		defaultValue: DataTypes.NOW,
-	},	
+	}
 }, {
 	sequelize,
 	tableName: 'company',

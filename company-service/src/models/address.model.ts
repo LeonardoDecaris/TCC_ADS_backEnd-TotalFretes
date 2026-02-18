@@ -1,16 +1,3 @@
-// - COMPANY_ADDRESS:
-// 	– id
-// 	– cep
-// – street
-// – district
-// – number
-// – city
-// – state
-// – created_at
-// – updated_at
-// – userUpdate_at
-
-
 import { Model, DataTypes } from 'sequelize';
 import sequelize from '../config/database';
 
@@ -22,9 +9,6 @@ class CompanyAddress extends Model {
     number?: string;
     city?: string;
     state?: string;
-    createdAt?: Date;
-    updatedAt?: Date;
-    userUpdateAt?: Date;
 }
 
 CompanyAddress.init({
@@ -56,19 +40,7 @@ CompanyAddress.init({
     state: {
         type: DataTypes.STRING,
         allowNull: false,
-    },
-    createdAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
-    },
-    updatedAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
-    },
-    userUpdateAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
-    },
+    }
 }, {
     sequelize,
     tableName: 'company_addresses',

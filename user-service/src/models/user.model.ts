@@ -16,9 +16,6 @@ export class User extends Model {
 	cnhType_id: number | undefined;
 	vehicleType_id: number | undefined;
 	userImage_id: number | undefined;
-	created_at: Date | undefined;
-	updated_at: Date | undefined;
-	userUpdate_at: Date | undefined;
 }
 
 User.init({
@@ -72,24 +69,12 @@ User.init({
 	},
 	vehicleType_id: {
 		type: DataTypes.INTEGER,
-		allowNull: false,
+		allowNull: true,
 	},
 	userImage_id: {
 		type: DataTypes.INTEGER,
-		allowNull: false,
-	},
-	created_at: {
-		type: DataTypes.DATE,
-		allowNull: false,
-	},
-	updated_at: {
-		type: DataTypes.DATE,
-		allowNull: false,
-	},
-	userUpdate_at: {
-		type: DataTypes.DATE,
-		allowNull: false,
-	},
+		allowNull: true,
+	}
 }, {
 	sequelize,
 	tableName: 'users',

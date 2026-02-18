@@ -8,9 +8,6 @@ export class Account extends Model {
 	password?: string;
 	account_type_id?: number;
 	subject_id?: number;
-	created_at?: Date;
-	updated_at?: Date;
-	userUpdate_at?: Date;
 
 	AccountType?: NonAttribute<AccountType>;
 }
@@ -38,25 +35,10 @@ Account.init({
 		type: DataTypes.INTEGER,
 		allowNull: false,
 	},
-	created_at: {
-		type: DataTypes.DATE,
-		allowNull: false,
-		defaultValue: DataTypes.NOW,
-	},
-	updated_at: {
-		type: DataTypes.DATE,
-		allowNull: false,
-		defaultValue: DataTypes.NOW,
-	},
-	userUpdate_at: {
-		type: DataTypes.DATE,
-		allowNull: false,
-		defaultValue: DataTypes.NOW,
-	},
 }, {
 	sequelize,
 	tableName: 'accounts',
-	timestamps: false,
+	timestamps: true,
 });
 
 Account.belongsTo(AccountType, { foreignKey: 'account_type_id' });

@@ -11,8 +11,13 @@ export const apiDocs = {
             'application/json': {
               schema: {
                 type: 'object',
-                required: ['email', 'password'],
-                properties: { email: { type: 'string' }, password: { type: 'string' } },
+                required: ['email', 'password', 'account_type_id', 'subject_id'],
+                properties: {
+                  email: { type: 'string', },
+                  password: { type: 'string' },
+                  account_type_id: {type: 'number'},
+                  subject_id: {type: 'number'}
+                },
               },
             },
           },
