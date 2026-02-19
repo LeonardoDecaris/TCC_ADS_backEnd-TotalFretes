@@ -17,6 +17,7 @@ const resolveAccountTypeId = async (accountTypeId?: number, accountType?: string
 };
 
 export const createAccount = async (req: Request, res: Response) => {
+  console.log('Received createAccount request with body:', req.body);
   try {
     const { email, password, account_type_id, account_type, subject_id } = req.body;
 
@@ -36,10 +37,10 @@ export const createAccount = async (req: Request, res: Response) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const account = await Account.create({
-      email,
+      email: email,
       password: hashedPassword,
       account_type_id: accountTypeId,
-      subject_id,
+      subject_id: subject_id,
     });
 
     const response = {
