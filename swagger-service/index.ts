@@ -43,14 +43,29 @@ const fetchSwaggerSpecs = async (): Promise<{ name: string; spec: any }[]> => {
   return specs;
 };
 
-app.get('/docs', async (req: Request, res: Response) => {
+app.get('/docs', async (_req: Request, res: Response) => {
   const specs = await fetchSwaggerSpecs();
+
   const swaggerDocument: any = {
     openapi: '3.0.0',
     info: {
       title: 'Centralized API Documentation',
       version: '1.0.0',
     },
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
+      },
+    },
+    security: [
+      {
+        bearerAuth: [],
+      },
+    ],
     paths: {},
   };
 
@@ -59,11 +74,17 @@ app.get('/docs', async (req: Request, res: Response) => {
     swaggerDocument.paths = { ...swaggerDocument.paths, ...paths };
   });
 
-  res.setHeader('Content-Type', 'application/json');
-  res.send(swaggerDocument);
+  res.json(swaggerDocument);
 });
 
-app.use('/swagger-ui', swaggerUi.serve, swaggerUi.setup(null, { swaggerUrl: '/docs' }));
+
+app.use(
+  '/swagger-ui',
+  swaggerUi.serve,
+  swaggerUi.setup(undefined, {
+    swaggerUrl: '/docs',
+  })
+);
 
 app.get('/health', (_req, res) => res.status(200).send('ok'));
 

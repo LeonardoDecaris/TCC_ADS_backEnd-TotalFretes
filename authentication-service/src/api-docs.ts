@@ -11,12 +11,10 @@ export const apiDocs = {
             'application/json': {
               schema: {
                 type: 'object',
-                required: ['email', 'password', 'account_type_id', 'subject_id'],
+                required: ['email', 'password',],
                 properties: {
                   email: { type: 'string', },
                   password: { type: 'string' },
-                  account_type_id: {type: 'number'},
-                  subject_id: {type: 'number'}
                 },
               },
             },
@@ -70,6 +68,7 @@ export const apiDocs = {
                   email: { type: 'string' },
                   password: { type: 'string' },
                   account_type_id: { type: 'integer' },
+                  subject_id: { type: 'integer' },
                 },
               },
             },

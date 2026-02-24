@@ -3,20 +3,17 @@
         {
             "name": "authentication-service",
             "path": "./authentication-service"
-        }
-    ],
-    "folders": [
+        },
         {
             "name": "user-service",
             "path": "./user-service"
-        }
-    ],  
-    "folders": [
+        },
         {
-            "name": "vehicle-service",
-            "path": "./vehicle-service"
+            "name": "company-service",
+            "path": "./company-service"
         }
     ],
+   
     "settings": {
         "files.exclude": {
             "**/node_modules": true,
