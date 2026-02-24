@@ -43,6 +43,35 @@ Login com `email` e `password`. Retorna JWT com:
 - `id`: `subject_id` (id do usuário/empresa no respectivo microserviço)
 - `role`: `usuario` | `empresa` | `admin`
 
+### `POST /auth/forgot-password`
+
+Recebe `email`, verifica se existe conta, gera um código numérico de redefinição (6 dígitos), salva com expiração de 15 minutos e envia para o e-mail informado.
+
+Payload:
+
+```json
+{
+  "email": "user@dominio.com"
+}
+```
+
+Response `200`:
+
+```json
+{
+  "message": "Password reset code sent successfully",
+  "expires_in_minutes": 15
+}
+```
+
+Response `404`:
+
+```json
+{
+  "message": "Account not found for this email"
+}
+```
+
 ### `POST /auth/register`
 
 Cria conta de autenticação.
