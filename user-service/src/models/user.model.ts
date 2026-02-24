@@ -34,7 +34,7 @@ User.init({
 		unique: true,
 	},
 	birthDate: {
-		type: DataTypes. DATEONLY,
+		type: DataTypes.STRING,
 		allowNull: false,
 	},
 	phoneNumber: {
