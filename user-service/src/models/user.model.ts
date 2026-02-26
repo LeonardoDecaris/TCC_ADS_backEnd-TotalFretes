@@ -6,7 +6,7 @@ export class User extends Model {
 	id: number | undefined;
 	name: string | undefined;
 	email: string | undefined;
-	birthDate: Date | undefined;
+	birthDate: string | undefined;
 	phoneNumber: string | undefined;
 	cpf: string | undefined;
 	sex: string | undefined;
