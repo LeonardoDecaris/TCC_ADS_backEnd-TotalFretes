@@ -2,10 +2,12 @@ FROM node:22-slim AS build
 
 WORKDIR /app
 
-COPY src /app/src
 COPY package.json /app
 COPY tsconfig.json /app
+
 RUN npm install
+
+COPY src /app/src
 
 EXPOSE 3000
 

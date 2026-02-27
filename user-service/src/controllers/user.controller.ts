@@ -1,8 +1,9 @@
+import axios from "axios";
 import { Request, Response } from "express";
+
 import User from "../models/user.model";
-import { createUserSchema } from "../schemas/user.schemas";
-import z from "zod";
 import CnhType from "../models/cnh.model";
+
 
 export const createUser = async (req: Request, res: Response) => {
 	try {
@@ -77,20 +78,17 @@ const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
 export const createUserEndAccount = async (req: Request, res: Response) => {
 	try {
 		const user = await User.create(req.body);
-		const authResponse = await fetch(`${AUTH_SERVICE_URL}/account`, {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({
-				email: req.body.email,
-				password: req.body.password,
-				subject_id: user.id,
-				account_type_id: req.body.account_type_id,
-			}),
+
+		const respondeAccount = await axios.post(`${AUTH_SERVICE_URL}/auth/account`, {
+			email: user.email,
+			password: req.body.password,
+			subject_id: user.id,
+			account_type_id: 1
 		});
 
-		if (!authResponse.ok) {
+		if(!respondeAccount.data.ok) {
 			await user.destroy();
-			return res.status(502).json({ message: "Usuário criado, mas falhou ao criar conta no serviço de autenticação" });
+			return res.status(500).json({ message: "Erro ao criar conta de usuário" });
 		}
 
 		return res.status(201).json({ message: "Usuário e conta criados com sucesso", user });
