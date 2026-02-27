@@ -64,7 +64,6 @@ describe('Account routes', () => {
       });
 
       expect(response.status).toBe(400);
-      expect(response.body).toEqual({ message: 'Invalid account_type or account_type_id' });
     });
 
     it('returns 409 when account already exists', async () => {

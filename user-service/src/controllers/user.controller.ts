@@ -1,9 +1,10 @@
 import axios from "axios";
-import { Request, Response } from "express";
 
 import User from "../models/user.model";
 import CnhType from "../models/cnh.model";
+import { Request, Response } from "express";
 
+const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
 
 export const createUser = async (req: Request, res: Response) => {
 	try {
@@ -28,6 +29,7 @@ export const getUserById = async (req: Request, res: Response) => {
 		if (!user) {
 			return res.status(404).json({ message: "Usuário não encontrado" });
 		}
+		
 		return res.status(200).json(user);
 	} catch (error) {
 		console.error(error);
@@ -37,7 +39,13 @@ export const getUserById = async (req: Request, res: Response) => {
 
 export const getAllUsers = async (req: Request, res: Response) => {
 	try {
-		const user = await User.findAll();
+		const user = await User.findAll({
+			include: [{
+				model: CnhType,
+				attributes: ['id', 'name']
+			}],
+		});
+
 		return res.status(200).json(user);
 	} catch (error) {
 		console.error(error);
@@ -48,9 +56,11 @@ export const getAllUsers = async (req: Request, res: Response) => {
 export const updateUser = async (req: Request, res: Response) => {
 	try {
 		const user = await User.findByPk(req.params.id as string);
+
 		if (!user) {
 			return res.status(404).json({ message: "Usuário não encontrado" });
 		}
+		
 		await user.update(req.body);
 		return res.status(200).json({ message: "Usuário atualizado com sucesso", user });
 	} catch (error) {
@@ -62,9 +72,11 @@ export const updateUser = async (req: Request, res: Response) => {
 export const deleteUser = async (req: Request, res: Response) => {
 	try {
 		const user = await User.findByPk(req.params.id as string);
+
 		if (!user) {
 			return res.status(404).json({ message: "Usuário não encontrado" });
 		}
+
 		await user.destroy();
 		return res.status(200).json({ message: "Usuário deletado com sucesso" });
 	} catch (error) {
@@ -72,8 +84,6 @@ export const deleteUser = async (req: Request, res: Response) => {
 		return res.status(500).json({ message: "Erro ao deletar usuário" });
 	}
 };
-
-const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
 
 export const createUserEndAccount = async (req: Request, res: Response) => {
 	try {
