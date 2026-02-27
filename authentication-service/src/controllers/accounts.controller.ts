@@ -17,17 +17,13 @@ const resolveAccountTypeId = async (accountTypeId?: number, accountType?: string
 };
 
 export const createAccount = async (req: Request, res: Response) => {
-  console.log('Received createAccount request with body:', req.body);
   try {
     const { email, password, account_type_id, account_type, subject_id } = req.body;
-
-    if (!email || !password || !subject_id) {
-      return res.status(400).json({ message: 'Missing required fields' });
-    }
-
     const accountTypeId = await resolveAccountTypeId(account_type_id, account_type);
-    if (!accountTypeId) {
-      return res.status(400).json({ message: 'Invalid account_type or account_type_id' });
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    if (!email || !password || !subject_id || !accountTypeId) {
+      return res.status(400).json({ message: 'Missing required fields' });
     }
 
     const existingAccount = await Account.findOne({ where: { email } });
@@ -35,7 +31,6 @@ export const createAccount = async (req: Request, res: Response) => {
       return res.status(409).json({ message: 'Account already exists for this email' });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
     const account = await Account.create({
       email: email,
       password: hashedPassword,
@@ -43,14 +38,7 @@ export const createAccount = async (req: Request, res: Response) => {
       subject_id: subject_id,
     });
 
-    const response = {
-      id: account.id,
-      email: account.email,
-      account_type_id: account.account_type_id,
-      subject_id: account.subject_id,
-    };
-
-    return res.status(201).json(response);
+    return res.status(201).json(account);
   } catch (error) {
     return res.status(500).json({ message: 'Error creating account', error });
   }
@@ -58,14 +46,12 @@ export const createAccount = async (req: Request, res: Response) => {
 
 export const getAccountById = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    const account = await Account.findByPk(id as string, {
-      include: [{ model: AccountType, attributes: ['id', 'name'] }],
-      attributes: { exclude: ['password'] },
-    });
+    const account = await Account.findByPk(req.params.id as string);
+
     if (!account) {
       return res.status(404).json({ message: 'Account not found' });
     }
+
     return res.status(200).json(account);
   } catch (error) {
     return res.status(500).json({ message: 'Error getting account', error });
@@ -74,10 +60,7 @@ export const getAccountById = async (req: Request, res: Response) => {
 
 export const getAccountTypes = async (_req: Request, res: Response) => {
   try {
-    const types = await AccountType.findAll({
-      attributes: ['id', 'name'],
-      order: [['id', 'ASC']],
-    });
+    const types = await AccountType.findAll();
     return res.status(200).json(types);
   } catch (error) {
     return res.status(500).json({ message: 'Error getting account types', error });
@@ -86,8 +69,8 @@ export const getAccountTypes = async (_req: Request, res: Response) => {
 
 export const deleteAccount = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    const account = await Account.findByPk(id as string);
+    const account = await Account.findByPk(req.params.id as string);
+    
     if (!account) {
       return res.status(404).json({ message: 'Account not found' });
     }

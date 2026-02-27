@@ -11,6 +11,14 @@
         {
             "name": "company-service",
             "path": "./company-service"
+        },
+        {
+            "name": "email-management-service",
+            "path": "./email-management-service"
+        },
+        {
+            "name": "Swagger-service",
+            "path": "./swagger-service"
         }
     ],
    
