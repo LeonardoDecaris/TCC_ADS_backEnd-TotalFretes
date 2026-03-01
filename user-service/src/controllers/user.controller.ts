@@ -2,9 +2,19 @@ import axios from "axios";
 
 import User from "../models/user.model";
 import CnhType from "../models/cnh.model";
-import { Request, Response } from "express";
+import { translateError } from "../utils/i18n";
 
-const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
+const getLocaleFromRequest = (req: Request): string => {
+    const xLocale = req.headers["x-locale"];
+    if (typeof xLocale === "string" && xLocale.trim()) return xLocale;
+
+    const acceptLanguage = req.headers["accept-language"];
+    if (typeof acceptLanguage === "string" && acceptLanguage.trim()) {
+        return acceptLanguage.split(",")[0].trim();
+    }
+
+    return "pt-BR";
+};
 
 export const createUser = async (req: Request, res: Response) => {
 	try {

@@ -27,7 +27,12 @@
         {
             "name": "nginx",
             "path": "./nginx"
+        },
+        {
+            "name": "i18n-translation-service",
+            "path": "./i18n-translation-service"
         }
+
     ],
    
     "settings": {
