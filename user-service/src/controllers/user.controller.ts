@@ -3,6 +3,19 @@ import User from "../models/user.model";
 import { createUserSchema } from "../schemas/user.schemas";
 import z from "zod";
 import CnhType from "../models/cnh.model";
+import { translateError } from "../utils/i18n";
+
+const getLocaleFromRequest = (req: Request): string => {
+    const xLocale = req.headers["x-locale"];
+    if (typeof xLocale === "string" && xLocale.trim()) return xLocale;
+
+    const acceptLanguage = req.headers["accept-language"];
+    if (typeof acceptLanguage === "string" && acceptLanguage.trim()) {
+        return acceptLanguage.split(",")[0].trim();
+    }
+
+    return "pt-BR";
+};
 
 export const createUser = async (req: Request, res: Response) => {
 	try {

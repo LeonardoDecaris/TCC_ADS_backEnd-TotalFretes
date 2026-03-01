@@ -11,7 +11,12 @@
         {
             "name": "company-service",
             "path": "./company-service"
+        },
+        {
+            "name": "i18n-translation-service",
+            "path": "./i18n-translation-service"
         }
+
     ],
    
     "settings": {

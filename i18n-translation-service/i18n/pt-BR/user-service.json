@@ -1,0 +1,11 @@
+{
+  "USER_ALREADY_EXISTS": "Usuário já existe.",
+  "USER_CREATE_FAILED": "Erro ao criar usuário.",
+  "USER_NOT_FOUND": "Usuário não encontrado.",
+  "USER_FETCH_FAILED": "Erro ao buscar usuário.",
+  "USERS_FETCH_FAILED": "Erro ao buscar usuários.",
+  "USER_UPDATE_FAILED": "Erro ao atualizar usuário.",
+  "USER_DELETE_FAILED": "Erro ao deletar usuário.",
+  "USER_ACCOUNT_CREATE_FAILED": "Usuário criado, mas falhou ao criar conta no serviço de autenticação.",
+  "USER_END_ACCOUNT_CREATE_FAILED": "Erro ao criar usuário e conta."
+}
