@@ -36,7 +36,7 @@ app.post('/enviar-codigo', async (req: Request, res: Response): Promise<any> => 
 
   try {
     const mailOptions = {
-      from: `"Suporte do Aplicativo" <${process.env.SMTP_USER}>`,
+      from: `"Suporte do TotalFretes" <${process.env.SMTP_USER}>`,
       to: email,
       subject: 'Código de Recuperação de Senha',
       html: `
@@ -53,9 +53,9 @@ app.post('/enviar-codigo', async (req: Request, res: Response): Promise<any> => 
 
     await transporter.sendMail(mailOptions);
     console.log(`✅ E-mail de recuperação enviado para: ${email}`);
-    
+
     return res.status(200).json({ sucesso: true, mensagem: 'E-mail enviado com sucesso!' });
-    
+
   } catch (error) {
     console.error('❌ Erro ao enviar e-mail pelo Nodemailer:', error);
     return res.status(500).json({ erro: 'Falha interna ao tentar enviar o e-mail.' });

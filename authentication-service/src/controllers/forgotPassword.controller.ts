@@ -100,3 +100,36 @@ export const resetPassword = async (req: Request, res: Response) => {
     return res.status(500).json({ message: 'Erro ao redefinir senha' });
   }
 };
+
+export const resendCode = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    if (!email || typeof email !== 'string') {
+      return res.status(400).json({ message: 'Email é obrigatório' });
+    }
+    const normalizedEmail = email.trim().toLowerCase();
+    const account = await Account.findOne({ where: { email: normalizedEmail } });
+    if (!account) {
+      return res.status(404).json({ message: 'Nenhuma conta encontrada com este email' });
+    }
+
+    const code = setResetCode(normalizedEmail);
+    try {
+      await
+        axios.post(`${EMAIL_MANAGEMENT_SERVICE_URL}/enviar-codigo`, {
+          email: normalizedEmail,
+          codigo: code,
+        });
+    } catch (error) {
+      console.error('Erro ao chamar email-management-service:', error);
+      return res.status(500).json({ message: 'Erro ao enviar email de redefinição' });
+    }
+    return res.status(200).json({
+      message: 'Se este email estiver cadastrado, você receberá instruções em breve.',
+    });
+  }
+  catch (error) {
+    console.error('resendCode error:', error);
+    return res.status(500).json({ message: 'Erro ao processar solicitação' });
+  }
+};
