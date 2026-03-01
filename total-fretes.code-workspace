@@ -19,6 +19,14 @@
         {
             "name": "Swagger-service",
             "path": "./swagger-service"
+        },
+        {
+            "name": "mapbox-service",
+            "path": "./mapbox-service"
+        },
+        {
+            "name": "nginx",
+            "path": "./nginx"
         }
     ],
    
