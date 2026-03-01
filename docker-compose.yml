@@ -119,6 +119,20 @@ services:
       timeout: 5s
       retries: 5
 
+  mapbox-service:
+    build: ./mapbox-service
+    container_name: mapbox-service
+    restart: always
+    env_file:
+      - ./mapbox-service/.env
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   swagger-service:
     build: ./swagger-service
     container_name: swagger-service

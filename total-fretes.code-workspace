@@ -13,6 +13,22 @@
             "path": "./company-service"
         },
         {
+            "name": "email-management-service",
+            "path": "./email-management-service"
+        },
+        {
+            "name": "Swagger-service",
+            "path": "./swagger-service"
+        },
+        {
+            "name": "mapbox-service",
+            "path": "./mapbox-service"
+        },
+        {
+            "name": "nginx",
+            "path": "./nginx"
+        },
+        {
             "name": "i18n-translation-service",
             "path": "./i18n-translation-service"
         }
