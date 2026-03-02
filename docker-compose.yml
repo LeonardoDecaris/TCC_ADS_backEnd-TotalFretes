@@ -105,6 +105,41 @@ services:
     ports:
       - "3308:3306"
 
+  storage-service:
+    build: ./storage-service
+    container_name: storage-service
+    restart: always
+    env_file:
+      - ./storage-service/.env
+    depends_on:
+      storage-service-database:
+        condition: service_healthy
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  storage-service-database:
+    image: mysql:8.0
+    container_name: storage-service-database
+    restart: always
+    env_file:
+      - ./storage-service/.env
+    volumes:
+      - storage-service-database-data:/var/lib/mysql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "3309:3306"
+
   email-management-service:
     build: ./email-management-service
     container_name: email-management-service
@@ -177,6 +212,7 @@ services:
       - authentication-service
       - user-service
       - company-service
+      - storage-service
       - i18n-translation-service
     volumes:
       - ./Nginx/nginx.conf:/etc/nginx/nginx.conf:ro
@@ -189,6 +225,7 @@ volumes:
   authentication-service-database-data:
   user-service-database-data: 
   company-service-database-data:
+  storage-service-database-data:
 
 networks:
   app-network:
