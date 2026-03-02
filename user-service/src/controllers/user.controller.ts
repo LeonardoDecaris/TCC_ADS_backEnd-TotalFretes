@@ -2,18 +2,21 @@ import axios from "axios";
 
 import User from "../models/user.model";
 import CnhType from "../models/cnh.model";
+import { Request, Response } from "express";
 import { translateError } from "../utils/i18n";
 
+const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || "";
+
 const getLocaleFromRequest = (req: Request): string => {
-    const xLocale = req.headers["x-locale"];
-    if (typeof xLocale === "string" && xLocale.trim()) return xLocale;
+	const xLocale = req.headers["x-locale"];
+	if (typeof xLocale === "string" && xLocale.trim()) return xLocale;
 
-    const acceptLanguage = req.headers["accept-language"];
-    if (typeof acceptLanguage === "string" && acceptLanguage.trim()) {
-        return acceptLanguage.split(",")[0].trim();
-    }
+	const acceptLanguage = req.headers["accept-language"];
+	if (typeof acceptLanguage === "string" && acceptLanguage.trim()) {
+		return acceptLanguage.split(",")[0].trim();
+	}
 
-    return "pt-BR";
+	return "pt-BR";
 };
 
 export const createUser = async (req: Request, res: Response) => {
@@ -39,7 +42,7 @@ export const getUserById = async (req: Request, res: Response) => {
 		if (!user) {
 			return res.status(404).json({ message: "Usuário não encontrado" });
 		}
-		
+
 		return res.status(200).json(user);
 	} catch (error) {
 		console.error(error);
@@ -63,6 +66,21 @@ export const getAllUsers = async (req: Request, res: Response) => {
 	}
 };
 
+export const pacheUser = async (req: Request, res: Response) => {
+	try {
+		const user = await User.findByPk(req.params.id as string);
+		if (!user) {
+			return res.status(404).json({ message: "Usuário não encontrado" });
+		}
+		await user.update(req.body);
+		return res.status(200).json({ message: "Usuário atualizado com sucesso", user });
+	}
+	catch (error) {
+		console.error(error);
+		return res.status(500).json({ message: "Erro ao atualizar usuário" });
+	}
+};
+
 export const updateUser = async (req: Request, res: Response) => {
 	try {
 		const user = await User.findByPk(req.params.id as string);
@@ -70,7 +88,7 @@ export const updateUser = async (req: Request, res: Response) => {
 		if (!user) {
 			return res.status(404).json({ message: "Usuário não encontrado" });
 		}
-		
+
 		await user.update(req.body);
 		return res.status(200).json({ message: "Usuário atualizado com sucesso", user });
 	} catch (error) {
@@ -106,7 +124,7 @@ export const createUserEndAccount = async (req: Request, res: Response) => {
 			account_type_id: 1
 		});
 
-		if(!respondeAccount.data.ok) {
+		if (!respondeAccount.data.ok) {
 			await user.destroy();
 			return res.status(500).json({ message: "Erro ao criar conta de usuário" });
 		}
