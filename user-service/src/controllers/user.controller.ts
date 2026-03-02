@@ -2,7 +2,7 @@ import axios from "axios";
 
 import User from "../models/user.model";
 import CnhType from "../models/cnh.model";
-import { translateError } from "../utils/i18n";
+import { translation } from "../utils/i18n";
 
 const getLocaleFromRequest = (req: Request): string => {
     const xLocale = req.headers["x-locale"];
