@@ -17,6 +17,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@julioakira/cpf-cnpj-utils": "^2.0.1",
     "axios": "^1.13.5",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
@@ -25,6 +26,8 @@
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.9.7",
     "sequelize": "^6.37.7",
+    "validation-br": "^1.6.4",
+    "validator": "^13.15.26",
     "zod": "^4.3.6"
   },
   "devDependencies": {
