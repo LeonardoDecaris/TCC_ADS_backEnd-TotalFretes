@@ -59,5 +59,5 @@ app.use((err: any, _req: any, res: any, _next: any) => {
   return res.status(500).json({ error: { code: "I18N_INTERNAL", message: "Internal error" } });
 });
 
-const port = process.env.PORT ? Number(process.env.PORT) : 8088;
+const port = process.env.PORT ? Number(process.env.PORT) : 3006;
 app.listen(port, () => console.log(`i18n-service listening on ${port}`));
