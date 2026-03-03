@@ -1,8 +1,7 @@
+import axios from 'axios';
 import bcrypt from 'bcrypt';
 import { Request, Response } from 'express';
 import Account from '../models/accounts.model';
-
-import axios from 'axios';
 import { generateResetToken, verifyResetToken } from '../utils/jwt';
 import { setResetCode, getAndConsumeResetCode } from '../store/resetCodes.store';
 
@@ -11,6 +10,7 @@ const EMAIL_MANAGEMENT_SERVICE_URL = process.env.EMAIL_MANAGEMENT_SERVICE_URL;
 export const forgotPassword = async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
+
     if (!email || typeof email !== 'string') {
       return res.status(400).json({ message: 'Email é obrigatório' });
     }

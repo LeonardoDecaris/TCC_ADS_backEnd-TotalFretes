@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import CompanyAddress from "../models/address.model";
 import { translation } from "../utils/i18n";
-import { tr } from "zod/locales";
 
 const getLocaleFromRequest = (req: Request): string => {
     const xLocale = req.headers["x-locale"];

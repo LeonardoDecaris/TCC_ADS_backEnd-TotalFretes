@@ -91,12 +91,13 @@ export const allowOwnerOrRoles = (...allowedRoles: Role[]) => {
 
     const { id, role } = req.user;
     const paramId = Number(req.params.id);
+    const userId = Number(id);
 
     if (allowedRoles.includes(role) || role === 'ADMIN') {
       return next();
     }
 
-    if (id === paramId) {
+    if (!Number.isNaN(userId) && !Number.isNaN(paramId) && userId === paramId) {
       return next();
     }
 

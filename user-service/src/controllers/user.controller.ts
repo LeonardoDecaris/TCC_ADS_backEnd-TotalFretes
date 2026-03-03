@@ -1,12 +1,11 @@
 import axios from "axios";
-import { Request, Response } from "express";
-
 import User from "../models/user.model";
 import CnhType from "../models/cnh.model";
+import { Request, Response } from "express";
 import { validateBody } from "../utils/validate";
 import { createUserSchema, updateUserSchema, createUserEndAccountSchema } from "../schemas/user.schemas";
 
-const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || "";
+const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
 
 export const createUser = async (req: Request, res: Response) => {
 	const body = validateBody(req, res, createUserSchema);
@@ -115,11 +114,15 @@ export const createUserEndAccount = async (req: Request, res: Response) => {
 	try {
 		const user = await User.create(body);
 
+		if(!user) {
+			return res.status(500).json({ message: "Erro ao criar usuário" });
+		}
+		
 		const respondeAccount = await axios.post(`${AUTH_SERVICE_URL}/auth/account`, {
 			email: body.email,
 			password: body.password,
 			subject_id: user.id,
-			account_type_id: 1,
+			account_type_id: body.account_type_id,
 		});
 
 		if (!respondeAccount.data.ok) {

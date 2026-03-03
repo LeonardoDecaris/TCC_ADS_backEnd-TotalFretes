@@ -6,7 +6,7 @@ declare global {
     interface Request {
       user?: {
         id: number;
-        role: 'usuario' | 'empresa' | 'admin';
+        role: 'USER' | 'COMPANY' | 'ADMIN';
       };
     }
   }
@@ -33,7 +33,7 @@ export const authMiddleware = (
   try {
     const decoded = verifyToken(token) as {
       id?: number;
-      role?: 'usuario' | 'empresa' | 'admin';
+      role?: 'USER' | 'COMPANY' | 'ADMIN';
       [key: string]: any;
     };
 
@@ -55,7 +55,7 @@ export const authMiddleware = (
   }
 };
 
-type Role = 'usuario' | 'empresa' | 'admin';
+type Role = 'USER' | 'COMPANY' | 'ADMIN';
 
 /*
  * @description: Permite que o usuário seja admin ou tenha um dos roles permitidos
@@ -68,7 +68,7 @@ export const authorizeRoles = (...allowedRoles: Role[]) => {
 
     const { role } = req.user;
 
-    if (role === 'admin') {
+    if (role === 'ADMIN') {
       return next();
     }
 
@@ -91,12 +91,13 @@ export const allowOwnerOrRoles = (...allowedRoles: Role[]) => {
 
     const { id, role } = req.user;
     const paramId = Number(req.params.id);
+    const userId = Number(id);
 
-    if (allowedRoles.includes(role) || role === 'admin') {
+    if (allowedRoles.includes(role) || role === 'ADMIN') {
       return next();
     }
 
-    if (id === paramId) {
+    if (!Number.isNaN(userId) && !Number.isNaN(paramId) && userId === paramId) {
       return next();
     }
 

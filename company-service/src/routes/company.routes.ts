@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.post('/', createCompany);
 router.get('/:id', authMiddleware, allowOwnerOrRoles(), getCompanyById); 
-router.get('/', authMiddleware, authorizeRoles('admin'), getAllCompanies);
+router.get('/', authMiddleware, authorizeRoles('ADMIN'), getAllCompanies);
 router.put('/:id', authMiddleware, allowOwnerOrRoles(), updateCompany);
 router.delete('/:id', authMiddleware, allowOwnerOrRoles(), deleteCompany);
 

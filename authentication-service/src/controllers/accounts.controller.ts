@@ -23,12 +23,12 @@ export const createAccount = async (req: Request, res: Response) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     if (!email || !password || !subject_id || !accountTypeId) {
-      return res.status(400).json({ message: 'Missing required fields' });
+      return res.status(400).json({ message: 'Missing required fields', ok: false });
     }
 
     const existingAccount = await Account.findOne({ where: { email } });
     if (existingAccount) {
-      return res.status(409).json({ message: 'Account already exists for this email' });
+      return res.status(409).json({ message: 'Account already exists for this email', ok: false });
     }
 
     const account = await Account.create({
@@ -38,9 +38,9 @@ export const createAccount = async (req: Request, res: Response) => {
       subject_id: subject_id,
     });
 
-    return res.status(201).json(account);
+    return res.status(201).json({account, ok: true });
   } catch (error) {
-    return res.status(500).json({ message: 'Error creating account', error });
+    return res.status(500).json({ message: 'Error creating account', error, ok: false });
   }
 };
 

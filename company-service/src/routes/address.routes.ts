@@ -4,10 +4,10 @@ import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
-router.post('/', authMiddleware, authorizeRoles('empresa'), createCompanyAddress);
-router.get('/', authMiddleware, authorizeRoles('empresa', 'admin'), getAllCompanyAddresses);
-router.get('/:id', authMiddleware, authorizeRoles('empresa', 'admin'), getCompanyAddressById);
-router.put('/:id', authMiddleware, authorizeRoles('empresa', 'admin'), updateCompanyAddress);
-router.delete('/:id', authMiddleware, authorizeRoles('empresa', 'admin'), deleteCompanyAddress);
+router.post('/', authMiddleware, authorizeRoles('COMPANY'), createCompanyAddress);
+router.get('/', authMiddleware, authorizeRoles('COMPANY', 'ADMIN'), getAllCompanyAddresses);
+router.get('/:id', authMiddleware, authorizeRoles('COMPANY', 'ADMIN'), getCompanyAddressById);
+router.put('/:id', authMiddleware, authorizeRoles('COMPANY', 'ADMIN'), updateCompanyAddress);
+router.delete('/:id', authMiddleware, authorizeRoles('COMPANY', 'ADMIN'), deleteCompanyAddress);
 
 export default router;
