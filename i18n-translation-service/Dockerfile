@@ -11,6 +11,6 @@ COPY i18n ./i18n
 
 RUN npm run build
 
-EXPOSE 8088
+EXPOSE 3006
 
 CMD ["npm", "start"]

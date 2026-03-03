@@ -9,6 +9,6 @@ RUN npm install
 
 COPY src /app/src
 
-EXPOSE 3000
+EXPOSE 3001
 
 CMD [ "npm", "run", "dev" ]

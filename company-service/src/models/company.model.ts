@@ -8,9 +8,9 @@ export class Company extends Model {
 	email?: string;
 	birthDate?: Date;
 	phoneNumber?: string;
+	website?: string;
 	cnpj?: string;
 	company_image_id?: number;
-	vehicleType_id?: number;
 	companyAddress_id?: number;
 }
 
@@ -29,13 +29,17 @@ Company.init({
 		allowNull: false,
 		unique: true,
 	},
-	birthDate: {
+	birthFundation: {
 		type: DataTypes.DATE,
 		allowNull: false,
 	},
 	phoneNumber: {
 		type: DataTypes.STRING,
-		allowNull: false,
+		allowNull: true,
+	},
+	website: {
+		type: DataTypes.STRING,
+		allowNull: true
 	},
 	cnpj: {
 		type: DataTypes.STRING,
@@ -44,15 +48,11 @@ Company.init({
 	},
 	company_image_id: {
 		type: DataTypes.INTEGER,
-		allowNull: false,
-	},
-	vehicleType_id: {
-		type: DataTypes.INTEGER,
-		allowNull: false,
+		allowNull: true,
 	},
 	companyAddress_id: {
 		type: DataTypes.INTEGER,
-		allowNull: false,
+		allowNull: true,
 	}
 }, {
 	sequelize,
