@@ -7,6 +7,6 @@ COPY package.json /app
 COPY tsconfig.json /app
 RUN npm install
 
-EXPOSE 3000
+EXPOSE 3007
 
 CMD [ "npm", "run", "dev" ]
