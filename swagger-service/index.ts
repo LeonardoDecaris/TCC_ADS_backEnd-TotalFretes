@@ -52,6 +52,16 @@ app.get('/docs', async (_req: Request, res: Response) => {
       title: 'Centralized API Documentation',
       version: '1.0.0',
     },
+    servers: [
+      {
+        url: '/api',
+        description: 'API Gateway (Nginx)',
+      },
+      {
+        url: '/',
+        description: 'Direct service access (dev)',
+      },
+    ],
     components: {
       securitySchemes: {
         bearerAuth: {
@@ -74,9 +84,22 @@ app.get('/docs', async (_req: Request, res: Response) => {
     swaggerDocument.paths = { ...swaggerDocument.paths, ...paths };
   });
 
+  // adiciona seletor de idioma no Authorize do Swagger UI
+  swaggerDocument.components ??= {};
+  swaggerDocument.components.securitySchemes ??= {};
+
+  swaggerDocument.components.securitySchemes.AcceptLanguage = {
+    type: 'apiKey',
+    in: 'header',
+    name: 'Accept-Language',
+    description: 'Idioma da resposta (ex: pt-BR, en)',
+  };
+
+  // mantém bearerAuth e habilita Accept-Language via Authorize
+  swaggerDocument.security = [{ bearerAuth: [] }, { AcceptLanguage: [] }];
+
   res.json(swaggerDocument);
 });
-
 
 app.use(
   '/swagger-ui',

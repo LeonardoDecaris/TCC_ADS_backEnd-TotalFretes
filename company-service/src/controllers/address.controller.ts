@@ -18,10 +18,10 @@ export const createCompanyAddress = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
 	try {
 		const companyAddress = await CompanyAddress.create(req.body);
-		return res.status(201).json({ message: translation("COMPANY_ADDRESS.CREATED_SUCCESSFULLY", locale), companyAddress });
+		return res.status(201).json({ message: await translation("COMPANY_ADDRESS.CREATED_SUCCESSFULLY", locale), companyAddress });
 	} catch (error) {
 		console.error(error);
-		return res.status(500).json({ message: translation("COMPANY_ADDRESS.CREATE_FAILED", locale) });
+		return res.status(500).json({ message: await translation("COMPANY_ADDRESS.CREATE_FAILED", locale) });
 	}
 };
 
@@ -32,7 +32,7 @@ export const getAllCompanyAddresses = async (req: Request, res: Response) => {
 		return res.status(200).json(companyAddresses);
 	} catch (error) {
 		console.error(error);
-		return res.status(500).json({ message: translation("COMPANY_ADDRESS.GET_ALL_FAILED", locale) });
+		return res.status(500).json({ message: await translation("COMPANY_ADDRESS.GET_ALL_FAILED", locale) });
 	}
 };
 
@@ -41,12 +41,12 @@ export const getCompanyAddressById = async (req: Request, res: Response) => {
 	try {
 		const companyAddress = await CompanyAddress.findByPk(req.params.id as string);
 		if (!companyAddress) {
-			return res.status(404).json({ message: translation("COMPANY_ADDRESS.NOT_FOUND", locale) });
+			return res.status(404).json({ message: await translation("COMPANY_ADDRESS.NOT_FOUND", locale) });
 		}
 		return res.status(200).json(companyAddress);
 	} catch (error) {
 		console.error(error);
-		return res.status(500).json({ message: translation("COMPANY_ADDRESS.GET_BY_ID_FAILED", locale) });
+		return res.status(500).json({ message: await translation("COMPANY_ADDRESS.GET_BY_ID_FAILED", locale) });
 	}
 };
 
@@ -55,13 +55,13 @@ export const updateCompanyAddress = async (req: Request, res: Response) => {
 	try {
 		const companyAddress = await CompanyAddress.findByPk(req.params.id as string);
 		if (!companyAddress) {
-			return res.status(404).json({ message: translation("COMPANY_ADDRESS.NOT_FOUND", locale) });
+			return res.status(404).json({ message: await translation("COMPANY_ADDRESS.NOT_FOUND", locale) });
 		}
 		await companyAddress.update(req.body);
-		return res.status(200).json({ message: translation("COMPANY_ADDRESS.UPDATED_SUCCESSFULLY", locale), companyAddress });
+		return res.status(200).json({ message: await translation("COMPANY_ADDRESS.UPDATED_SUCCESSFULLY", locale), companyAddress });
 	} catch (error) {
 		console.error(error);
-		return res.status(500).json({ message: translation("COMPANY_ADDRESS.UPDATE_FAILED", locale) });
+		return res.status(500).json({ message: await translation("COMPANY_ADDRESS.UPDATE_FAILED", locale) });
 	}
 };
 
@@ -70,12 +70,12 @@ export const deleteCompanyAddress = async (req: Request, res: Response) => {
 	try {
 		const companyAddress = await CompanyAddress.findByPk(req.params.id as string);
 		if (!companyAddress) {
-			return res.status(404).json({ message: translation("COMPANY_ADDRESS.NOT_FOUND", locale) });
+			return res.status(404).json({ message: await translation("COMPANY_ADDRESS.NOT_FOUND", locale) });
 		}
 		await companyAddress.destroy();
-		return res.status(200).json({ message: translation("COMPANY_ADDRESS.DELETED_SUCCESSFULLY", locale) });
+		return res.status(200).json({ message: await translation("COMPANY_ADDRESS.DELETED_SUCCESSFULLY", locale) });
 	} catch (error) {
 		console.error(error);
-		return res.status(500).json({ message: translation("COMPANY_ADDRESS.DELETE_FAILED", locale) });
+		return res.status(500).json({ message: await translation("COMPANY_ADDRESS.DELETE_FAILED", locale) });
 	}
 };
