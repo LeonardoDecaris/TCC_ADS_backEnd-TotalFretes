@@ -1,4 +1,15 @@
 {
+    "COMPANY": {
+        "CREATED_SUCCESSFULLY": "Empresa criada com sucesso.",
+        "CREATE_FAILED": "Erro ao criar empresa.",
+        "GET_ALL_FAILED": "Erro ao buscar empresas.",
+        "NOT_FOUND": "Empresa não encontrada.",
+        "GET_BY_ID_FAILED": "Erro ao buscar empresa.",
+        "UPDATED_SUCCESSFULLY": "Empresa atualizada com sucesso.",
+        "UPDATE_FAILED": "Erro ao atualizar empresa.",
+        "DELETED_SUCCESSFULLY": "Empresa deletada com sucesso.",
+        "DELETE_FAILED": "Erro ao deletar empresa."
+    },
     "COMPANY_ADDRESS": {
         "CREATED_SUCCESSFULLY": "Endereço da empresa criadoAAAAAAAAAAA com sucesso.",
         "CREATE_FAILED": "Erro ao criar endereço da empresaAAAAAAAAAAAAAAAAAAAAAA.",

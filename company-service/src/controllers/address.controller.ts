@@ -1,18 +1,7 @@
 import { Request, Response } from "express";
 import CompanyAddress from "../models/address.model";
 import { translation } from "../utils/i18n";
-
-const getLocaleFromRequest = (req: Request): string => {
-    const xLocale = req.headers["x-locale"];
-    if (typeof xLocale === "string" && xLocale.trim()) return xLocale;
-
-    const acceptLanguage = req.headers["accept-language"];
-    if (typeof acceptLanguage === "string" && acceptLanguage.trim()) {
-        return acceptLanguage.split(",")[0].trim();
-    }
-
-    return "pt-BR";
-};
+import { getLocaleFromRequest } from "../utils/locale";
 
 export const createCompanyAddress = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);

@@ -95,7 +95,29 @@ app.get('/docs', async (_req: Request, res: Response) => {
     description: 'Idioma da resposta (ex: pt-BR, en)',
   };
 
-  // mantém bearerAuth e habilita Accept-Language via Authorize
+  // garante que todos os endpoints possam usar o header de idioma
+  const httpMethods = ['get', 'post', 'put', 'patch', 'delete', 'options', 'head'];
+  Object.values(swaggerDocument.paths ?? {}).forEach((pathItem: any) => {
+    if (!pathItem || typeof pathItem !== 'object') return;
+
+    httpMethods.forEach((method) => {
+      const operation = pathItem[method];
+      if (!operation || typeof operation !== 'object') return;
+
+      const currentSecurity = Array.isArray(operation.security) ? operation.security : [];
+      const hasAcceptLanguage = currentSecurity.some(
+        (item: any) => item && typeof item === 'object' && 'AcceptLanguage' in item
+      );
+
+      if (!hasAcceptLanguage) {
+        currentSecurity.push({ AcceptLanguage: [] });
+      }
+
+      operation.security = currentSecurity;
+    });
+  });
+
+  // mantém bearerAuth como segurança global e adiciona Accept-Language
   swaggerDocument.security = [{ bearerAuth: [] }, { AcceptLanguage: [] }];
 
   res.json(swaggerDocument);
