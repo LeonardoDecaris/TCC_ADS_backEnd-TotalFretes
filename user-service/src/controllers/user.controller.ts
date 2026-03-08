@@ -4,23 +4,32 @@ import CnhType from "../models/cnh.model";
 import { Request, Response } from "express";
 import { validateBody } from "../utils/validate";
 import { createUserSchema, updateUserSchema, createUserEndAccountSchema } from "../schemas/user.schemas";
+import { translation } from "../utils/i18n";
+import { getLocaleFromRequest } from "../utils/locale";
 
 const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
 
 export const createUser = async (req: Request, res: Response) => {
-	const body = validateBody(req, res, createUserSchema);
+	const locale = getLocaleFromRequest(req);
+	const body = await validateBody(req, res, createUserSchema);
 	if (!body) return;
 
 	try {
 		const user = await User.create(body);
-		return res.status(201).json({ message: "Usuário criado com sucesso", user });
+		return res.status(201).json({
+			message: await translation("USER.CREATED_SUCCESSFULLY", locale),
+			user,
+		});
 	} catch (error) {
 		console.error(error);
-		return res.status(500).json({ message: "Erro ao criar usuário" });
+		return res.status(500).json({
+			message: await translation("USER.CREATE_FAILED", locale),
+		});
 	}
 };
 
 export const getUserById = async (req: Request, res: Response) => {
+	const locale = getLocaleFromRequest(req);
 	try {
 		const user = await User.findOne({
 			where: { id: req.params.id as string },
@@ -31,17 +40,22 @@ export const getUserById = async (req: Request, res: Response) => {
 		});
 
 		if (!user) {
-			return res.status(404).json({ message: "Usuário não encontrado" });
+			return res.status(404).json({
+				message: await translation("USER.NOT_FOUND", locale),
+			});
 		}
 
 		return res.status(200).json(user);
 	} catch (error) {
 		console.error(error);
-		return res.status(500).json({ message: "Erro ao buscar usuário" });
+		return res.status(500).json({
+			message: await translation("USER.GET_BY_ID_FAILED", locale),
+		});
 	}
 };
 
 export const getAllUsers = async (req: Request, res: Response) => {
+	const locale = getLocaleFromRequest(req);
 	try {
 		const user = await User.findAll({
 			include: [{
@@ -53,69 +67,97 @@ export const getAllUsers = async (req: Request, res: Response) => {
 		return res.status(200).json(user);
 	} catch (error) {
 		console.error(error);
-		return res.status(500).json({ message: "Erro ao buscar usuários" });
+		return res.status(500).json({
+			message: await translation("USER.GET_ALL_FAILED", locale),
+		});
 	}
 };
 
 export const pacheUser = async (req: Request, res: Response) => {
-	const body = validateBody(req, res, updateUserSchema);
+	const locale = getLocaleFromRequest(req);
+	const body = await validateBody(req, res, updateUserSchema);
 	if (!body) return;
 
 	try {
 		const user = await User.findByPk(req.params.id as string);
 		if (!user) {
-			return res.status(404).json({ message: "Usuário não encontrado" });
+			return res.status(404).json({
+				message: await translation("USER.NOT_FOUND", locale),
+			});
 		}
 		await user.update(body);
-		return res.status(200).json({ message: "Usuário atualizado com sucesso", user });
+		return res.status(200).json({
+			message: await translation("USER.UPDATED_SUCCESSFULLY", locale),
+			user,
+		});
 	} catch (error) {
 		console.error(error);
-		return res.status(500).json({ message: "Erro ao atualizar usuário" });
+		return res.status(500).json({
+			message: await translation("USER.UPDATE_FAILED", locale),
+		});
 	}
 };
 
 export const updateUser = async (req: Request, res: Response) => {
-	const body = validateBody(req, res, updateUserSchema);
+	const locale = getLocaleFromRequest(req);
+	const body = await validateBody(req, res, updateUserSchema);
 	if (!body) return;
 
 	try {
 		const user = await User.findByPk(req.params.id as string);
 		if (!user) {
-			return res.status(404).json({ message: "Usuário não encontrado" });
+			return res.status(404).json({
+				message: await translation("USER.NOT_FOUND", locale),
+			});
 		}
 		await user.update(body);
-		return res.status(200).json({ message: "Usuário atualizado com sucesso", user });
+		return res.status(200).json({
+			message: await translation("USER.UPDATED_SUCCESSFULLY", locale),
+			user,
+		});
 	} catch (error) {
 		console.error(error);
-		return res.status(500).json({ message: "Erro ao atualizar usuário" });
+		return res.status(500).json({
+			message: await translation("USER.UPDATE_FAILED", locale),
+		});
 	}
 };
 
 export const deleteUser = async (req: Request, res: Response) => {
+	const locale = getLocaleFromRequest(req);
 	try {
 		const user = await User.findByPk(req.params.id as string);
 
 		if (!user) {
-			return res.status(404).json({ message: "Usuário não encontrado" });
+			return res.status(404).json({
+				message: await translation("USER.NOT_FOUND", locale),
+			});
 		}
 
 		await user.destroy();
-		return res.status(200).json({ message: "Usuário deletado com sucesso" });
+		return res.status(200).json({
+			message: await translation("USER.DELETED_SUCCESSFULLY", locale),
+		});
 	} catch (error) {
 		console.error(error);
-		return res.status(500).json({ message: "Erro ao deletar usuário" });
+		return res.status(500).json({
+			message: await translation("USER.DELETE_FAILED", locale),
+		});
 	}
 };
 
 export const createUserEndAccount = async (req: Request, res: Response) => {
-	const body = validateBody(req, res, createUserEndAccountSchema);
+	const locale = getLocaleFromRequest(req);
+	const body = await validateBody(req, res, createUserEndAccountSchema);
 	if (!body) return;
 
 	try {
 		const user = await User.create(body);
 
 		if(!user) {
-			return res.status(500).json({ message: "Erro ao criar usuário" });
+			return res.status(500).json({
+				message: await translation("USER.CREATE_FAILED", locale),
+			});
 		}
 		
 		const respondeAccount = await axios.post(`${AUTH_SERVICE_URL}/auth/account`, {
@@ -127,12 +169,19 @@ export const createUserEndAccount = async (req: Request, res: Response) => {
 
 		if (!respondeAccount.data.ok) {
 			await user.destroy();
-			return res.status(500).json({ message: "Erro ao criar conta de usuário" });
+			return res.status(500).json({
+				message: await translation("USER.ACCOUNT_CREATE_FAILED", locale),
+			});
 		}
 
-		return res.status(201).json({ message: "Usuário e conta criados com sucesso", user });
+		return res.status(201).json({
+			message: await translation("USER.CREATED_WITH_ACCOUNT_SUCCESSFULLY", locale),
+			user,
+		});
 	} catch (error) {
 		console.error(error);
-		return res.status(500).json({ message: "Erro ao criar usuário" });
+		return res.status(500).json({
+			message: await translation("USER.CREATE_FAILED", locale),
+		});
 	}
 };

@@ -3,6 +3,8 @@ import { Request, Response } from 'express';
 import { Account } from '../models/accounts.model';
 import AccountType from '../models/accounts_types.model';
 import { generateToken, verifyToken, type JwtRole } from '../utils/jwt';
+import { translation } from '../utils/i18n';
+import { getLocaleFromRequest } from '../utils/locale';
 
 const normalizeRole = (name?: string): 'USER' | 'COMPANY' | 'ADMIN' => {
   const normalized = (name || '').trim().toUpperCase();
@@ -12,11 +14,14 @@ const normalizeRole = (name?: string): 'USER' | 'COMPANY' | 'ADMIN' => {
 };
 
 export const login = async (req: Request, res: Response) => {
+  const locale = getLocaleFromRequest(req);
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ message: 'Email and password are required' });
+      return res.status(400).json({
+        message: await translation('AUTH.EMAIL_AND_PASSWORD_REQUIRED', locale),
+      });
     }
 
     const account = await Account.findOne({
@@ -25,13 +30,17 @@ export const login = async (req: Request, res: Response) => {
     });
 
     if (!account) {
-      return res.status(404).json({ message: 'Account not found' });
+      return res.status(404).json({
+        message: await translation('ACCOUNT.NOT_FOUND', locale),
+      });
     }
 
     const validPassword = await bcrypt.compare(password, account.password || '');
 
     if (!validPassword) {
-      return res.status(401).json({ message: 'Invalid password' });
+      return res.status(401).json({
+        message: await translation('AUTH.INVALID_PASSWORD', locale),
+      });
     }
 
     const accountType = account.AccountType?.name;
@@ -43,7 +52,7 @@ export const login = async (req: Request, res: Response) => {
     });
 
     return res.status(200).json({
-      message: 'Login successful',
+      message: await translation('AUTH.LOGIN_SUCCESSFUL', locale),
       token,
       user: {
         id: account.subject_id,
@@ -51,23 +60,33 @@ export const login = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    return res.status(500).json({ message: 'Error logging in', error });
+    return res.status(500).json({
+      message: await translation('AUTH.LOGIN_FAILED', locale),
+      error,
+    });
   }
 };
 
 export const validateToken = async (req: Request, res: Response) => {
+  const locale = getLocaleFromRequest(req);
   try {
     const authHeader = req.headers.authorization?.trim();
     const bodyToken = req.body?.token;
     const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : bodyToken;
 
     if (!token) {
-      return res.status(401).json({ valid: false, message: 'Token inválido ou ausente.' });
+      return res.status(401).json({
+        valid: false,
+        message: await translation('AUTH.TOKEN_INVALID_OR_MISSING', locale),
+      });
     }
 
     const decoded = verifyToken(token) as { id?: number | string; role?: JwtRole };
     if (!decoded?.id || !decoded?.role) {
-      return res.status(401).json({ valid: false, message: 'Token inválido ou expirado.' });
+      return res.status(401).json({
+        valid: false,
+        message: await translation('AUTH.TOKEN_INVALID_OR_EXPIRED', locale),
+      });
     }
 
     return res.status(200).json({
@@ -80,7 +99,7 @@ export const validateToken = async (req: Request, res: Response) => {
   } catch (error) {
     return res.status(401).json({
       valid: false,
-      message: 'Token inválido ou expirado.',
+      message: await translation('AUTH.TOKEN_INVALID_OR_EXPIRED', locale),
       error: error instanceof Error ? error.message : 'Unknown error',
     });
   }

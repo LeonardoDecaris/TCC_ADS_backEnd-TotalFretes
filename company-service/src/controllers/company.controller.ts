@@ -2,11 +2,16 @@ import { Request, Response } from "express";
 import Company from "../models/company.model";
 import { translation } from "../utils/i18n";
 import { getLocaleFromRequest } from "../utils/locale";
+import { validateBody } from "../utils/validate";
+import { createCompanySchema, updateCompanySchema } from "../schemas/company.schemas";
 
 export const createCompany = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
+	const body = await validateBody(req, res, createCompanySchema);
+	if (!body) return;
+
 	try {
-		const company = await Company.create(req.body);
+		const company = await Company.create(body);
 		return res.status(201).json({
 			message: await translation("COMPANY.CREATED_SUCCESSFULLY", locale),
 			company,
@@ -52,6 +57,9 @@ export const getAllCompanies = async (req: Request, res: Response) => {
 
 export const updateCompany = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
+	const body = await validateBody(req, res, updateCompanySchema);
+	if (!body) return;
+
 	try {
 		const company = await Company.findByPk(req.params.id as string);
 		if (!company) {
@@ -59,7 +67,7 @@ export const updateCompany = async (req: Request, res: Response) => {
 				message: await translation("COMPANY.NOT_FOUND", locale),
 			});
 		}
-		await company.update(req.body);
+		await company.update(body);
 		return res.status(200).json({
 			message: await translation("COMPANY.UPDATED_SUCCESSFULLY", locale),
 			company,
@@ -92,4 +100,5 @@ export const deleteCompany = async (req: Request, res: Response) => {
 		});
 	}
 };
+
 

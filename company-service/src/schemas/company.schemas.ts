@@ -1,0 +1,73 @@
+import { z } from "zod";
+import validator from "validator";
+
+const nameSchema = z
+	.string()
+	.min(1, "VALIDATION.NAME_REQUIRED")
+	.refine((v) => v.length > 2, "VALIDATION.NAME_MIN_LENGTH");
+
+const emailSchema = z
+	.string()
+	.min(1, "VALIDATION.EMAIL_REQUIRED")
+	.refine((v) => validator.isEmail(v), "VALIDATION.EMAIL_INVALID");
+
+const birthFundationSchema = z
+	.string()
+	.min(1, "VALIDATION.BIRTH_FUNDATION_REQUIRED");
+
+const phoneNumberSchema = z
+	.string()
+	.min(1, "VALIDATION.PHONE_REQUIRED")
+	.refine(
+		(v) => validator.isMobilePhone(v, "pt-BR"),
+		"VALIDATION.PHONE_INVALID"
+	);
+
+const websiteSchema = z
+	.string()
+	.url("VALIDATION.WEBSITE_INVALID")
+	.optional()
+	.or(z.literal("").transform(() => undefined));
+
+const cnpjSchema = z
+	.string()
+	.min(1, "VALIDATION.CNPJ_REQUIRED")
+	.refine((v) => v.length >= 14, "VALIDATION.CNPJ_INVALID");
+
+const companyImageIdSchema = z
+	.number()
+	.int("VALIDATION.COMPANY_IMAGE_INT")
+	.positive("VALIDATION.COMPANY_IMAGE_POSITIVE")
+	.optional();
+
+const companyAddressIdSchema = z
+	.number()
+	.int("VALIDATION.COMPANY_ADDRESS_INT")
+	.positive("VALIDATION.COMPANY_ADDRESS_POSITIVE")
+	.optional();
+
+const baseCompanyFields = {
+	name: nameSchema,
+	email: emailSchema,
+	birthFundation: birthFundationSchema,
+	phoneNumber: phoneNumberSchema,
+	website: websiteSchema,
+	cnpj: cnpjSchema,
+	company_image_id: companyImageIdSchema,
+	companyAddress_id: companyAddressIdSchema,
+};
+
+export const createCompanySchema = z.object(baseCompanyFields);
+
+export const updateCompanySchema = z.object(baseCompanyFields).partial();
+
+export const createCompanyAddressSchema = z.object({
+	cep: z.string().min(1, "VALIDATION.CEP_REQUIRED"),
+	street: z.string().min(1, "VALIDATION.STREET_REQUIRED"),
+	district: z.string().min(1, "VALIDATION.DISTRICT_REQUIRED"),
+	number: z.string().min(1, "VALIDATION.NUMBER_REQUIRED"),
+	city: z.string().min(1, "VALIDATION.CITY_REQUIRED"),
+	state: z.string().min(1, "VALIDATION.STATE_REQUIRED"),
+});
+
+export const updateCompanyAddressSchema = createCompanyAddressSchema.partial();

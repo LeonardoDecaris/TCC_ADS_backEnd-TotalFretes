@@ -1,13 +1,8 @@
-import { Request, Response } from 'express';
-import { z } from 'zod';
-import { getLocaleFromRequest } from './locale';
-import { translation } from './i18n';
+import { Request, Response } from "express";
+import { z } from "zod";
+import { getLocaleFromRequest } from "./locale";
+import { translation } from "./i18n";
 
-/**
- * Valida o body da requisição contra um schema Zod.
- * Em sucesso: retorna os dados parseados (tipados).
- * Em falha: envia 400 com erros formatados e retorna undefined.
- */
 export async function validateBody<T>(
 	req: Request,
 	res: Response,
@@ -23,7 +18,7 @@ export async function validateBody<T>(
 	const fieldErrors = errors.fieldErrors as Record<string, string[] | undefined>;
 
 	const locale = getLocaleFromRequest(req);
-	const message = await translation('VALIDATION.ERROR', locale);
+	const message = await translation("VALIDATION.ERROR", locale);
 
 	const translatedDetails: Record<string, string[]> = {};
 	for (const [field, messages] of Object.entries(fieldErrors ?? {})) {
@@ -40,3 +35,4 @@ export async function validateBody<T>(
 
 	return undefined;
 }
+

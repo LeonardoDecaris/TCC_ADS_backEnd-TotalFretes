@@ -11,14 +11,37 @@
         "DELETE_FAILED": "Erro ao deletar empresa."
     },
     "COMPANY_ADDRESS": {
-        "CREATED_SUCCESSFULLY": "Endereço da empresa criadoAAAAAAAAAAA com sucesso.",
-        "CREATE_FAILED": "Erro ao criar endereço da empresaAAAAAAAAAAAAAAAAAAAAAA.",
-        "GET_ALL_FAILED": "Erro ao buscar endereços das emAAAAAAAAAAAesas.",
-        "NOT_FOUND": "Endereço da empresa não eAAAAAAAAAncontrado.",
-        "GET_BY_ID_FAILED": "Erro ao buscar endereçAAAAAAAAo da empresa.",
-        "UPDATED_SUCCESSFULLY": "Endereço da empresa atAAAAAAualizado com sucesso.",
-        "UPDATE_FAILED": "Erro ao atualizar endereAAAAAAAço da empresa.",
-        "DELETED_SUCCESSFULLY": "Endereço da empreAAAAAAAAAAAAsa deletado com sucesso.",
-        "DELETE_FAILED": "Erro ao deletar endereço AAAAAAAAda empresa."
+        "CREATED_SUCCESSFULLY": "Endereço da empresa criado com sucesso.",
+        "CREATE_FAILED": "Erro ao criar endereço da empresa.",
+        "GET_ALL_FAILED": "Erro ao buscar endereços das empresas.",
+        "NOT_FOUND": "Endereço da empresa não encontrado.",
+        "GET_BY_ID_FAILED": "Erro ao buscar endereço da empresa.",
+        "UPDATED_SUCCESSFULLY": "Endereço da empresa atualizado com sucesso.",
+        "UPDATE_FAILED": "Erro ao atualizar endereço da empresa.",
+        "DELETED_SUCCESSFULLY": "Endereço da empresa deletado com sucesso.",
+        "DELETE_FAILED": "Erro ao deletar endereço da empresa."
+    },
+    "VALIDATION": {
+        "ERROR": "Erro de validação",
+        "NAME_REQUIRED": "Nome é obrigatório",
+        "NAME_MIN_LENGTH": "Nome deve ter mais de 2 caracteres",
+        "EMAIL_REQUIRED": "Email é obrigatório",
+        "EMAIL_INVALID": "Email inválido",
+        "BIRTH_FUNDATION_REQUIRED": "Data de fundação é obrigatória",
+        "PHONE_REQUIRED": "Telefone é obrigatório",
+        "PHONE_INVALID": "Telefone celular inválido (use formato brasileiro)",
+        "WEBSITE_INVALID": "Website inválido",
+        "CNPJ_REQUIRED": "CNPJ é obrigatório",
+        "CNPJ_INVALID": "CNPJ inválido",
+        "COMPANY_IMAGE_INT": "Imagem da empresa deve ser um número inteiro",
+        "COMPANY_IMAGE_POSITIVE": "Imagem da empresa deve ser um ID válido",
+        "COMPANY_ADDRESS_INT": "Endereço da empresa deve ser um número inteiro",
+        "COMPANY_ADDRESS_POSITIVE": "Endereço da empresa deve ser um ID válido",
+        "CEP_REQUIRED": "CEP é obrigatório",
+        "STREET_REQUIRED": "Rua é obrigatória",
+        "DISTRICT_REQUIRED": "Bairro é obrigatório",
+        "NUMBER_REQUIRED": "Número é obrigatório",
+        "CITY_REQUIRED": "Cidade é obrigatória",
+        "STATE_REQUIRED": "Estado é obrigatório"
     }
 }
