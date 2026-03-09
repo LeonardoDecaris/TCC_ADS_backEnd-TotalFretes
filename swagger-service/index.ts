@@ -52,6 +52,16 @@ app.get('/docs', async (_req: Request, res: Response) => {
       title: 'Centralized API Documentation',
       version: '1.0.0',
     },
+    servers: [
+      {
+        url: '/api',
+        description: 'API Gateway (Nginx)',
+      },
+      {
+        url: '/',
+        description: 'Direct service access (dev)',
+      },
+    ],
     components: {
       securitySchemes: {
         bearerAuth: {
@@ -74,9 +84,44 @@ app.get('/docs', async (_req: Request, res: Response) => {
     swaggerDocument.paths = { ...swaggerDocument.paths, ...paths };
   });
 
+  // adiciona seletor de idioma no Authorize do Swagger UI
+  swaggerDocument.components ??= {};
+  swaggerDocument.components.securitySchemes ??= {};
+
+  swaggerDocument.components.securitySchemes.AcceptLanguage = {
+    type: 'apiKey',
+    in: 'header',
+    name: 'Accept-Language',
+    description: 'Idioma da resposta (ex: pt-BR, en)',
+  };
+
+  // garante que todos os endpoints possam usar o header de idioma
+  const httpMethods = ['get', 'post', 'put', 'patch', 'delete', 'options', 'head'];
+  Object.values(swaggerDocument.paths ?? {}).forEach((pathItem: any) => {
+    if (!pathItem || typeof pathItem !== 'object') return;
+
+    httpMethods.forEach((method) => {
+      const operation = pathItem[method];
+      if (!operation || typeof operation !== 'object') return;
+
+      const currentSecurity = Array.isArray(operation.security) ? operation.security : [];
+      const hasAcceptLanguage = currentSecurity.some(
+        (item: any) => item && typeof item === 'object' && 'AcceptLanguage' in item
+      );
+
+      if (!hasAcceptLanguage) {
+        currentSecurity.push({ AcceptLanguage: [] });
+      }
+
+      operation.security = currentSecurity;
+    });
+  });
+
+  // mantém bearerAuth como segurança global e adiciona Accept-Language
+  swaggerDocument.security = [{ bearerAuth: [] }, { AcceptLanguage: [] }];
+
   res.json(swaggerDocument);
 });
-
 
 app.use(
   '/swagger-ui',

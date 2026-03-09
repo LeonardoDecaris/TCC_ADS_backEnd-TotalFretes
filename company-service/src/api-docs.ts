@@ -78,15 +78,14 @@ export const apiDocs = {
             'application/json': {
               schema: {
                 type: 'object',
+                required: ['cep', 'street', 'district', 'number', 'city', 'state'],
                 properties: {
-                  company_id: { type: 'integer' },
+                  cep: { type: 'string' },
                   street: { type: 'string' },
+                  district: { type: 'string' },
                   number: { type: 'string' },
-                  complement: { type: 'string' },
-                  neighborhood: { type: 'string' },
                   city: { type: 'string' },
                   state: { type: 'string' },
-                  zip_code: { type: 'string' },
                 },
               },
             },
@@ -120,13 +119,12 @@ export const apiDocs = {
               schema: {
                 type: 'object',
                 properties: {
+                  cep: { type: 'string' },
                   street: { type: 'string' },
+                  district: { type: 'string' },
                   number: { type: 'string' },
-                  complement: { type: 'string' },
-                  neighborhood: { type: 'string' },
                   city: { type: 'string' },
                   state: { type: 'string' },
-                  zip_code: { type: 'string' },
                 },
               },
             },

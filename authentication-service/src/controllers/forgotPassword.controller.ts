@@ -4,22 +4,29 @@ import { Request, Response } from 'express';
 import Account from '../models/accounts.model';
 import { generateResetToken, verifyResetToken } from '../utils/jwt';
 import { setResetCode, getAndConsumeResetCode } from '../store/resetCodes.store';
+import { translation } from '../utils/i18n';
+import { getLocaleFromRequest } from '../utils/locale';
 
 const EMAIL_MANAGEMENT_SERVICE_URL = process.env.EMAIL_MANAGEMENT_SERVICE_URL;
 
 export const forgotPassword = async (req: Request, res: Response) => {
+  const locale = getLocaleFromRequest(req);
   try {
     const { email } = req.body;
 
     if (!email || typeof email !== 'string') {
-      return res.status(400).json({ message: 'Email é obrigatório' });
+      return res.status(400).json({
+        message: await translation('PASSWORD_RESET.EMAIL_REQUIRED', locale),
+      });
     }
 
     const normalizedEmail = email.trim().toLowerCase();
     const account = await Account.findOne({ where: { email: normalizedEmail } });
 
     if (!account) {
-      return res.status(404).json({ message: 'Nenhuma conta encontrada com este email' });
+      return res.status(404).json({
+        message: await translation('PASSWORD_RESET.ACCOUNT_NOT_FOUND_FOR_EMAIL', locale),
+      });
     }
 
     const code = setResetCode(normalizedEmail);
@@ -31,86 +38,115 @@ export const forgotPassword = async (req: Request, res: Response) => {
       });
     } catch (error) {
       console.error('Erro ao chamar email-management-service:', error);
-      return res.status(500).json({ message: 'Erro ao enviar email de redefinição' });
+      return res.status(500).json({
+        message: await translation('PASSWORD_RESET.SEND_EMAIL_FAILED', locale),
+      });
     }
 
     return res.status(200).json({
-      message: 'Se este email estiver cadastrado, você receberá instruções em breve.',
+      message: await translation('PASSWORD_RESET.REQUEST_ACCEPTED_GENERIC', locale),
     });
 
   } catch (error) {
     console.error('forgotPassword error:', error);
-    return res.status(500).json({ message: 'Erro ao processar solicitação' });
+    return res.status(500).json({
+      message: await translation('PASSWORD_RESET.PROCESS_REQUEST_FAILED', locale),
+    });
   }
 };
 
 export const validateResetCode = async (req: Request, res: Response) => {
+  const locale = getLocaleFromRequest(req);
   try {
     const { email, code } = req.body;
     if (!email || !code) {
-      return res.status(400).json({ message: 'Email e código são obrigatórios' });
+      return res.status(400).json({
+        message: await translation('PASSWORD_RESET.EMAIL_AND_CODE_REQUIRED', locale),
+      });
     }
 
     const isValid = getAndConsumeResetCode(email, code);
     if (!isValid) {
-      return res.status(400).json({ message: 'Código inválido ou expirado' });
+      return res.status(400).json({
+        message: await translation('PASSWORD_RESET.CODE_INVALID_OR_EXPIRED', locale),
+      });
     }
 
     const resetToken = generateResetToken({ email: email.trim().toLowerCase() });
 
     return res.status(200).json({
-      message: 'Código validado com sucesso',
+      message: await translation('PASSWORD_RESET.CODE_VALIDATED_SUCCESSFULLY', locale),
       resetToken,
     });
   } catch (error) {
     console.error('validateResetCode error:', error);
-    return res.status(500).json({ message: 'Erro ao validar código' });
+    return res.status(500).json({
+      message: await translation('PASSWORD_RESET.VALIDATION_FAILED', locale),
+    });
   }
 };
 
 export const resetPassword = async (req: Request, res: Response) => {
+  const locale = getLocaleFromRequest(req);
   try {
     const { resetToken, password } = req.body;
     if (!resetToken || !password) {
-      return res.status(400).json({ message: 'Token e nova senha são obrigatórios' });
+      return res.status(400).json({
+        message: await translation('PASSWORD_RESET.TOKEN_AND_PASSWORD_REQUIRED', locale),
+      });
     }
 
     if (typeof password !== 'string' || password.length < 8) {
-      return res.status(400).json({ message: 'Senha deve ter no mínimo 8 caracteres' });
+      return res.status(400).json({
+        message: await translation('PASSWORD_RESET.PASSWORD_MIN_LENGTH', locale),
+      });
     }
 
     let payload: { email: string };
     try {
       payload = verifyResetToken(resetToken);
     } catch {
-      return res.status(400).json({ message: 'Token inválido ou expirado' });
+      return res.status(400).json({
+        message: await translation('PASSWORD_RESET.TOKEN_INVALID_OR_EXPIRED', locale),
+      });
     }
 
     const account = await Account.findOne({ where: { email: payload.email } });
     if (!account) {
-      return res.status(404).json({ message: 'Conta não encontrada' });
+      return res.status(404).json({
+        message: await translation('PASSWORD_RESET.ACCOUNT_NOT_FOUND', locale),
+      });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     await account.update({ password: hashedPassword });
 
-    return res.status(200).json({ message: 'Senha alterada com sucesso' });
+    return res.status(200).json({
+      message: await translation('PASSWORD_RESET.PASSWORD_CHANGED_SUCCESSFULLY', locale),
+    });
   } catch (error) {
     console.error('resetPassword error:', error);
-    return res.status(500).json({ message: 'Erro ao redefinir senha' });
+    return res.status(500).json({
+      message: await translation('PASSWORD_RESET.RESET_FAILED', locale),
+    });
   }
 };
 
 export const resendCode = async (req: Request, res: Response) => {
+  const locale = getLocaleFromRequest(req);
   try {
     const { email } = req.body;
     if (!email || typeof email !== 'string') {
-      return res.status(400).json({ message: 'Email é obrigatório' });
+      return res.status(400).json({
+        message: await translation('PASSWORD_RESET.EMAIL_REQUIRED', locale),
+      });
     }
     const normalizedEmail = email.trim().toLowerCase();
     const account = await Account.findOne({ where: { email: normalizedEmail } });
     if (!account) {
-      return res.status(404).json({ message: 'Nenhuma conta encontrada com este email' });
+      return res.status(404).json({
+        message: await translation('PASSWORD_RESET.ACCOUNT_NOT_FOUND_FOR_EMAIL', locale),
+      });
     }
 
     const code = setResetCode(normalizedEmail);
@@ -122,14 +158,18 @@ export const resendCode = async (req: Request, res: Response) => {
         });
     } catch (error) {
       console.error('Erro ao chamar email-management-service:', error);
-      return res.status(500).json({ message: 'Erro ao enviar email de redefinição' });
+      return res.status(500).json({
+        message: await translation('PASSWORD_RESET.SEND_EMAIL_FAILED', locale),
+      });
     }
     return res.status(200).json({
-      message: 'Se este email estiver cadastrado, você receberá instruções em breve.',
+      message: await translation('PASSWORD_RESET.REQUEST_ACCEPTED_GENERIC', locale),
     });
   }
   catch (error) {
     console.error('resendCode error:', error);
-    return res.status(500).json({ message: 'Erro ao processar solicitação' });
+    return res.status(500).json({
+      message: await translation('PASSWORD_RESET.PROCESS_REQUEST_FAILED', locale),
+    });
   }
 };

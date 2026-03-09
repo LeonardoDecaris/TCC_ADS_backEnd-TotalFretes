@@ -1,0 +1,35 @@
+{
+  "ACCOUNT.MISSING_REQUIRED_FIELDS": "Campos obrigatórios ausentes.",
+  "ACCOUNT.ALREADY_EXISTS_FOR_EMAIL": "Já existe uma conta cadastrada para este email.",
+  "ACCOUNT.CREATED_SUCCESSFULLY": "Conta criada com sucesso.",
+  "ACCOUNT.CREATE_FAILED": "Erro ao criar conta.",
+  "ACCOUNT.NOT_FOUND": "Conta não encontrada.",
+  "ACCOUNT.GET_BY_ID_FAILED": "Erro ao buscar conta.",
+  "ACCOUNT_TYPE.GET_ALL_FAILED": "Erro ao buscar tipos de conta.",
+  "ACCOUNT.DELETED_SUCCESSFULLY": "Conta deletada com sucesso.",
+  "ACCOUNT.DELETE_FAILED": "Erro ao deletar conta.",
+
+  "AUTH.EMAIL_AND_PASSWORD_REQUIRED": "Email e senha são obrigatórios.",
+  "AUTH.INVALID_PASSWORD": "Senha inválida.",
+  "AUTH.LOGIN_SUCCESSFUL": "Login realizado com sucesso.",
+  "AUTH.LOGIN_FAILED": "Erro ao realizar login.",
+  "AUTH.TOKEN_INVALID_OR_MISSING": "Token inválido ou ausente.",
+  "AUTH.TOKEN_INVALID_OR_EXPIRED": "Token inválido ou expirado.",
+
+  "PASSWORD_RESET.EMAIL_REQUIRED": "Email é obrigatório.",
+  "PASSWORD_RESET.ACCOUNT_NOT_FOUND_FOR_EMAIL": "Nenhuma conta encontrada com este email.",
+  "PASSWORD_RESET.SEND_EMAIL_FAILED": "Erro ao enviar email de redefinição.",
+  "PASSWORD_RESET.REQUEST_ACCEPTED_GENERIC": "Se este email estiver cadastrado, você receberá instruções em breve.",
+  "PASSWORD_RESET.PROCESS_REQUEST_FAILED": "Erro ao processar solicitação.",
+  "PASSWORD_RESET.EMAIL_AND_CODE_REQUIRED": "Email e código são obrigatórios.",
+  "PASSWORD_RESET.CODE_INVALID_OR_EXPIRED": "Código inválido ou expirado.",
+  "PASSWORD_RESET.CODE_VALIDATED_SUCCESSFULLY": "Código validado com sucesso.",
+  "PASSWORD_RESET.VALIDATION_FAILED": "Erro ao validar código.",
+  "PASSWORD_RESET.TOKEN_AND_PASSWORD_REQUIRED": "Token e nova senha são obrigatórios.",
+  "PASSWORD_RESET.PASSWORD_MIN_LENGTH": "Senha deve ter no mínimo 8 caracteres.",
+  "PASSWORD_RESET.TOKEN_INVALID_OR_EXPIRED": "Token inválido ou expirado.",
+  "PASSWORD_RESET.ACCOUNT_NOT_FOUND": "Conta não encontrada.",
+  "PASSWORD_RESET.PASSWORD_CHANGED_SUCCESSFULLY": "Senha alterada com sucesso.",
+  "PASSWORD_RESET.RESET_FAILED": "Erro ao redefinir senha."
+}
+
