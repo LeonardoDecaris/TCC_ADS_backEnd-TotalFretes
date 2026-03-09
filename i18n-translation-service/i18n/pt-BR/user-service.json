@@ -26,6 +26,8 @@
   "VALIDATION.NAME_MIN_LENGTH": "Nome deve ter mais de 2 caracteres",
   "VALIDATION.EMAIL_REQUIRED": "Email é obrigatório",
   "VALIDATION.EMAIL_INVALID": "Email inválido",
+  "VALIDATION.BIRTHDATE_REQUIRED": "Data de nascimento é obrigatória",
+  "VALIDATION.BIRTHDATE_INVALID": "Data de nascimento inválida (use formato DDMMAAAA)",
   "VALIDATION.PHONE_REQUIRED": "Telefone é obrigatório",
   "VALIDATION.PHONE_INVALID": "Telefone celular inválido (use formato brasileiro)",
   "VALIDATION.CPF_REQUIRED": "CPF é obrigatório",

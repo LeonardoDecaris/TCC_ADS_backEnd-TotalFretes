@@ -2,7 +2,7 @@ import axios from "axios";
 import User from "../models/user.model";
 import CnhType from "../models/cnh.model";
 import { Request, Response } from "express";
-import { validateBody } from "../utils/validate";
+import { validateBody, validateParams, idParamSchema } from "../utils/validate";
 import { createUserSchema, updateUserSchema, createUserEndAccountSchema } from "../schemas/user.schemas";
 import { translation } from "../utils/i18n";
 import { getLocaleFromRequest } from "../utils/locale";
@@ -30,9 +30,12 @@ export const createUser = async (req: Request, res: Response) => {
 
 export const getUserById = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
+	const params = await validateParams(req, res, idParamSchema);
+	if (!params) return;
+
 	try {
 		const user = await User.findOne({
-			where: { id: req.params.id as string },
+			where: { id: params.id },
 			include: [{
 				model: CnhType,
 				attributes: ['id', 'name']
@@ -73,13 +76,15 @@ export const getAllUsers = async (req: Request, res: Response) => {
 	}
 };
 
-export const pacheUser = async (req: Request, res: Response) => {
+export const patchUser = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
+	const params = await validateParams(req, res, idParamSchema);
+	if (!params) return;
 	const body = await validateBody(req, res, updateUserSchema);
 	if (!body) return;
 
 	try {
-		const user = await User.findByPk(req.params.id as string);
+		const user = await User.findByPk(params.id);
 		if (!user) {
 			return res.status(404).json({
 				message: await translation("USER.NOT_FOUND", locale),
@@ -100,11 +105,13 @@ export const pacheUser = async (req: Request, res: Response) => {
 
 export const updateUser = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
+	const params = await validateParams(req, res, idParamSchema);
+	if (!params) return;
 	const body = await validateBody(req, res, updateUserSchema);
 	if (!body) return;
 
 	try {
-		const user = await User.findByPk(req.params.id as string);
+		const user = await User.findByPk(params.id);
 		if (!user) {
 			return res.status(404).json({
 				message: await translation("USER.NOT_FOUND", locale),
@@ -125,8 +132,11 @@ export const updateUser = async (req: Request, res: Response) => {
 
 export const deleteUser = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
+	const params = await validateParams(req, res, idParamSchema);
+	if (!params) return;
+
 	try {
-		const user = await User.findByPk(req.params.id as string);
+		const user = await User.findByPk(params.id);
 
 		if (!user) {
 			return res.status(404).json({
@@ -153,14 +163,8 @@ export const createUserEndAccount = async (req: Request, res: Response) => {
 
 	try {
 		const user = await User.create(body);
-
-		if(!user) {
-			return res.status(500).json({
-				message: await translation("USER.CREATE_FAILED", locale),
-			});
-		}
 		
-		const respondeAccount = await axios.post(`${AUTH_SERVICE_URL}/auth/account`, {
+		const respondeAccount = await axios.post(`${AUTH_SERVICE_URL}/account`, {
 			email: body.email,
 			password: body.password,
 			subject_id: user.id,

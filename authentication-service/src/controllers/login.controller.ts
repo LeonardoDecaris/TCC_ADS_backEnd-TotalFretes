@@ -88,7 +88,7 @@ export const validateToken = async (req: Request, res: Response) => {
         message: await translation('AUTH.TOKEN_INVALID_OR_EXPIRED', locale),
       });
     }
-
+    
     return res.status(200).json({
       valid: true,
       user: {

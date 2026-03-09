@@ -2,9 +2,12 @@ import { Request, Response } from 'express';
 import axios from 'axios';
 import { z } from 'zod';
 
-// Zod schema for validation
+// Zod schema for validation (coordenadasMotorista opcional = rota só origem → destino)
 const querySchema = z.object({
-  coordenadasMotorista: z.string().regex(/^[-+]?\d*\.\d+,[-+]?\d*\.\d+$/, 'Formato inválido para coordenadas (longitude,latitude)'),
+  coordenadasMotorista: z
+    .string()
+    .regex(/^[-+]?\d*\.\d+,[-+]?\d*\.\d+$/, 'Formato inválido para coordenadas (longitude,latitude)')
+    .optional(),
   moradaCarga: z.string(),
   moradaDestino: z.string(),
 });
@@ -57,31 +60,46 @@ export async function getMapBoxRoute(req: Request, res: Response) {
     // Validate query parameters
     const { coordenadasMotorista, moradaCarga, moradaDestino } = querySchema.parse(req.query);
 
-    // Convert addresses to coordinates
-    const motoristaCoords = coordenadasMotorista.split(',').map(Number) as [number, number];
     const cargaCoords = await getCoordinates(moradaCarga);
     const destinoCoords = await getCoordinates(moradaDestino);
 
-    // Get route from Mapbox Directions API
-    const routeData = await getRoute([motoristaCoords, cargaCoords, destinoCoords]);
+    let routeData: any;
+    if (coordenadasMotorista) {
+      // Rota em 3 pontos: motorista → carga → destino
+      const motoristaCoords = coordenadasMotorista.split(',').map(Number) as [number, number];
+      routeData = await getRoute([motoristaCoords, cargaCoords, destinoCoords]);
+    } else {
+      // Rota em 2 pontos: origem (carga) → destino (sem GPS do motorista)
+      routeData = await getRoute([cargaCoords, destinoCoords]);
+    }
 
-    // Extract and structure response data
-    const legs = routeData.routes[0].legs;
-    const response = {
-      distancia_total_km: routeData.routes[0].distance / 1000,
-      tempo_total_min: routeData.routes[0].duration / 60,
-      trecho_ate_carga: {
+    const route = routeData.routes[0];
+    const legs = route.legs;
+
+    const response: Record<string, unknown> = {
+      distancia_total_km: route.distance / 1000,
+      tempo_total_min: route.duration / 60,
+      coords_carga: cargaCoords,
+      coords_destino: destinoCoords,
+      geometria: route.geometry,
+    };
+
+    if (legs.length >= 2) {
+      response.trecho_ate_carga = {
         distancia_km: legs[0].distance / 1000,
         tempo_min: legs[0].duration / 60,
-      },
-      coords_carga: cargaCoords,
-      trecho_carga_ao_destino: {
+      };
+      response.trecho_carga_ao_destino = {
         distancia_km: legs[1].distance / 1000,
         tempo_min: legs[1].duration / 60,
-      },
-      coords_destino: destinoCoords,
-      geometria: routeData.routes[0].geometry,
-    };
+      };
+    } else if (legs.length === 1) {
+      response.trecho_ate_carga = null;
+      response.trecho_carga_ao_destino = {
+        distancia_km: legs[0].distance / 1000,
+        tempo_min: legs[0].duration / 60,
+      };
+    }
 
     res.json(response);
   } catch (error: any) {

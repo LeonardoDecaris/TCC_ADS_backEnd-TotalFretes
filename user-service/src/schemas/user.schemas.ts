@@ -2,15 +2,44 @@ import { z } from 'zod';
 import validator from 'validator';
 import { isCPF, isCNH } from 'validation-br';
 
+// ─── Primitivos reutilizáveis ────────────────────────────────────────────────
+
+const booleanFromInputSchema = z.preprocess((value) => {
+	if (typeof value === 'string') {
+		const normalized = value.trim().toLowerCase();
+		if (normalized === 'true' || normalized === '1') return true;
+		if (normalized === 'false' || normalized === '0') return false;
+	}
+	return value;
+}, z.boolean());
+
+
+const optionalPositiveNumberSchema = (invalidMessage: string) =>
+	z.preprocess(
+		(value) =>
+			value === '' || value === null || value === undefined ? undefined : value,
+		z.coerce
+			.number()
+			.positive(invalidMessage)
+			.optional()
+	);
+
+// ─── Schemas de campos ───────────────────────────────────────────────────────
+
 const nameSchema = z
 	.string()
 	.min(1, 'VALIDATION.NAME_REQUIRED')
-	.refine((v) => v.length > 2, 'VALIDATION.NAME_MIN_LENGTH');
+	.min(3, 'VALIDATION.NAME_MIN_LENGTH');
 
 const emailSchema = z
 	.string()
 	.min(1, 'VALIDATION.EMAIL_REQUIRED')
 	.refine((v) => validator.isEmail(v), 'VALIDATION.EMAIL_INVALID');
+
+const birthDateSchema = z
+	.string()
+	.min(1, 'VALIDATION.BIRTHDATE_REQUIRED')
+	.regex(/^\d{8}$/, 'VALIDATION.BIRTHDATE_INVALID');
 
 const phoneSchema = z
 	.string()
@@ -28,56 +57,53 @@ const cpfSchema = z
 const sexSchema = z
 	.string()
 	.min(1, 'VALIDATION.SEX_REQUIRED')
-	.refine((v) => ['M', 'F'].includes(v), 'VALIDATION.SEX_INVALID');
-
-const useGlassesSchema = z
-	.boolean()
-	.refine((v) => v === true, 'VALIDATION.USE_GLASSES_INVALID');
-
-const isDeficientSchema = z
-	.boolean()
-	.refine((v) => v === true, 'VALIDATION.IS_DEFICIENT_INVALID');
+	.refine((v): v is 'M' | 'F' => ['M', 'F'].includes(v), 'VALIDATION.SEX_INVALID');
 
 const cnhNumberSchema = z
 	.string()
 	.min(1, 'VALIDATION.CNH_NUMBER_REQUIRED')
 	.refine((v) => isCNH(v), 'VALIDATION.CNH_NUMBER_INVALID');
 
-const cnhTypeSchema = z
-	.number()
-	.min(1, 'VALIDATION.CNH_TYPE_REQUIRED')
-	.refine((v) => v > 0, 'VALIDATION.CNH_TYPE_INVALID');
 
-const vehicleTypeSchema = z
-	.number()
-	.min(1, 'VALIDATION.VEHICLE_TYPE_REQUIRED')
-	.refine((v) => v > 0, 'VALIDATION.VEHICLE_TYPE_INVALID');
+const cnhTypeSchema = z.coerce
+	.number({ error: 'VALIDATION.CNH_TYPE_REQUIRED' })
+	.positive('VALIDATION.CNH_TYPE_INVALID');
 
-const userImageSchema = z
-	.number()
-	.min(1, 'VALIDATION.USER_IMAGE_REQUIRED')
-	.refine((v) => v > 0, 'VALIDATION.USER_IMAGE_INVALID');
+const vehicleTypeSchema = optionalPositiveNumberSchema('VALIDATION.VEHICLE_TYPE_INVALID');
+
+const userImageSchema = optionalPositiveNumberSchema('VALIDATION.USER_IMAGE_INVALID');
+
+// ─── Campos base compartilhados ──────────────────────────────────────────────
 
 const baseUserFields = {
 	name: nameSchema,
 	email: emailSchema,
+	birthDate: birthDateSchema,
 	phoneNumber: phoneSchema,
 	cpf: cpfSchema,
 	sex: sexSchema,
-	useGlasses: useGlassesSchema,
-	isDeficient: isDeficientSchema,
+	useGlasses: booleanFromInputSchema,
+	isDeficient: booleanFromInputSchema,
 	cnhNumber: cnhNumberSchema,
 	cnhType_id: cnhTypeSchema,
 	vehicleType_id: vehicleTypeSchema,
 	userImage_id: userImageSchema,
-};
+} as const;
+
+// ─── Schemas exportados ──────────────────────────────────────────────────────
 
 export const createUserSchema = z.object(baseUserFields);
 
-export const updateUserSchema = z.object(baseUserFields);
+export const updateUserSchema = z.object(baseUserFields).partial();
 
 export const createUserEndAccountSchema = z.object({
 	...baseUserFields,
 	password: z.string().min(1, 'VALIDATION.PASSWORD_REQUIRED'),
-	account_type_id: z.number(),
+	account_type_id: z.coerce.number().positive('VALIDATION.ACCOUNT_TYPE_INVALID'),
 });
+
+// ─── Tipos inferidos ─────────────────────────────────────────────────────────
+
+export type CreateUserInput = z.infer<typeof createUserSchema>;
+export type UpdateUserInput = z.infer<typeof updateUserSchema>;
+export type CreateUserEndAccountInput = z.infer<typeof createUserEndAccountSchema>;
