@@ -21,7 +21,6 @@ GroupVehicleType.init({
 	cnhType_id: {
 		type: DataTypes.INTEGER,
 		allowNull: false,
-		unique: true,
 	},
 }, {
 	sequelize,

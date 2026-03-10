@@ -25,7 +25,6 @@ Vehicle.init({
 	chassisNumber: {
 		type: DataTypes.STRING,
 		allowNull: false,
-		unique: true,
 	},
 	city: {
 		type: DataTypes.STRING,
@@ -34,12 +33,10 @@ Vehicle.init({
 	stateUF: {
 		type: DataTypes.STRING,
 		allowNull: false,
-		unique: true,
 	},
 	country: {
 		type: DataTypes.STRING,
 		allowNull: false,
-		unique: true,
 	},
 	vehicleType_id: {
 		type: DataTypes.INTEGER,

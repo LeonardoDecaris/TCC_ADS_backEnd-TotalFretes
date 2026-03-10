@@ -12,10 +12,10 @@ const positiveOptionalId = (invalidMessage: string) =>
 
 export const createVehicleTypeSchema = z.object({
 	nome: z.string().min(1, 'VALIDATION.NOME_REQUIRED'),
-	axes: z.string().min(1, 'VALIDATION.AXES_REQUIRED'),
-	weight: z.string().min(1, 'VALIDATION.WEIGHT_REQUIRED'),
-	capacityWeight: z.string().min(1, 'VALIDATION.CAPACITY_WEIGHT_REQUIRED'),
-	length: z.string().min(1, 'VALIDATION.LENGTH_REQUIRED'),
+	axes: z.number().positive('VALIDATION.AXES_REQUIRED'),
+	weight: z.number().positive('VALIDATION.WEIGHT_REQUIRED'),
+	capacityWeight: z.number().positive('VALIDATION.CAPACITY_WEIGHT_REQUIRED'),
+	length: z.number().positive('VALIDATION.LENGTH_REQUIRED'),
 	imageVehicle_id: positiveOptionalId('VALIDATION.IMAGE_VEHICLE_INVALID'),
 	groupVehicleType_id: positiveOptionalId('VALIDATION.GROUP_VEHICLE_TYPE_INVALID'),
 });

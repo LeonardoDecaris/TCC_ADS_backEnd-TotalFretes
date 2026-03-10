@@ -18,9 +18,11 @@ export const createVehicleType = async (req: Request, res: Response) => {
 			vehicleType,
 		});
 	} catch (error) {
-		console.error(error);
+		const err = error as Error;
+		console.error("[VehicleType.create]", err?.message ?? err);
 		return res.status(500).json({
 			message: await translation("VEHICLE_TYPE.CREATE_FAILED", locale),
+			...(process.env.NODE_ENV !== "production" && err?.message && { detail: err.message }),
 		});
 	}
 };

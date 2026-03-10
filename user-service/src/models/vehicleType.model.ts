@@ -24,23 +24,20 @@ VehicleType.init({
 		allowNull: false,
 	},
 	axes: {
-		type: DataTypes.STRING,
+		type: DataTypes.INTEGER,
 		allowNull: false,
-		unique: true,
 	},
 	weight: {
-		type: DataTypes.STRING,
+		type: DataTypes.INTEGER,
 		allowNull: false,
 	},
 	capacityWeight: {
-		type: DataTypes.STRING,
+		type: DataTypes.INTEGER,
 		allowNull: false,
-		unique: true,
 	},
 	length: {
-		type: DataTypes.STRING,
+		type: DataTypes.INTEGER,
 		allowNull: false,
-		unique: true,
 	},
 	imageVehicle_id: {
 		type: DataTypes.INTEGER,
