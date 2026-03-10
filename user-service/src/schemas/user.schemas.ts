@@ -39,7 +39,11 @@ const emailSchema = z
 const birthDateSchema = z
 	.string()
 	.min(1, 'VALIDATION.BIRTHDATE_REQUIRED')
-	.regex(/^\d{8}$/, 'VALIDATION.BIRTHDATE_INVALID');
+	// aceita "DDMMAAAA" ou "DD-MM-AAAA" (remove hífens antes de validar)
+	.refine(
+		(v) => /^\d{8}$/.test(v.replace(/-/g, '')),
+		'VALIDATION.BIRTHDATE_INVALID'
+	);
 
 const phoneSchema = z
 	.string()

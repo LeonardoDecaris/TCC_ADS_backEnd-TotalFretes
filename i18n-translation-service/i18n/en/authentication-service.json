@@ -1,35 +1,40 @@
 {
-  "ACCOUNT.MISSING_REQUIRED_FIELDS": "Missing required fields.",
-  "ACCOUNT.ALREADY_EXISTS_FOR_EMAIL": "An account already exists for this email.",
-  "ACCOUNT.CREATED_SUCCESSFULLY": "Account created successfully.",
-  "ACCOUNT.CREATE_FAILED": "Error creating account.",
-  "ACCOUNT.NOT_FOUND": "Account not found.",
-  "ACCOUNT.GET_BY_ID_FAILED": "Error getting account.",
-  "ACCOUNT_TYPE.GET_ALL_FAILED": "Error getting account types.",
-  "ACCOUNT.DELETED_SUCCESSFULLY": "Account deleted successfully.",
-  "ACCOUNT.DELETE_FAILED": "Error deleting account.",
-
-  "AUTH.EMAIL_AND_PASSWORD_REQUIRED": "Email and password are required.",
-  "AUTH.INVALID_PASSWORD": "Invalid password.",
-  "AUTH.LOGIN_SUCCESSFUL": "Login successful.",
-  "AUTH.LOGIN_FAILED": "Error logging in.",
-  "AUTH.TOKEN_INVALID_OR_MISSING": "Invalid or missing token.",
-  "AUTH.TOKEN_INVALID_OR_EXPIRED": "Invalid or expired token.",
-
-  "PASSWORD_RESET.EMAIL_REQUIRED": "Email is required.",
-  "PASSWORD_RESET.ACCOUNT_NOT_FOUND_FOR_EMAIL": "No account found with this email.",
-  "PASSWORD_RESET.SEND_EMAIL_FAILED": "Error sending reset email.",
-  "PASSWORD_RESET.REQUEST_ACCEPTED_GENERIC": "If this email is registered, you will receive instructions shortly.",
-  "PASSWORD_RESET.PROCESS_REQUEST_FAILED": "Error processing request.",
-  "PASSWORD_RESET.EMAIL_AND_CODE_REQUIRED": "Email and code are required.",
-  "PASSWORD_RESET.CODE_INVALID_OR_EXPIRED": "Invalid or expired code.",
-  "PASSWORD_RESET.CODE_VALIDATED_SUCCESSFULLY": "Code successfully validated.",
-  "PASSWORD_RESET.VALIDATION_FAILED": "Error validating code.",
-  "PASSWORD_RESET.TOKEN_AND_PASSWORD_REQUIRED": "Token and new password are required.",
-  "PASSWORD_RESET.PASSWORD_MIN_LENGTH": "Password must be at least 8 characters long.",
-  "PASSWORD_RESET.TOKEN_INVALID_OR_EXPIRED": "Invalid or expired token.",
-  "PASSWORD_RESET.ACCOUNT_NOT_FOUND": "Account not found.",
-  "PASSWORD_RESET.PASSWORD_CHANGED_SUCCESSFULLY": "Password changed successfully.",
-  "PASSWORD_RESET.RESET_FAILED": "Error resetting password."
+  "ACCOUNT": {
+    "MISSING_REQUIRED_FIELDS": "Missing required fields.",
+    "ALREADY_EXISTS_FOR_EMAIL": "An account already exists for this email.",
+    "CREATED_SUCCESSFULLY": "Account created successfully.",
+    "CREATE_FAILED": "Error creating account.",
+    "NOT_FOUND": "Account not found.",
+    "GET_BY_ID_FAILED": "Error getting account.",
+    "DELETED_SUCCESSFULLY": "Account deleted successfully.",
+    "DELETE_FAILED": "Error deleting account."
+  },
+  "ACCOUNT_TYPE": {
+    "GET_ALL_FAILED": "Error getting account types."
+  },
+  "AUTH": {
+    "EMAIL_AND_PASSWORD_REQUIRED": "Email and password are required.",
+    "INVALID_PASSWORD": "Invalid password.",
+    "LOGIN_SUCCESSFUL": "Login successful.",
+    "LOGIN_FAILED": "Error logging in.",
+    "TOKEN_INVALID_OR_MISSING": "Invalid or missing token.",
+    "TOKEN_INVALID_OR_EXPIRED": "Invalid or expired token."
+  },
+  "PASSWORD_RESET": {
+    "EMAIL_REQUIRED": "Email is required.",
+    "ACCOUNT_NOT_FOUND_FOR_EMAIL": "No account found with this email.",
+    "SEND_EMAIL_FAILED": "Error sending reset email.",
+    "REQUEST_ACCEPTED_GENERIC": "If this email is registered, you will receive instructions shortly.",
+    "PROCESS_REQUEST_FAILED": "Error processing request.",
+    "EMAIL_AND_CODE_REQUIRED": "Email and code are required.",
+    "CODE_INVALID_OR_EXPIRED": "Invalid or expired code.",
+    "CODE_VALIDATED_SUCCESSFULLY": "Code successfully validated.",
+    "VALIDATION_FAILED": "Error validating code.",
+    "TOKEN_AND_PASSWORD_REQUIRED": "Token and new password are required.",
+    "PASSWORD_MIN_LENGTH": "Password must be at least 8 characters long.",
+    "TOKEN_INVALID_OR_EXPIRED": "Invalid or expired token.",
+    "ACCOUNT_NOT_FOUND": "Account not found.",
+    "PASSWORD_CHANGED_SUCCESSFULLY": "Password changed successfully.",
+    "RESET_FAILED": "Error resetting password."
+  }
 }
-

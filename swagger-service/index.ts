@@ -6,11 +6,15 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT;
+const PORT = process.env.PORT ?? 3005;
 
-const USER_SERVICE_URL = process.env.USER_SERVICE_URL?.replace(/\/$/, '');
-const COMPANY_SERVICE_URL = process.env.COMPANY_SERVICE_URL?.replace(/\/$/, '');
-const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL?.replace(/\/$/, '');
+// URLs base dos serviços — usam env se existir, senão caem para o hostname do Docker
+const AUTH_SERVICE_URL =
+  (process.env.AUTH_SERVICE_URL ?? 'http://authentication-service:3000').replace(/\/$/, '');
+const COMPANY_SERVICE_URL =
+  (process.env.COMPANY_SERVICE_URL ?? 'http://company-service:3002').replace(/\/$/, '');
+const USER_SERVICE_URL =
+  (process.env.USER_SERVICE_URL ?? 'http://user-service:3001').replace(/\/$/, '');
 
 interface Service {
   name: string;
@@ -18,9 +22,9 @@ interface Service {
 }
 
 const services: Service[] = [
-  { name: 'Authentication Service', url: (process.env.AUTH_SERVICE_URL) + '/api-docs' },
-  { name: 'Company Service', url: (process.env.COMPANY_SERVICE_URL) + '/api-docs' },
-  { name: 'User Service', url: (process.env.USER_SERVICE_URL) + '/api-docs' },
+  { name: 'Authentication Service', url: `${AUTH_SERVICE_URL}/api-docs` },
+  { name: 'Company Service', url: `${COMPANY_SERVICE_URL}/api-docs` },
+  { name: 'User Service', url: `${USER_SERVICE_URL}/api-docs` },
 ];
 
 const fetchSwaggerSpecs = async (): Promise<{ name: string; spec: any }[]> => {
@@ -144,6 +148,26 @@ if (USER_SERVICE_URL) {
     target: USER_SERVICE_URL,
     changeOrigin: true,
     pathRewrite: { '^/$': '/cnh', '^/(.*)': '/cnh/$1' },
+  }));
+  app.use('/vehicle', createProxyMiddleware({
+    target: USER_SERVICE_URL,
+    changeOrigin: true,
+    pathRewrite: { '^/$': '/vehicle', '^/(.*)': '/vehicle/$1' },
+  }));
+  app.use('/vehicleType', createProxyMiddleware({
+    target: USER_SERVICE_URL,
+    changeOrigin: true,
+    pathRewrite: { '^/$': '/vehicleType', '^/(.*)': '/vehicleType/$1' },
+  }));
+  app.use('/groupVehicleType', createProxyMiddleware({
+    target: USER_SERVICE_URL,
+    changeOrigin: true,
+    pathRewrite: { '^/$': '/groupVehicleType', '^/(.*)': '/groupVehicleType/$1' },
+  }));
+  app.use('/cnhType', createProxyMiddleware({
+    target: COMPANY_SERVICE_URL,
+    changeOrigin: true,
+    pathRewrite: { '^/$': '/cnhType', '^/(.*)': '/cnhType/$1' },
   }));
 }
 if (COMPANY_SERVICE_URL) {
