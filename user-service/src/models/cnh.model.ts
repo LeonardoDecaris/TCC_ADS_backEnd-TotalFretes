@@ -1,7 +1,7 @@
 import { Model, DataTypes } from 'sequelize';
 import sequelize from '../config/database';
 
-class CnhType extends Model {
+export class CnhType extends Model {
     id: number | undefined;
     name: string | undefined;
     description: string | undefined;

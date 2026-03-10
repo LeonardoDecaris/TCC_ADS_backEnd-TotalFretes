@@ -1,6 +1,7 @@
 import { Model, DataTypes } from 'sequelize';
 import sequelize from '../config/database';
 import CnhType from './cnh.model';
+import Vehicle from './vehicle.model';
 
 export class User extends Model {
 	id: number | undefined;
@@ -14,7 +15,7 @@ export class User extends Model {
 	isDeficient: boolean | undefined;
 	cnhNumber: string | undefined;
 	cnhType_id: number | undefined;
-	vehicleType_id: number | undefined;
+	vehicle_id: number | undefined;
 	userImage_id: number | undefined;
 }
 
@@ -67,7 +68,7 @@ User.init({
 		type: DataTypes.INTEGER,
 		allowNull: false,
 	},
-	vehicleType_id: {
+	vehicle_id: {
 		type: DataTypes.INTEGER,
 		allowNull: true,
 	},
@@ -82,5 +83,5 @@ User.init({
 });
 
 User.belongsTo(CnhType, { foreignKey: 'cnhType_id' });
-
+User.belongsTo(Vehicle, { foreignKey: 'vehicle_id' });
 export default User;
