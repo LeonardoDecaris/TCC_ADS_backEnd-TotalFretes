@@ -1,6 +1,6 @@
 import express from 'express';
 import { login, validateToken, verifyTokenHandler } from '../controllers/login.controller';
-import { forgotPassword, validateResetCode, resetPassword } from '../controllers/forgotPassword.controller';
+import { forgotPassword, validateResetCode, resetPassword, resendCode } from '../controllers/forgotPassword.controller';
 import { authMiddleware } from '../middleware/authMiddleware';
 import sequelize from '../config/database';
 
@@ -9,7 +9,7 @@ const router = express.Router();
 router.post('/login', login);
 router.post('/validate', validateToken);
 router.get('/verify-token', authMiddleware, verifyTokenHandler);
-router.post('/resend-code', forgotPassword);
+router.post('/resend-code', resendCode);
 
 router.post('/forgot-password', forgotPassword);
 router.post('/validate-code', validateResetCode);
