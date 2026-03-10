@@ -8,6 +8,14 @@ import { translation } from '../utils/i18n';
 import { getLocaleFromRequest } from '../utils/locale';
 
 const EMAIL_MANAGEMENT_SERVICE_URL = process.env.EMAIL_MANAGEMENT_SERVICE_URL;
+const EMAIL_SERVICE_TIMEOUT_MS = 10_000;
+
+const dispatchResetEmail = (email: string, code: string) =>
+  axios.post(
+    `${EMAIL_MANAGEMENT_SERVICE_URL}/enviar-codigo`,
+    { email, codigo: code },
+    { timeout: EMAIL_SERVICE_TIMEOUT_MS }
+  );
 
 export const forgotPassword = async (req: Request, res: Response) => {
   const locale = getLocaleFromRequest(req);
@@ -24,24 +32,16 @@ export const forgotPassword = async (req: Request, res: Response) => {
     const account = await Account.findOne({ where: { email: normalizedEmail } });
 
     if (!account) {
-      return res.status(404).json({
-        message: await translation('PASSWORD_RESET.ACCOUNT_NOT_FOUND_FOR_EMAIL', locale),
+      return res.status(200).json({
+        message: await translation('PASSWORD_RESET.REQUEST_ACCEPTED_GENERIC', locale),
       });
     }
 
     const code = setResetCode(normalizedEmail);
 
-    try {
-      await axios.post(`${EMAIL_MANAGEMENT_SERVICE_URL}/enviar-codigo`, {
-        email: normalizedEmail,
-        codigo: code,
-      });
-    } catch (error) {
+    void dispatchResetEmail(normalizedEmail, code).catch((error) => {
       console.error('Erro ao chamar email-management-service:', error);
-      return res.status(500).json({
-        message: await translation('PASSWORD_RESET.SEND_EMAIL_FAILED', locale),
-      });
-    }
+    });
 
     return res.status(200).json({
       message: await translation('PASSWORD_RESET.REQUEST_ACCEPTED_GENERIC', locale),
@@ -65,14 +65,16 @@ export const validateResetCode = async (req: Request, res: Response) => {
       });
     }
 
-    const isValid = getAndConsumeResetCode(email, code);
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const normalizedCode = String(code).trim();
+    const isValid = getAndConsumeResetCode(normalizedEmail, normalizedCode);
     if (!isValid) {
       return res.status(400).json({
         message: await translation('PASSWORD_RESET.CODE_INVALID_OR_EXPIRED', locale),
       });
     }
 
-    const resetToken = generateResetToken({ email: email.trim().toLowerCase() });
+    const resetToken = generateResetToken({ email: normalizedEmail });
 
     return res.status(200).json({
       message: await translation('PASSWORD_RESET.CODE_VALIDATED_SUCCESSFULLY', locale),
@@ -144,24 +146,15 @@ export const resendCode = async (req: Request, res: Response) => {
     const normalizedEmail = email.trim().toLowerCase();
     const account = await Account.findOne({ where: { email: normalizedEmail } });
     if (!account) {
-      return res.status(404).json({
-        message: await translation('PASSWORD_RESET.ACCOUNT_NOT_FOUND_FOR_EMAIL', locale),
+      return res.status(200).json({
+        message: await translation('PASSWORD_RESET.REQUEST_ACCEPTED_GENERIC', locale),
       });
     }
 
     const code = setResetCode(normalizedEmail);
-    try {
-      await
-        axios.post(`${EMAIL_MANAGEMENT_SERVICE_URL}/enviar-codigo`, {
-          email: normalizedEmail,
-          codigo: code,
-        });
-    } catch (error) {
+    void dispatchResetEmail(normalizedEmail, code).catch((error) => {
       console.error('Erro ao chamar email-management-service:', error);
-      return res.status(500).json({
-        message: await translation('PASSWORD_RESET.SEND_EMAIL_FAILED', locale),
-      });
-    }
+    });
     return res.status(200).json({
       message: await translation('PASSWORD_RESET.REQUEST_ACCEPTED_GENERIC', locale),
     });
