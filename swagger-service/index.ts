@@ -15,6 +15,8 @@ const COMPANY_SERVICE_URL =
   (process.env.COMPANY_SERVICE_URL ?? 'http://company-service:3002').replace(/\/$/, '');
 const USER_SERVICE_URL =
   (process.env.USER_SERVICE_URL ?? 'http://user-service:3001').replace(/\/$/, '');
+const STORAGE_SERVICE_URL =
+  (process.env.STORAGE_SERVICE_URL ?? 'http://storage-service:3007').replace(/\/$/, '');
 
 interface Service {
   name: string;
@@ -25,6 +27,7 @@ const services: Service[] = [
   { name: 'Authentication Service', url: `${AUTH_SERVICE_URL}/api-docs` },
   { name: 'Company Service', url: `${COMPANY_SERVICE_URL}/api-docs` },
   { name: 'User Service', url: `${USER_SERVICE_URL}/api-docs` },
+  { name: 'Storage Service', url: `${STORAGE_SERVICE_URL}/api-docs` },
 ];
 
 const fetchSwaggerSpecs = async (): Promise<{ name: string; spec: any }[]> => {
@@ -192,6 +195,13 @@ if (AUTH_SERVICE_URL) {
     target: AUTH_SERVICE_URL,
     changeOrigin: true,
     pathRewrite: { '^/$': '/account', '^/(.*)': '/account/$1' },
+  }));
+}
+if (STORAGE_SERVICE_URL) {
+  app.use('/api/user-images', createProxyMiddleware({
+    target: STORAGE_SERVICE_URL,
+    changeOrigin: true,
+    pathRewrite: { '^/api/user-images': '/user-images' },
   }));
 }
 
