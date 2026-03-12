@@ -121,7 +121,6 @@ services:
       - app-network
     volumes:
       - storage-service-uploads:/app/uploads
-      # Pasta local no seu PC (raiz do projeto): uploads/user-images
       - ./uploads:/backup/uploads
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3007/health"]
