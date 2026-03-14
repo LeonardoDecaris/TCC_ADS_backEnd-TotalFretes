@@ -46,10 +46,7 @@ export async function validateBody<T>(
 	const firstDetailMessage = Object.values(translatedDetails)[0]?.[0]
 		?? translatedFormErrors[0];
 
-	const message =
-		genericMessage === 'VALIDATION.ERROR' && firstDetailMessage
-			? firstDetailMessage
-			: genericMessage;
+	const message = firstDetailMessage ?? genericMessage;
 
 	res.status(400).json({
 		message,

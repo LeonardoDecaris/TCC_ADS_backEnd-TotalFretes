@@ -6,6 +6,8 @@ export class Vehicle extends Model {
 	id: number | undefined;
 	plateNumber: string | undefined;
 	chassisNumber: string | undefined;
+	model: string | undefined;
+	mark: string | undefined;
 	city: string | undefined;
 	stateUF: string | undefined;
 	country: string | undefined;
@@ -25,6 +27,15 @@ Vehicle.init({
 	chassisNumber: {
 		type: DataTypes.STRING,
 		allowNull: false,
+		defaultValue: '',
+	},
+	model: {
+		type: DataTypes.STRING,
+		allowNull: true,
+	},
+	mark: {
+		type: DataTypes.STRING,
+		allowNull: true,
 	},
 	city: {
 		type: DataTypes.STRING,

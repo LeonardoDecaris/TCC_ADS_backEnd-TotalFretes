@@ -12,7 +12,7 @@ export const seedCnhTypes = async (): Promise<void> => {
   for (const { name, description } of DEFAULT_CNH_TYPES) {
     await CnhType.findOrCreate({
       where: { name },
-      defaults: { name, description, userUpdateAt: new Date() },
+      defaults: { name, description },
     });
   }
 };

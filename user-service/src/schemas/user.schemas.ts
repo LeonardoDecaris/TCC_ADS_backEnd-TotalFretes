@@ -39,7 +39,6 @@ const emailSchema = z
 const birthDateSchema = z
 	.string()
 	.min(1, 'VALIDATION.BIRTHDATE_REQUIRED')
-	// aceita "DDMMAAAA" ou "DD-MM-AAAA" (remove hífens antes de validar)
 	.refine(
 		(v) => /^\d{8}$/.test(v.replace(/-/g, '')),
 		'VALIDATION.BIRTHDATE_INVALID'
@@ -73,8 +72,13 @@ const cnhTypeSchema = z.coerce
 	.number({ error: 'VALIDATION.CNH_TYPE_REQUIRED' })
 	.positive('VALIDATION.CNH_TYPE_INVALID');
 
-const vehicleTypeSchema = optionalPositiveNumberSchema('VALIDATION.VEHICLE_TYPE_INVALID');
+const issuingAgencyCnhSchema = z
+	.string()
+	.max(100, 'VALIDATION.ISSUING_AGENCY_MAX_LENGTH')
+	.optional();
 
+const vehicleTypeSchema = optionalPositiveNumberSchema('VALIDATION.VEHICLE_TYPE_INVALID');
+const vehicleIdSchema = optionalPositiveNumberSchema('VALIDATION.VEHICLE_ID_INVALID');
 const userImageSchema = optionalPositiveNumberSchema('VALIDATION.USER_IMAGE_INVALID');
 
 // ─── Campos base compartilhados ──────────────────────────────────────────────
@@ -89,7 +93,9 @@ const baseUserFields = {
 	useGlasses: booleanFromInputSchema,
 	isDeficient: booleanFromInputSchema,
 	cnhNumber: cnhNumberSchema,
+	issuingAgencyCnh: issuingAgencyCnhSchema,
 	cnhType_id: cnhTypeSchema,
+	vehicle_id: vehicleIdSchema,
 	vehicleType_id: vehicleTypeSchema,
 	userImage_id: userImageSchema,
 } as const;

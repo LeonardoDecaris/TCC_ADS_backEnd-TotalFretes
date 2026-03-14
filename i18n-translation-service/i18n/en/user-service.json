@@ -76,6 +76,7 @@
     "CNH_NUMBER_INVALID": "Invalid driver license number",
     "CNH_TYPE_REQUIRED": "Driver license type is required",
     "CNH_TYPE_INVALID": "Invalid driver license type",
+    "ISSUING_AGENCY_MAX_LENGTH": "CNH issuing agency must be at most 100 characters",
     "VEHICLE_TYPE_REQUIRED": "Vehicle type is required",
     "VEHICLE_TYPE_INVALID": "Invalid vehicle type",
     "USER_IMAGE_REQUIRED": "User image is required",

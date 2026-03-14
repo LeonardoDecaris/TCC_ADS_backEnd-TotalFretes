@@ -15,6 +15,7 @@ export class User extends Model {
 	isDeficient: boolean | undefined;
 	cnhNumber: string | undefined;
 	cnhType_id: number | undefined;
+	issuingAgencyCnh: string | undefined;
 	vehicle_id: number | undefined;
 	userImage_id: number | undefined;
 }
@@ -58,6 +59,10 @@ User.init({
 	},
 	isDeficient: {
 		type: DataTypes.BOOLEAN,
+		allowNull: false,
+	},
+	issuingAgencyCnh: {
+		type: DataTypes.STRING,
 		allowNull: false,
 	},
 	cnhNumber: {

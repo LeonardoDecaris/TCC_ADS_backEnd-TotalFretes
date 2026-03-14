@@ -11,8 +11,8 @@ import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
 const router = express.Router();
 
 router.post('/', authMiddleware, authorizeRoles('ADMIN'), createGroupVehicleType);
-router.get('/', authMiddleware, authorizeRoles('ADMIN'), getAllGroupVehicleTypes);
-router.get('/:id', authMiddleware, authorizeRoles('ADMIN'), getGroupVehicleTypeById);
+router.get('/', authMiddleware, getAllGroupVehicleTypes);
+router.get('/:id', authMiddleware, getGroupVehicleTypeById);
 router.put('/:id', authMiddleware, authorizeRoles('ADMIN'), updateGroupVehicleType);
 router.delete('/:id', authMiddleware, authorizeRoles('ADMIN'), deleteGroupVehicleType);
 

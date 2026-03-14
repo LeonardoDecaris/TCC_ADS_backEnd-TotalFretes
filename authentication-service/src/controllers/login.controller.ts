@@ -88,11 +88,20 @@ export const validateToken = async (req: Request, res: Response) => {
         message: await translation('AUTH.TOKEN_INVALID_OR_EXPIRED', locale),
       });
     }
-    
+
+    const subjectId = Number(decoded.id);
+    const account = await Account.findOne({ where: { subject_id: subjectId } });
+    if (!account) {
+      return res.status(401).json({
+        valid: false,
+        message: await translation('AUTH.TOKEN_INVALID_OR_EXPIRED', locale),
+      });
+    }
+
     return res.status(200).json({
       valid: true,
       user: {
-        id: Number(decoded.id),
+        id: subjectId,
         role: decoded.role,
       },
     });
