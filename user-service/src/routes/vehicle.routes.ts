@@ -1,6 +1,7 @@
 import express from 'express';
 import {
 	createVehicle,
+	createVehicleAndAttachToUser,
 	getAllVehicles,
 	getVehicleById,
 	updateVehicle,
@@ -10,9 +11,10 @@ import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
-router.post('/', authMiddleware, authorizeRoles('ADMIN'), createVehicle);
+router.post('/', authMiddleware, createVehicle);
+router.post('/register', authMiddleware, createVehicleAndAttachToUser);
 router.get('/', authMiddleware, authorizeRoles('ADMIN'), getAllVehicles);
-router.get('/:id', authMiddleware, authorizeRoles('ADMIN'), getVehicleById);
+router.get('/:id', authMiddleware, getVehicleById);
 router.put('/:id', authMiddleware, authorizeRoles('ADMIN'), updateVehicle);
 router.delete('/:id', authMiddleware, authorizeRoles('ADMIN'), deleteVehicle);
 

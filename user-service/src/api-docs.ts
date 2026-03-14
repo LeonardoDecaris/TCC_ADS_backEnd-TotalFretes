@@ -21,6 +21,7 @@ export const apiDocs = {
                   useGlasses: { type: 'boolean' },
                   isDeficient: { type: 'boolean' },
                   cnhNumber: { type: 'string' },
+                  issuingAgencyCnh: { type: 'string', description: 'Órgão emissor da CNH' },
                   cnhType_id: { type: 'number' },
                   vehicleType_id: { type: 'number' },
                   userImage_id: { type: 'number' },
@@ -58,6 +59,7 @@ export const apiDocs = {
                   useGlasses: { type: 'boolean' },
                   isDeficient: { type: 'boolean' },
                   cnhNumber: { type: 'string' },
+                  issuingAgencyCnh: { type: 'string', description: 'Órgão emissor da CNH' },
                   cnhType_id: { type: 'number' },
                   vehicleType_id: { type: 'number' },
                   userImage_id: { type: 'number' },
@@ -103,6 +105,7 @@ export const apiDocs = {
                   useGlasses: { type: 'boolean' },
                   isDeficient: { type: 'boolean' },
                   cnhNumber: { type: 'string' },
+                  issuingAgencyCnh: { type: 'string', description: 'Órgão emissor da CNH' },
                   cnhType_id: { type: 'number' },
                   vehicleType_id: { type: 'number' },
                   userImage_id: { type: 'number' },
@@ -366,6 +369,8 @@ export const apiDocs = {
                 properties: {
                   plateNumber: { type: 'string' },
                   chassisNumber: { type: 'string' },
+                  model: { type: 'string', description: 'Modelo do caminhão' },
+                  mark: { type: 'string', description: 'Marca do caminhão' },
                   city: { type: 'string' },
                   stateUF: { type: 'string' },
                   country: { type: 'string' },
@@ -387,6 +392,38 @@ export const apiDocs = {
         responses: {
           200: { description: 'Lista de veículos' },
           500: { description: 'Erro ao buscar' },
+        },
+      },
+    },
+    '/vehicle/register': {
+      post: {
+        summary: 'Criar veículo e vincular ao usuário autenticado',
+        tags: ['Vehicle'],
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  plateNumber: { type: 'string' },
+                  chassisNumber: { type: 'string' },
+                  model: { type: 'string', description: 'Modelo do caminhão' },
+                  mark: { type: 'string', description: 'Marca do caminhão' },
+                  city: { type: 'string' },
+                  stateUF: { type: 'string' },
+                  country: { type: 'string' },
+                  vehicleType_id: { type: 'number' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          201: { description: 'Veículo criado e vinculado ao usuário' },
+          401: { description: 'Não autenticado' },
+          404: { description: 'Usuário não encontrado' },
+          500: { description: 'Erro ao criar/vincular' },
         },
       },
     },
@@ -414,6 +451,8 @@ export const apiDocs = {
                 properties: {
                   plateNumber: { type: 'string' },
                   chassisNumber: { type: 'string' },
+                  model: { type: 'string', description: 'Modelo do caminhão' },
+                  mark: { type: 'string', description: 'Marca do caminhão' },
                   city: { type: 'string' },
                   stateUF: { type: 'string' },
                   country: { type: 'string' },

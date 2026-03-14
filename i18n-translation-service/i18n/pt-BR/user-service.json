@@ -76,6 +76,7 @@
     "CNH_NUMBER_INVALID": "Número da CNH inválido",
     "CNH_TYPE_REQUIRED": "Tipo de CNH é obrigatório",
     "CNH_TYPE_INVALID": "Tipo de CNH inválido",
+    "ISSUING_AGENCY_MAX_LENGTH": "Órgão emissor da CNH deve ter no máximo 100 caracteres",
     "VEHICLE_TYPE_REQUIRED": "Tipo de veículo é obrigatório",
     "VEHICLE_TYPE_INVALID": "Tipo de veículo inválido",
     "USER_IMAGE_REQUIRED": "Imagem do usuário é obrigatória",

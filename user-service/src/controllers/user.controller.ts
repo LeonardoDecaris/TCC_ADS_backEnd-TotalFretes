@@ -8,6 +8,7 @@ import { translation } from "../utils/i18n";
 import { getLocaleFromRequest } from "../utils/locale";
 
 const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
+const STORAGE_SERVICE_URL = process.env.STORAGE_SERVICE_URL ?? "http://storage-service:3007";
 
 export const createUser = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
@@ -48,7 +49,22 @@ export const getUserById = async (req: Request, res: Response) => {
 			});
 		}
 
-		return res.status(200).json(user);
+		const userData = user.toJSON() as Record<string, unknown> & { userImage_id?: number };
+		let userImage: unknown = null;
+
+		if (userData.userImage_id) {
+			try {
+				const { data } = await axios.get( `${STORAGE_SERVICE_URL}/user-images/${userData.userImage_id}`,
+					{ timeout: 3000, headers: { "accept-language": locale } });
+				userImage = data;
+			} catch (imageError) {
+				console.error("Error fetching user image from storage-service:", imageError);
+			}
+		}
+		return res.status(200).json({
+			...userData,
+			UserImage: userImage,
+		});
 	} catch (error) {
 		console.error(error);
 		return res.status(500).json({
@@ -157,18 +173,18 @@ export const deleteUser = async (req: Request, res: Response) => {
 };
 
 export const createUserEndAccount = async (req: Request, res: Response) => {
+	
 	const locale = getLocaleFromRequest(req);
 	const body = await validateBody(req, res, createUserEndAccountSchema);
-	if (!body) return;
 
 	try {
 		const user = await User.create(body);
 		
 		const respondeAccount = await axios.post(`${AUTH_SERVICE_URL}/account`, {
-			email: body.email,
-			password: body.password,
+			email: body?.email,
+			password: body?.password,
 			subject_id: user.id,
-			account_type_id: body.account_type_id,
+			account_type_id: body?.account_type_id,
 		});
 
 		if (!respondeAccount.data.ok) {
