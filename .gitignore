@@ -91,6 +91,9 @@ out
 .nuxt
 dist
 
+# Pasta local de uploads (imagens do storage-service)
+uploads/
+
 # Gatsby files
 .cache/
 # Comment in the public line in if your project uses Gatsby and not Next.js
