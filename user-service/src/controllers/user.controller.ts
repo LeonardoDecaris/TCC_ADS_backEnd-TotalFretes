@@ -39,7 +39,7 @@ export const getUserById = async (req: Request, res: Response) => {
 			where: { id: params.id },
 			include: [{
 				model: CnhType,
-				attributes: ['id', 'name']
+				required: false,
 			}],
 		});
 
