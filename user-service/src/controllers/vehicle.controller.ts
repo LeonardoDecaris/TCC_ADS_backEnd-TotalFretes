@@ -98,7 +98,7 @@ export const getVehicleById = async (req: Request, res: Response) => {
 			include: [
 				{
 					model: VehicleType,
-					attributes: ["id", "nome", "axes", "weight", "capacityWeight", "length"],
+					required: false,
 				},
 			],
 		});
