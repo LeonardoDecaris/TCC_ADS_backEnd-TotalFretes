@@ -2,11 +2,11 @@ import cors from "cors";
 import express from 'express';
 
 import { apiDocs } from './api-docs';
-import userRoutes from './routes/user.routes';
-import cnhRoutes from './routes/cnh.routes';
-import groupVehicleTypeRoutes from './routes/groupVehicleType.routes';
-import vehicleTypeRoutes from './routes/vehicleType.routes';
-import vehicleRoutes from './routes/vehicle.routes';
+import cargoTypeRoutes from './routes/cargoTypes.routes';
+import freightRoutes from './routes/freight.routes';
+import freightStatusTypeRoutes from './routes/freightStatusTypes.routes';
+import proposalRoutes from './routes/proposals.routes';
+import proposalStatusTypeRoutes from './routes/proposalsStatusTypes.routes';
 
 
 const app = express();
@@ -16,10 +16,10 @@ app.use(express.json());
 app.get("/", (req, res) => { res.send("Hello World!"); });
 app.get('/api-docs', (_req, res) => res.json(apiDocs));
 
-app.use('/user', userRoutes);
-app.use('/cnh', cnhRoutes);
-app.use('/group-vehicle-type', groupVehicleTypeRoutes);
-app.use('/vehicle-type', vehicleTypeRoutes);
-app.use('/vehicle', vehicleRoutes);
+app.use('/cargo-type', cargoTypeRoutes);
+app.use('/freight', freightRoutes);
+app.use('/freight-status-type', freightStatusTypeRoutes);
+app.use('/proposal', proposalRoutes);
+app.use('/proposal-status-type', proposalStatusTypeRoutes);
 
 export default app;

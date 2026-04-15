@@ -11,7 +11,6 @@ const lngSchema = z.coerce
 	.max(180, 'VALIDATION.LNG_INVALID');
 
 export const createFreightSchema = z.object({
-	company_id: z.coerce.number().int().positive('VALIDATION.COMPANY_ID_INVALID'),
 	cargoType_id: z.coerce.number().int().positive('VALIDATION.CARGO_TYPE_ID_INVALID'),
 	origin_label: z.string().min(1, 'VALIDATION.ORIGIN_LABEL_REQUIRED'),
 	origin_lat: latSchema,
@@ -24,14 +23,23 @@ export const createFreightSchema = z.object({
 		.int()
 		.positive('VALIDATION.FREIGHT_STATUS_ID_INVALID')
 		.optional(),
-	assignedDriver_id: z.coerce
-		.number()
-		.int()
-		.positive('VALIDATION.DRIVER_ID_INVALID')
-		.optional(),
 	daysLimit: z.coerce.number().int().positive('VALIDATION.DAYS_LIMIT_INVALID').optional(),
 	originalValue: z.coerce.number().nonnegative('VALIDATION.ORIGINAL_VALUE_INVALID'),
-	finalValue: z.coerce.number().nonnegative('VALIDATION.FINAL_VALUE_INVALID').optional(),
 });
 
-export const updateFreightSchema = createFreightSchema.partial();
+export const updateFreightSchema = z.object({
+	cargoType_id: z.coerce.number().int().positive('VALIDATION.CARGO_TYPE_ID_INVALID').optional(),
+	origin_label: z.string().min(1, 'VALIDATION.ORIGIN_LABEL_REQUIRED').optional(),
+	origin_lat: latSchema.optional(),
+	origin_lng: lngSchema.optional(),
+	destination_label: z.string().min(1, 'VALIDATION.DESTINATION_LABEL_REQUIRED').optional(),
+	destination_lat: latSchema.optional(),
+	destination_lng: lngSchema.optional(),
+	status_id: z.coerce
+		.number()
+		.int()
+		.positive('VALIDATION.FREIGHT_STATUS_ID_INVALID')
+		.optional(),
+	daysLimit: z.coerce.number().int().positive('VALIDATION.DAYS_LIMIT_INVALID').optional(),
+	originalValue: z.coerce.number().nonnegative('VALIDATION.ORIGINAL_VALUE_INVALID').optional(),
+});
