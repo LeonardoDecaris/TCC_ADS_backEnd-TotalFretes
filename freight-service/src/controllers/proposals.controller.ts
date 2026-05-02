@@ -24,40 +24,6 @@ const getProposalInclude = () => [
 	},
 ];
 
-const ensureAuthenticated = async (req: Request, res: Response, locale: string) => {
-	if (!req.user) {
-		res.status(401).json({
-			message: await translation('AUTH.UNAUTHORIZED', locale),
-		});
-		return false;
-	}
-
-	return true;
-};
-
-const ensureProposalOwnerOrAdmin = async (
-	req: Request,
-	res: Response,
-	locale: string,
-	proposal: Proposal
-) => {
-	if (!req.user) {
-		res.status(401).json({
-			message: await translation('AUTH.UNAUTHORIZED', locale),
-		});
-		return false;
-	}
-
-	if (req.user.role === 'ADMIN' || req.user.id === Number(proposal.driver_id)) {
-		return true;
-	}
-
-	res.status(403).json({
-		message: await translation('AUTH.FORBIDDEN', locale),
-	});
-	return false;
-};
-
 const getAcceptedProposalStatus = async () => {
 	return ProposalStatusType.findOne({
 		where: {
@@ -70,13 +36,6 @@ const getAcceptedProposalStatus = async () => {
 
 export const createProposal = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
-	if (!(await ensureAuthenticated(req, res, locale))) return;
-
-	if (req.user?.role !== 'USER' && req.user?.role !== 'ADMIN') {
-		return res.status(403).json({
-			message: await translation('AUTH.FORBIDDEN', locale),
-		});
-	}
 
 	const body = await validateBody(req, res, createProposalSchema);
 	if (!body) return;
@@ -96,7 +55,7 @@ export const createProposal = async (req: Request, res: Response) => {
 
 		const proposal = await Proposal.create({
 			...body,
-			driver_id: req.user.id,
+			driver_id: req.user!.id,
 			status_id: pendingStatus?.id,
 		});
 
@@ -114,7 +73,6 @@ export const createProposal = async (req: Request, res: Response) => {
 
 export const getAllProposals = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
-	if (!(await ensureAuthenticated(req, res, locale))) return;
 
 	try {
 		const where =
@@ -140,7 +98,6 @@ export const getAllProposals = async (req: Request, res: Response) => {
 
 export const getProposalById = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
-	if (!(await ensureAuthenticated(req, res, locale))) return;
 
 	const params = await validateParams(req, res, idParamSchema);
 	if (!params) return;
@@ -173,7 +130,6 @@ export const getProposalById = async (req: Request, res: Response) => {
 
 export const updateProposal = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
-	if (!(await ensureAuthenticated(req, res, locale))) return;
 
 	const params = await validateParams(req, res, idParamSchema);
 	if (!params) return;
@@ -190,7 +146,11 @@ export const updateProposal = async (req: Request, res: Response) => {
 			});
 		}
 
-		if (!(await ensureProposalOwnerOrAdmin(req, res, locale, proposal))) return;
+		if (req.user?.role !== 'ADMIN' && req.user?.id !== Number(proposal.driver_id)) {
+			return res.status(403).json({
+				message: await translation('AUTH.FORBIDDEN', locale),
+			});
+		}
 
 		await proposal.update(body);
 		return res.status(200).json({
@@ -207,7 +167,6 @@ export const updateProposal = async (req: Request, res: Response) => {
 
 export const deleteProposal = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
-	if (!(await ensureAuthenticated(req, res, locale))) return;
 
 	const params = await validateParams(req, res, idParamSchema);
 	if (!params) return;
@@ -221,7 +180,11 @@ export const deleteProposal = async (req: Request, res: Response) => {
 			});
 		}
 
-		if (!(await ensureProposalOwnerOrAdmin(req, res, locale, proposal))) return;
+		if (req.user?.role !== 'ADMIN' && req.user?.id !== Number(proposal.driver_id)) {
+			return res.status(403).json({
+				message: await translation('AUTH.FORBIDDEN', locale),
+			});
+		}
 
 		await proposal.destroy();
 		return res.status(200).json({
@@ -237,13 +200,6 @@ export const deleteProposal = async (req: Request, res: Response) => {
 
 export const acceptProposal = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
-	if (!(await ensureAuthenticated(req, res, locale))) return;
-
-	if (req.user?.role !== 'COMPANY' && req.user?.role !== 'ADMIN') {
-		return res.status(403).json({
-			message: await translation('AUTH.FORBIDDEN', locale),
-		});
-	}
 
 	const params = await validateParams(req, res, idParamSchema);
 	if (!params) return;
@@ -276,10 +232,7 @@ export const acceptProposal = async (req: Request, res: Response) => {
 			});
 		}
 
-		if (
-			req.user?.role !== 'ADMIN' &&
-			req.user?.id !== Number(freight.company_id)
-		) {
+		if (req.user?.role !== 'ADMIN' && req.user?.id !== Number(freight.company_id)) {
 			await transaction.rollback();
 			return res.status(403).json({
 				message: await translation('AUTH.FORBIDDEN', locale),

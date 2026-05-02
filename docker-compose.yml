@@ -230,10 +230,6 @@ services:
     restart: always
     env_file:
       - ./swagger-service/.env
-    depends_on:
-      - authentication-service
-      - company-service
-      - user-service
     networks:
       - app-network
     healthcheck:
@@ -271,6 +267,7 @@ volumes:
   storage-service-database-data:
   storage-service-uploads:
   freight-service-database-data:
+
 networks:
   app-network:
     driver: bridge

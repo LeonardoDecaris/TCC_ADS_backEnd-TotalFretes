@@ -19,53 +19,8 @@ const getFreightInclude = () => [
 	},
 ];
 
-const ensureAuthenticated = async (req: Request, res: Response, locale: string) => {
-	if (!req.user) {
-		res.status(401).json({
-			message: await translation('AUTH.UNAUTHORIZED', locale),
-		});
-		return false;
-	}
-
-	return true;
-};
-
-const ensureFreightAccess = async (
-	req: Request,
-	res: Response,
-	locale: string,
-	freight: Freight
-) => {
-	if (!req.user) {
-		res.status(401).json({
-			message: await translation('AUTH.UNAUTHORIZED', locale),
-		});
-		return false;
-	}
-
-	if (req.user.role === 'ADMIN') {
-		return true;
-	}
-
-	if (req.user.role === 'COMPANY' && req.user.id === Number(freight.company_id)) {
-		return true;
-	}
-
-	res.status(403).json({
-		message: await translation('AUTH.FORBIDDEN', locale),
-	});
-	return false;
-};
-
 export const createFreight = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
-	if (!(await ensureAuthenticated(req, res, locale))) return;
-
-	if (req.user?.role !== 'COMPANY' && req.user?.role !== 'ADMIN') {
-		return res.status(403).json({
-			message: await translation('AUTH.FORBIDDEN', locale),
-		});
-	}
 
 	const body = await validateBody(req, res, createFreightSchema);
 	if (!body) return;
@@ -77,7 +32,7 @@ export const createFreight = async (req: Request, res: Response) => {
 
 		const freight = await Freight.create({
 			...body,
-			company_id: req.user.id,
+			company_id: req.user!.id,
 			status_id: body.status_id ?? openStatus?.id,
 		});
 
@@ -95,7 +50,6 @@ export const createFreight = async (req: Request, res: Response) => {
 
 export const getAllFreights = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
-	if (!(await ensureAuthenticated(req, res, locale))) return;
 
 	try {
 		const where =
@@ -121,7 +75,6 @@ export const getAllFreights = async (req: Request, res: Response) => {
 
 export const getFreightById = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
-	if (!(await ensureAuthenticated(req, res, locale))) return;
 
 	const params = await validateParams(req, res, idParamSchema);
 	if (!params) return;
@@ -154,7 +107,6 @@ export const getFreightById = async (req: Request, res: Response) => {
 
 export const updateFreight = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
-	if (!(await ensureAuthenticated(req, res, locale))) return;
 
 	const params = await validateParams(req, res, idParamSchema);
 	if (!params) return;
@@ -171,7 +123,11 @@ export const updateFreight = async (req: Request, res: Response) => {
 			});
 		}
 
-		if (!(await ensureFreightAccess(req, res, locale, freight))) return;
+		if (req.user?.role !== 'ADMIN' && req.user?.id !== Number(freight.company_id)) {
+			return res.status(403).json({
+				message: await translation('AUTH.FORBIDDEN', locale),
+			});
+		}
 
 		await freight.update(body);
 		return res.status(200).json({
@@ -188,7 +144,6 @@ export const updateFreight = async (req: Request, res: Response) => {
 
 export const deleteFreight = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
-	if (!(await ensureAuthenticated(req, res, locale))) return;
 
 	const params = await validateParams(req, res, idParamSchema);
 	if (!params) return;
@@ -202,7 +157,11 @@ export const deleteFreight = async (req: Request, res: Response) => {
 			});
 		}
 
-		if (!(await ensureFreightAccess(req, res, locale, freight))) return;
+		if (req.user?.role !== 'ADMIN' && req.user?.id !== Number(freight.company_id)) {
+			return res.status(403).json({
+				message: await translation('AUTH.FORBIDDEN', locale),
+			});
+		}
 
 		await freight.destroy();
 		return res.status(200).json({

@@ -5,27 +5,8 @@ import { translation } from '../utils/i18n';
 import { getLocaleFromRequest } from '../utils/locale';
 import { idParamSchema, validateBody, validateParams } from '../utils/validate';
 
-const ensureAdmin = async (req: Request, res: Response, locale: string) => {
-	if (!req.user) {
-		res.status(401).json({
-			message: await translation('AUTH.UNAUTHORIZED', locale),
-		});
-		return false;
-	}
-
-	if (req.user.role !== 'ADMIN') {
-		res.status(403).json({
-			message: await translation('AUTH.FORBIDDEN', locale),
-		});
-		return false;
-	}
-
-	return true;
-};
-
 export const createCargoType = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
-	if (!(await ensureAdmin(req, res, locale))) return;
 
 	const body = await validateBody(req, res, createCargoTypeSchema);
 	if (!body) return;
@@ -83,7 +64,6 @@ export const getCargoTypeById = async (req: Request, res: Response) => {
 
 export const updateCargoType = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
-	if (!(await ensureAdmin(req, res, locale))) return;
 
 	const params = await validateParams(req, res, idParamSchema);
 	if (!params) return;
@@ -115,7 +95,6 @@ export const updateCargoType = async (req: Request, res: Response) => {
 
 export const deleteCargoType = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
-	if (!(await ensureAdmin(req, res, locale))) return;
 
 	const params = await validateParams(req, res, idParamSchema);
 	if (!params) return;
