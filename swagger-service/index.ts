@@ -17,6 +17,8 @@ const USER_SERVICE_URL =
   (process.env.USER_SERVICE_URL ?? 'http://user-service:3001').replace(/\/$/, '');
 const STORAGE_SERVICE_URL =
   (process.env.STORAGE_SERVICE_URL ?? 'http://storage-service:3007').replace(/\/$/, '');
+const FREIGHT_SERVICE_URL =
+  (process.env.FREIGHT_SERVICE_URL ?? 'http://freight-service:3008').replace(/\/$/, '');
 
 interface Service {
   name: string;
@@ -28,6 +30,7 @@ const services: Service[] = [
   { name: 'Company Service', url: `${COMPANY_SERVICE_URL}/api-docs` },
   { name: 'User Service', url: `${USER_SERVICE_URL}/api-docs` },
   { name: 'Storage Service', url: `${STORAGE_SERVICE_URL}/api-docs` },
+  { name: 'Freight Service', url: `${FREIGHT_SERVICE_URL}/api-docs` },
 ];
 
 const fetchSwaggerSpecs = async (): Promise<{ name: string; spec: any }[]> => {

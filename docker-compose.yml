@@ -191,6 +191,38 @@ services:
       timeout: 5s
       retries: 5
 
+  freight-service:
+    build: ./freight-service
+    container_name: freight-service
+    restart: always
+    env_file:
+      - ./freight-service/.env
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3008/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    
+  freight-service-database:
+    image: mysql:8.0
+    container_name: freight-service-database
+    restart: always
+    env_file:
+      - ./freight-service/.env
+    volumes:
+      - freight-service-database-data:/var/lib/mysql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "3310:3306"
+
   # ===== API GATEWAY =====
   swagger-service:
     build: ./swagger-service
@@ -198,10 +230,6 @@ services:
     restart: always
     env_file:
       - ./swagger-service/.env
-    depends_on:
-      - authentication-service
-      - company-service
-      - user-service
     networks:
       - app-network
     healthcheck:
@@ -223,6 +251,7 @@ services:
       - swagger-service
       - i18n-translation-service
       - storage-service
+      - freight-service
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
@@ -237,6 +266,7 @@ volumes:
   company-service-database-data:
   storage-service-database-data:
   storage-service-uploads:
+  freight-service-database-data:
 
 networks:
   app-network:
