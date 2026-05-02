@@ -8,7 +8,9 @@
         "UPDATED_SUCCESSFULLY": "Empresa atualizada com sucesso.",
         "UPDATE_FAILED": "Erro ao atualizar empresa.",
         "DELETED_SUCCESSFULLY": "Empresa deletada com sucesso.",
-        "DELETE_FAILED": "Erro ao deletar empresa."
+        "DELETE_FAILED": "Erro ao deletar empresa.",
+        "CREATED_WITH_ACCOUNT_SUCCESSFULLY": "Empresa e conta criadas com sucesso.",
+        "ACCOUNT_CREATE_FAILED": "Falha ao criar a conta de acesso. Os dados de cadastro foram desfeitos."
     },
     "COMPANY_ADDRESS": {
         "CREATED_SUCCESSFULLY": "Endereço da empresa criado com sucesso.",
@@ -42,6 +44,8 @@
         "DISTRICT_REQUIRED": "Bairro é obrigatório",
         "NUMBER_REQUIRED": "Número é obrigatório",
         "CITY_REQUIRED": "Cidade é obrigatória",
-        "STATE_REQUIRED": "Estado é obrigatório"
+        "STATE_REQUIRED": "Estado é obrigatório",
+        "PASSWORD_REQUIRED": "Senha é obrigatória",
+        "ACCOUNT_TYPE_INVALID": "Tipo de conta inválido"
     }
 }

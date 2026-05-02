@@ -71,3 +71,14 @@ export const createCompanyAddressSchema = z.object({
 });
 
 export const updateCompanyAddressSchema = createCompanyAddressSchema.partial();
+
+/** Cadastro completo: dados da empresa + endereço + senha + tipo de conta (POST /company/end-account). */
+export const createCompanyEndAccountSchema = createCompanySchema
+	.omit({ companyAddress_id: true })
+	.merge(createCompanyAddressSchema)
+	.extend({
+		password: z.string().min(1, "VALIDATION.PASSWORD_REQUIRED"),
+		account_type_id: z.coerce
+			.number()
+			.positive("VALIDATION.ACCOUNT_TYPE_INVALID"),
+	});

@@ -8,7 +8,9 @@
         "UPDATED_SUCCESSFULLY": "Company updated successfully.",
         "UPDATE_FAILED": "Error updating company.",
         "DELETED_SUCCESSFULLY": "Company deleted successfully.",
-        "DELETE_FAILED": "Error deleting company."
+        "DELETE_FAILED": "Error deleting company.",
+        "CREATED_WITH_ACCOUNT_SUCCESSFULLY": "Company and account created successfully.",
+        "ACCOUNT_CREATE_FAILED": "Failed to create access account. Registration was rolled back."
     },
     "COMPANY_ADDRESS": {
         "CREATED_SUCCESSFULLY": "Company address created successfully.",
@@ -42,6 +44,8 @@
         "DISTRICT_REQUIRED": "District is required",
         "NUMBER_REQUIRED": "Number is required",
         "CITY_REQUIRED": "City is required",
-        "STATE_REQUIRED": "State is required"
+        "STATE_REQUIRED": "State is required",
+        "PASSWORD_REQUIRED": "Password is required",
+        "ACCOUNT_TYPE_INVALID": "Invalid account type"
     }
 }

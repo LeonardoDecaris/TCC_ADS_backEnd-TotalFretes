@@ -1,9 +1,17 @@
+import axios from "axios";
 import { Request, Response } from "express";
 import Company from "../models/company.model";
+import CompanyAddress from "../models/address.model";
 import { translation } from "../utils/i18n";
 import { getLocaleFromRequest } from "../utils/locale";
 import { validateBody } from "../utils/validate";
-import { createCompanySchema, updateCompanySchema } from "../schemas/company.schemas";
+import {
+	createCompanySchema,
+	createCompanyEndAccountSchema,
+	updateCompanySchema,
+} from "../schemas/company.schemas";
+
+const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
 
 export const createCompany = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
@@ -101,4 +109,83 @@ export const deleteCompany = async (req: Request, res: Response) => {
 	}
 };
 
+export const createCompanyEndAccount = async (req: Request, res: Response) => {
+	const locale = getLocaleFromRequest(req);
+	const body = await validateBody(req, res, createCompanyEndAccountSchema);
+	if (!body) return;
+
+	if (!AUTH_SERVICE_URL) {
+		console.error("AUTH_SERVICE_URL is not defined");
+		return res.status(500).json({
+			message: await translation("COMPANY.CREATE_FAILED", locale),
+		});
+	}
+
+	const {
+		password,
+		account_type_id,
+		cep,
+		street,
+		district,
+		number,
+		city,
+		state,
+		...companyFields
+	} = body;
+
+	let address: CompanyAddress | null = null;
+	let company: Company | null = null;
+
+	try {
+		address = await CompanyAddress.create({
+			cep,
+			street,
+			district,
+			number,
+			city,
+			state,
+		});
+		company = await Company.create({
+			...companyFields,
+			companyAddress_id: address.id,
+		});
+
+		const authBase = AUTH_SERVICE_URL.replace(/\/$/, "");
+		const { data, status } = await axios.post(
+			`${authBase}/account`,
+			{
+				email: company.email,
+				password,
+				subject_id: company.id,
+				account_type_id,
+			},
+			{ validateStatus: () => true }
+		);
+
+		if (status >= 400 || !data?.ok) {
+			await company.destroy();
+			await address.destroy();
+			const message =
+				typeof data?.message === "string"
+					? data.message
+					: await translation("COMPANY.ACCOUNT_CREATE_FAILED", locale);
+			return res.status(status === 409 ? 409 : 500).json({ message });
+		}
+
+		return res.status(201).json({
+			message: await translation(
+				"COMPANY.CREATED_WITH_ACCOUNT_SUCCESSFULLY",
+				locale
+			),
+			company,
+		});
+	} catch (error) {
+		console.error(error);
+		if (company) await company.destroy().catch(() => undefined);
+		if (address) await address.destroy().catch(() => undefined);
+		return res.status(500).json({
+			message: await translation("COMPANY.CREATE_FAILED", locale),
+		});
+	}
+};
 
