@@ -12,9 +12,6 @@ declare global {
   }
 }
 
-/*
- * @description: Middleware de autenticação
- */
 export const authMiddleware = (
   req: Request,
   res: Response,
@@ -57,9 +54,6 @@ export const authMiddleware = (
 
 type Role = JwtRole;
 
-/*
- * @description: Permite que o usuário seja admin ou tenha um dos roles permitidos
- */
 export const authorizeRoles = (...allowedRoles: Role[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
@@ -80,9 +74,6 @@ export const authorizeRoles = (...allowedRoles: Role[]) => {
   };
 };
 
-/*
- * @description: Permite que o usuário proprietário ou tenha um dos roles permitidos
- */
 export const allowOwnerOrRoles = (...allowedRoles: Role[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
