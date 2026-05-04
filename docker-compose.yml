@@ -9,6 +9,10 @@ services:
     depends_on:
       authentication-service-database:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - app-network
     healthcheck:
@@ -44,6 +48,8 @@ services:
       - ./user-service/.env
     depends_on:
       user-service-database:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     networks:
       - app-network
@@ -146,6 +152,37 @@ services:
     ports:
       - "3309:3306"
 
+  # ===== MESSAGE BROKER & CACHE =====
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: always
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # ===== AUXILIARY SERVICES =====
   email-management-service:
     build: ./email-management-service
@@ -153,6 +190,9 @@ services:
     restart: always
     env_file:
       - ./email-management-service/.env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     networks:
       - app-network
     healthcheck:

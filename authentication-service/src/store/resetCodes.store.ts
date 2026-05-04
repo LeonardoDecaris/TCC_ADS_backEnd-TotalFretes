@@ -1,15 +1,22 @@
 import crypto from 'crypto';
+import { getRedis } from '../lib/redisClient';
 
-const TTL_MS = 15 * 60 * 1000;
+const TTL_SEC = 15 * 60;
+const KEY_PREFIX = 'auth:reset:';
 
-export interface ResetCodeEntry {
-  code: string;
-  expiresAt: number;
-}
-
-const store = new Map<string, ResetCodeEntry>();
+const CONSUME_LUA = `
+local v = redis.call('GET', KEYS[1])
+if not v then return 0 end
+if v ~= ARGV[1] then return 0 end
+redis.call('DEL', KEYS[1])
+return 1
+`;
 
 const DIGITS = '0123456789';
+
+function redisKey(email: string): string {
+  return `${KEY_PREFIX}${email.toLowerCase().trim()}`;
+}
 
 export function generateResetCode(): string {
   let code = '';
@@ -19,22 +26,18 @@ export function generateResetCode(): string {
   return code;
 }
 
-export function setResetCode(email: string): string {
+export async function setResetCode(email: string): Promise<string> {
   const code = generateResetCode();
-  const expiresAt = Date.now() + TTL_MS;
-  store.set(email.toLowerCase().trim(), { code, expiresAt });
+  await getRedis().set(redisKey(email), code, 'EX', TTL_SEC);
   return code;
 }
 
-export function getAndConsumeResetCode(email: string, code: string): boolean {
-  const key = email.toLowerCase().trim();
-  const entry = store.get(key);
-  if (!entry) return false;
-  if (entry.expiresAt < Date.now()) {
-    store.delete(key);
-    return false;
-  }
-  if (entry.code !== code.trim()) return false;
-  store.delete(key);
-  return true;
+export async function getAndConsumeResetCode(email: string, code: string): Promise<boolean> {
+  const n = (await getRedis().eval(
+    CONSUME_LUA,
+    1,
+    redisKey(email),
+    code.trim()
+  )) as number | string;
+  return Number(n) === 1;
 }

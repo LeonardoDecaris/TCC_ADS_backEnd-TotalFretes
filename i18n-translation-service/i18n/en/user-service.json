@@ -3,6 +3,7 @@
     "CREATED_SUCCESSFULLY": "User created successfully.",
     "CREATED_WITH_ACCOUNT_SUCCESSFULLY": "User and account created successfully.",
     "CREATE_FAILED": "Error creating user.",
+    "EMAIL_ALREADY_EXISTS": "A user with this email already exists.",
     "ACCOUNT_CREATE_FAILED": "Error creating user account.",
     "GET_ALL_FAILED": "Error fetching users.",
     "NOT_FOUND": "User not found.",

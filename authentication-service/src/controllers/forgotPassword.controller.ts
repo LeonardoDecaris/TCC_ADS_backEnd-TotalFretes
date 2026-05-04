@@ -1,21 +1,14 @@
-import axios from 'axios';
 import bcrypt from 'bcrypt';
 import { Request, Response } from 'express';
 import Account from '../models/accounts.model';
 import { generateResetToken, verifyResetToken } from '../utils/jwt';
 import { setResetCode, getAndConsumeResetCode } from '../store/resetCodes.store';
+import { publishPasswordResetEmail } from '../messaging/email.publisher';
 import { translation } from '../utils/i18n';
 import { getLocaleFromRequest } from '../utils/locale';
 
-const EMAIL_MANAGEMENT_SERVICE_URL = process.env.EMAIL_MANAGEMENT_SERVICE_URL;
-const EMAIL_SERVICE_TIMEOUT_MS = 10_000;
-
-const dispatchResetEmail = (email: string, code: string) =>
-  axios.post(
-    `${EMAIL_MANAGEMENT_SERVICE_URL}/enviar-codigo`,
-    { email, codigo: code },
-    { timeout: EMAIL_SERVICE_TIMEOUT_MS }
-  );
+const dispatchResetEmail = (email: string, codigo: string) =>
+  publishPasswordResetEmail({ email, codigo });
 
 export const forgotPassword = async (req: Request, res: Response) => {
   const locale = getLocaleFromRequest(req);
@@ -37,10 +30,10 @@ export const forgotPassword = async (req: Request, res: Response) => {
       });
     }
 
-    const code = setResetCode(normalizedEmail);
+    const code = await setResetCode(normalizedEmail);
 
     void dispatchResetEmail(normalizedEmail, code).catch((error) => {
-      console.error('Erro ao chamar email-management-service:', error);
+      console.error('Erro ao publicar e-mail de recuperação na fila:', error);
     });
 
     return res.status(200).json({
@@ -67,7 +60,7 @@ export const validateResetCode = async (req: Request, res: Response) => {
 
     const normalizedEmail = String(email).trim().toLowerCase();
     const normalizedCode = String(code).trim();
-    const isValid = getAndConsumeResetCode(normalizedEmail, normalizedCode);
+    const isValid = await getAndConsumeResetCode(normalizedEmail, normalizedCode);
     if (!isValid) {
       return res.status(400).json({
         message: await translation('PASSWORD_RESET.CODE_INVALID_OR_EXPIRED', locale),
@@ -151,9 +144,9 @@ export const resendCode = async (req: Request, res: Response) => {
       });
     }
 
-    const code = setResetCode(normalizedEmail);
+    const code = await setResetCode(normalizedEmail);
     void dispatchResetEmail(normalizedEmail, code).catch((error) => {
-      console.error('Erro ao chamar email-management-service:', error);
+      console.error('Erro ao publicar e-mail de recuperação na fila:', error);
     });
     return res.status(200).json({
       message: await translation('PASSWORD_RESET.REQUEST_ACCEPTED_GENERIC', locale),

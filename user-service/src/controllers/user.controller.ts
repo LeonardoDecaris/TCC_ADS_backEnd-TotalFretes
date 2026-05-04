@@ -1,5 +1,7 @@
 import axios from "axios";
+import { UniqueConstraintError } from "sequelize";
 import User from "../models/user.model";
+import { requestAccountCreationRpc } from "../messaging/account.rpc.client";
 import CnhType from "../models/cnh.model";
 import { Request, Response } from "express";
 import { validateBody, validateParams, idParamSchema } from "../utils/validate";
@@ -7,7 +9,6 @@ import { createUserSchema, updateUserSchema, createUserEndAccountSchema } from "
 import { translation } from "../utils/i18n";
 import { getLocaleFromRequest } from "../utils/locale";
 
-const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
 const STORAGE_SERVICE_URL = process.env.STORAGE_SERVICE_URL ?? "http://storage-service:3007";
 
 export const createUser = async (req: Request, res: Response) => {
@@ -173,21 +174,28 @@ export const deleteUser = async (req: Request, res: Response) => {
 };
 
 export const createUserEndAccount = async (req: Request, res: Response) => {
-	
 	const locale = getLocaleFromRequest(req);
 	const body = await validateBody(req, res, createUserEndAccountSchema);
+	if (!body) return;
 
 	try {
 		const user = await User.create(body);
-		
-		const respondeAccount = await axios.post(`${AUTH_SERVICE_URL}/account`, {
-			email: body?.email,
-			password: body?.password,
-			subject_id: user.id,
-			account_type_id: body?.account_type_id,
+		const subjectId = user.id;
+		if (subjectId == null) {
+			await user.destroy();
+			return res.status(500).json({
+				message: await translation("USER.CREATE_FAILED", locale),
+			});
+		}
+
+		const respondeAccount = await requestAccountCreationRpc({
+			email: body.email,
+			password: body.password,
+			subject_id: subjectId,
+			account_type_id: body.account_type_id,
 		});
 
-		if (!respondeAccount.data.ok) {
+		if (!respondeAccount.ok) {
 			await user.destroy();
 			return res.status(500).json({
 				message: await translation("USER.ACCOUNT_CREATE_FAILED", locale),
@@ -198,7 +206,15 @@ export const createUserEndAccount = async (req: Request, res: Response) => {
 			message: await translation("USER.CREATED_WITH_ACCOUNT_SUCCESSFULLY", locale),
 			user,
 		});
-	} catch (error) {
+	} catch (error: unknown) {
+		if (error instanceof UniqueConstraintError) {
+			const emailDuplicate = error.errors.some((e) => e.path === "email");
+			if (emailDuplicate) {
+				return res.status(409).json({
+					message: await translation("USER.EMAIL_ALREADY_EXISTS", locale),
+				});
+			}
+		}
 		console.error(error);
 		return res.status(500).json({
 			message: await translation("USER.CREATE_FAILED", locale),

@@ -1,37 +1,35 @@
 import { Request, Response } from 'express';
 import { Account } from '../models/accounts.model';
 import AccountType from '../models/accounts_types.model';
-import bcrypt from 'bcrypt';
 import { translation } from '../utils/i18n';
 import { getLocaleFromRequest } from '../utils/locale';
 import { accountSchema } from '../schemas/account.schemas';
+import { createAccountRecord } from '../services/accountCreation.service';
 
 export const createAccount = async (req: Request, res: Response) => {
   const locale = getLocaleFromRequest(req);
   try {
-    const {
-      email,
-      password,
-      subject_id,
-      account_type_id: accountTypeId
-    } = accountSchema.parse(req.body);
+    const body = accountSchema.parse(req.body);
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const existingAccount = await Account.findOne({ where: { email } });
-    if (existingAccount) {
-      return res.status(409).json({
-        message: await translation('ACCOUNT.ALREADY_EXISTS_FOR_EMAIL', locale),
+    const result = await createAccountRecord(body);
+    if (!result.ok) {
+      if (result.reason === 'exists') {
+        return res.status(409).json({
+          message: await translation('ACCOUNT.ALREADY_EXISTS_FOR_EMAIL', locale),
+          ok: false,
+        });
+      }
+      if (result.reason === 'validation') {
+        return res.status(400).json({
+          message: await translation('ACCOUNT.CREATE_FAILED', locale),
+          ok: false,
+        });
+      }
+      return res.status(500).json({
+        message: await translation('ACCOUNT.CREATE_FAILED', locale),
         ok: false,
       });
     }
-
-    await Account.create({
-      email: email,
-      password: hashedPassword,
-      account_type_id: accountTypeId,
-      subject_id: subject_id,
-    });
 
     return res.status(201).json({
       message: await translation('ACCOUNT.CREATED_SUCCESSFULLY', locale),
