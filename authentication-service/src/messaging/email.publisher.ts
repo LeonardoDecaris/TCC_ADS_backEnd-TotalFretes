@@ -1,17 +1,15 @@
 import amqp from 'amqplib';
 import type { Channel, ChannelModel, ConfirmChannel, Options } from 'amqplib';
 
-// ─── config ───────────────────────────────────────────────────────────────────
-
 const HEARTBEAT_SEC = 60;
 
 function config() {
   return {
-    exchange:    process.env.EMAIL_EVENTS_EXCHANGE                  ?? 'email.events',
-    queue:       process.env.EMAIL_SEND_QUEUE                       ?? 'email.send',
-    routingKey:  process.env.EMAIL_ROUTING_KEY_PASSWORD_RESET       ?? 'email.send.password_reset',
-    dlx:         process.env.EMAIL_DLX_EXCHANGE                     ?? 'email.dlx',
-    failedQueue: process.env.EMAIL_SEND_FAILED_QUEUE                ?? 'email.send.failed',
+    exchange:    process.env.EMAIL_EVENTS_EXCHANGE            ?? 'email.events',
+    queue:       process.env.EMAIL_SEND_QUEUE                 ?? 'email.send',
+    routingKey:  process.env.EMAIL_ROUTING_KEY_PASSWORD_RESET ?? 'email.send.password_reset',
+    dlx:         process.env.EMAIL_DLX_EXCHANGE               ?? 'email.dlx',
+    failedQueue: process.env.EMAIL_SEND_FAILED_QUEUE          ?? 'email.send.failed',
   };
 }
 
@@ -27,8 +25,6 @@ function amqpUri(): string {
     return url;
   }
 }
-
-// ─── topology ─────────────────────────────────────────────────────────────────
 
 async function assertTopology(ch: Channel): Promise<void> {
   const { dlx, failedQueue, exchange, queue, routingKey } = config();
@@ -47,8 +43,6 @@ async function assertTopology(ch: Channel): Promise<void> {
   });
   await ch.bindQueue(queue, exchange, routingKey);
 }
-
-// ─── publish helper ───────────────────────────────────────────────────────────
 
 function publishConfirmed(
   ch: ConfirmChannel,
@@ -69,13 +63,9 @@ function publishConfirmed(
   });
 }
 
-// ─── state ────────────────────────────────────────────────────────────────────
-
-let connection: ChannelModel | null = null;
-let channel: ConfirmChannel | null  = null;
+let connection: ChannelModel | null  = null;
+let channel: ConfirmChannel | null   = null;
 let isClosing = false;
-
-// ─── helpers ──────────────────────────────────────────────────────────────────
 
 function attachEvents(target: ChannelModel | Channel, label: string): void {
   target.on('error', (err) => console.error(`[email publisher] ${label} error:`, err));
@@ -84,9 +74,7 @@ function attachEvents(target: ChannelModel | Channel, label: string): void {
   });
 }
 
-// ─── public API ───────────────────────────────────────────────────────────────
-
-export async function initEmailPublisher(): Promise<void> {
+export async function startEmailPublisher(): Promise<void> {
   connection = await amqp.connect(amqpUri(), {
     clientProperties: { connection_name: 'authentication-service-email-publisher' },
   });
@@ -117,7 +105,7 @@ export async function publishPasswordResetEmail(payload: {
   });
 }
 
-export async function closeEmailPublisher(): Promise<void> {
+export async function stopEmailPublisher(): Promise<void> {
   isClosing = true;
   try { await channel?.close();    } catch { /* ignore */ }
   try { await connection?.close(); } catch { /* ignore */ }

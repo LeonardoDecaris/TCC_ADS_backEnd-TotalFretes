@@ -1,7 +1,7 @@
-import axios from "axios";
 import { Request, Response } from "express";
 import Company from "../models/company.model";
 import CompanyAddress from "../models/address.model";
+import { createAccountRpc } from "../messaging/account.rpc.client";
 import { translation } from "../utils/i18n";
 import { getLocaleFromRequest } from "../utils/locale";
 import { validateBody } from "../utils/validate";
@@ -10,8 +10,6 @@ import {
 	createCompanyEndAccountSchema,
 	updateCompanySchema,
 } from "../schemas/company.schemas";
-
-const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
 
 export const createCompany = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
@@ -114,13 +112,6 @@ export const createCompanyEndAccount = async (req: Request, res: Response) => {
 	const body = await validateBody(req, res, createCompanyEndAccountSchema);
 	if (!body) return;
 
-	if (!AUTH_SERVICE_URL) {
-		console.error("AUTH_SERVICE_URL is not defined");
-		return res.status(500).json({
-			message: await translation("COMPANY.CREATE_FAILED", locale),
-		});
-	}
-
 	const {
 		password,
 		account_type_id,
@@ -150,26 +141,27 @@ export const createCompanyEndAccount = async (req: Request, res: Response) => {
 			companyAddress_id: address.id,
 		});
 
-		const authBase = AUTH_SERVICE_URL.replace(/\/$/, "");
-		const { data, status } = await axios.post(
-			`${authBase}/account`,
-			{
-				email: company.email,
-				password,
-				subject_id: company.id,
-				account_type_id,
-			},
-			{ validateStatus: () => true }
-		);
-
-		if (status >= 400 || !data?.ok) {
+		const subjectId = company.id;
+		if (subjectId == null) {
 			await company.destroy();
 			await address.destroy();
-			const message =
-				typeof data?.message === "string"
-					? data.message
-					: await translation("COMPANY.ACCOUNT_CREATE_FAILED", locale);
-			return res.status(status === 409 ? 409 : 500).json({ message });
+			return res.status(500).json({
+				message: await translation("COMPANY.CREATE_FAILED", locale),
+			});
+		}
+
+		const responseAccount = await createAccountRpc({
+			email: company.email ?? "",
+			password,
+			subject_id: subjectId,
+			account_type_id,
+		});
+		if (!responseAccount.ok) {
+			await company.destroy();
+			await address.destroy();
+			return res.status(500).json({
+				message: await translation("COMPANY.ACCOUNT_CREATE_FAILED", locale),
+			});
 		}
 
 		return res.status(201).json({

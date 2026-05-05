@@ -2,17 +2,15 @@ import amqp from 'amqplib';
 import type { Channel, ChannelModel, ConsumeMessage } from 'amqplib';
 import { sendPasswordResetEmail } from '../services/passwordResetMail';
 
-// ─── config ───────────────────────────────────────────────────────────────────
-
 const HEARTBEAT_SEC = 60;
 
 function config() {
   return {
-    exchange:   process.env.EMAIL_EVENTS_EXCHANGE                  ?? 'email.events',
-    queue:      process.env.EMAIL_SEND_QUEUE                       ?? 'email.send',
-    routingKey: process.env.EMAIL_ROUTING_KEY_PASSWORD_RESET       ?? 'email.send.password_reset',
-    dlx:        process.env.EMAIL_DLX_EXCHANGE                     ?? 'email.dlx',
-    failedQueue: process.env.EMAIL_SEND_FAILED_QUEUE               ?? 'email.send.failed',
+    exchange:    process.env.EMAIL_EVENTS_EXCHANGE            ?? 'email.events',
+    queue:       process.env.EMAIL_SEND_QUEUE                 ?? 'email.send',
+    routingKey:  process.env.EMAIL_ROUTING_KEY_PASSWORD_RESET ?? 'email.send.password_reset',
+    dlx:         process.env.EMAIL_DLX_EXCHANGE               ?? 'email.dlx',
+    failedQueue: process.env.EMAIL_SEND_FAILED_QUEUE          ?? 'email.send.failed',
   };
 }
 
@@ -28,8 +26,6 @@ function amqpUri(): string {
     return url;
   }
 }
-
-// ─── topology ─────────────────────────────────────────────────────────────────
 
 async function assertTopology(ch: Channel): Promise<void> {
   const { dlx, failedQueue, exchange, queue, routingKey } = config();
@@ -49,12 +45,8 @@ async function assertTopology(ch: Channel): Promise<void> {
   await ch.bindQueue(queue, exchange, routingKey);
 }
 
-// ─── state ────────────────────────────────────────────────────────────────────
-
 let connection: ChannelModel | null = null;
 let isClosing = false;
-
-// ─── helpers ──────────────────────────────────────────────────────────────────
 
 function attachEvents(target: ChannelModel | Channel, label: string): void {
   target.on('error', (err) => console.error(`[email consumer] ${label} error:`, err));
@@ -62,8 +54,6 @@ function attachEvents(target: ChannelModel | Channel, label: string): void {
     if (!isClosing) console.warn(`[email consumer] ${label} closed unexpectedly`);
   });
 }
-
-// ─── message handler ──────────────────────────────────────────────────────────
 
 async function handleMessage(msg: ConsumeMessage, ch: Channel): Promise<void> {
   let raw: unknown;
@@ -100,8 +90,6 @@ async function handleMessage(msg: ConsumeMessage, ch: Channel): Promise<void> {
   }
 }
 
-// ─── public API ───────────────────────────────────────────────────────────────
-
 export async function startEmailConsumer(): Promise<void> {
   connection = await amqp.connect(amqpUri(), {
     clientProperties: { connection_name: 'email-management-service-consumer' },
@@ -128,7 +116,7 @@ export async function startEmailConsumer(): Promise<void> {
   console.info(`[email consumer] listening on queue "${queue}"`);
 }
 
-export async function closeEmailConsumer(): Promise<void> {
+export async function stopEmailConsumer(): Promise<void> {
   isClosing = true;
   try { await connection?.close(); } catch { /* ignore */ }
   connection = null;

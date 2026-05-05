@@ -1,7 +1,7 @@
 import axios from "axios";
 import { UniqueConstraintError } from "sequelize";
 import User from "../models/user.model";
-import { requestAccountCreationRpc } from "../messaging/account.rpc.client";
+import { createAccountRpc } from "../messaging/account.rpc.client";
 import CnhType from "../models/cnh.model";
 import { Request, Response } from "express";
 import { validateBody, validateParams, idParamSchema } from "../utils/validate";
@@ -188,7 +188,7 @@ export const createUserEndAccount = async (req: Request, res: Response) => {
 			});
 		}
 
-		const respondeAccount = await requestAccountCreationRpc({
+		const respondeAccount = await createAccountRpc({
 			email: body.email,
 			password: body.password,
 			subject_id: subjectId,

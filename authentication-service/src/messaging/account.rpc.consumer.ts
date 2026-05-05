@@ -22,13 +22,10 @@ function rpcQueueName(): string {
   return process.env.ACCOUNT_CREATE_RPC_QUEUE ?? 'account.create.rpc';
 }
 
-// ─── state ────────────────────────────────────────────────────────────────────
 
 let connection: ChannelModel | null = null;
 let channel: Channel | null = null;
 let isClosing = false;
-
-// ─── helpers ──────────────────────────────────────────────────────────────────
 
 function normalizeCid(value: unknown): string | null {
   if (value == null) return null;
@@ -52,10 +49,8 @@ function attachEvents(target: ChannelModel | Channel, label: string): void {
   });
 }
 
-// ─── message handler ──────────────────────────────────────────────────────────
-
 async function handleMessage(msg: ConsumeMessage, ch: Channel): Promise<void> {
-  const replyTo    = msg.properties.replyTo as string | undefined;
+  const replyTo       = msg.properties.replyTo as string | undefined;
   const correlationId = normalizeCid(msg.properties.correlationId);
 
   if (!replyTo || !correlationId) {
@@ -91,7 +86,7 @@ async function handleMessage(msg: ConsumeMessage, ch: Channel): Promise<void> {
   }
 }
 
-export async function initAccountRpcConsumer(): Promise<void> {
+export async function startAccountRpcConsumer(): Promise<void> {
   connection = await amqp.connect(amqpUri(), {
     clientProperties: { connection_name: 'authentication-service-account-rpc' },
   });
@@ -117,7 +112,7 @@ export async function initAccountRpcConsumer(): Promise<void> {
   console.info(`[account-rpc consumer] listening on queue "${queue}"`);
 }
 
-export async function closeAccountRpcConsumer(): Promise<void> {
+export async function stopAccountRpcConsumer(): Promise<void> {
   isClosing = true;
   try { await channel?.close();    } catch { /* ignore */ }
   try { await connection?.close(); } catch { /* ignore */ }

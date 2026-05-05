@@ -2,11 +2,9 @@ import crypto from 'crypto';
 import amqp from 'amqplib';
 import type { Channel, ChannelModel } from 'amqplib';
 
-// ─── config ───────────────────────────────────────────────────────────────────
-
-const HEARTBEAT_SEC    = 60;
-const RPC_TIMEOUT_MS   = Number(process.env.ACCOUNT_RPC_TIMEOUT_MS   ?? 15_000);
-const RECONNECT_DELAY  = Number(process.env.RABBITMQ_RECONNECT_DELAY_MS ?? 3_000);
+const HEARTBEAT_SEC   = 60;
+const RPC_TIMEOUT_MS  = 15_000
+const RECONNECT_DELAY = 3_000
 
 function amqpUri(): string {
   const url = process.env.RABBITMQ_URL ?? '';
@@ -19,11 +17,13 @@ function amqpUri(): string {
   }
 }
 
+/**
+ * @description Get the name of the RPC queue.
+ * @returns The name of the RPC queue.
+ */
 function rpcQueueName(): string {
   return process.env.ACCOUNT_CREATE_RPC_QUEUE ?? 'account.create.rpc';
 }
-
-// ─── types ────────────────────────────────────────────────────────────────────
 
 export type AccountRpcPayload = {
   email: string;
@@ -37,8 +37,6 @@ type PendingRpc = {
   timer: ReturnType<typeof setTimeout>;
 };
 
-// ─── state ────────────────────────────────────────────────────────────────────
-
 let connection:  ChannelModel | null = null;
 let channel:     Channel | null      = null;
 let replyQueue:  string | null       = null;
@@ -47,14 +45,22 @@ let isConnecting = false;
 
 const pending = new Map<string, PendingRpc>();
 
-// ─── helpers ──────────────────────────────────────────────────────────────────
-
+/**
+ * @description Normalize the correlation ID.
+ * @param value - The value to normalize.
+ * @returns The normalized correlation ID.
+ */
 function normalizeCid(value: unknown): string | null {
   if (value == null) return null;
   if (Buffer.isBuffer(value)) return value.toString('utf8');
   return String(value);
 }
 
+/**
+ * @description Reject all pending RPCs.
+ * @param reason - The reason for the rejection.
+ * @returns void
+ */
 function rejectAll(reason: string): void {
   for (const [cid, entry] of pending) {
     clearTimeout(entry.timer);
@@ -64,10 +70,21 @@ function rejectAll(reason: string): void {
   }
 }
 
+/**
+ * @description Schedule a reconnect.
+ * @returns void
+ */
 function scheduleReconnect(): void {
   if (!isClosing) setTimeout(() => void connect(), RECONNECT_DELAY);
 }
 
+/**
+ * @description Attach events to the channel.
+ * @param target - The target to attach the events to.
+ * @param label - The label of the target.
+ * @param onClose - The function to call when the channel is closed.
+ * @returns void
+ */
 function attachEvents(target: ChannelModel | Channel, label: string, onClose: () => void): void {
   target.on('error', (err) => console.error(`[account-rpc client] ${label} error:`, err));
   target.on('close', () => {
@@ -78,8 +95,10 @@ function attachEvents(target: ChannelModel | Channel, label: string, onClose: ()
   });
 }
 
-// ─── connection ───────────────────────────────────────────────────────────────
-
+/**
+ * @description Connect to the RabbitMQ server.
+ * @returns void
+ */
 async function connect(): Promise<void> {
   if (isConnecting || isClosing) return;
   isConnecting = true;
@@ -109,10 +128,8 @@ async function connect(): Promise<void> {
       scheduleReconnect();
     });
 
-    // assert the server queue so we fail early if it's missing
     await channel.assertQueue(rpcQueueName(), { durable: true });
 
-    // exclusive reply queue — one per process, lives until disconnect
     const { queue } = await channel.assertQueue('', {
       exclusive:  true,
       autoDelete: true,
@@ -120,7 +137,6 @@ async function connect(): Promise<void> {
     });
     replyQueue = queue;
 
-    // single consumer dispatches all replies via the pending map
     await channel.consume(
       replyQueue,
       (msg) => {
@@ -152,21 +168,15 @@ async function connect(): Promise<void> {
   }
 }
 
-// ─── public API ───────────────────────────────────────────────────────────────
-
 /**
- * Call once at application bootstrap (e.g. main.ts).
- * Establishes the persistent connection and reply queue.
+ * @description Connect to the account RPC server.
+ * @returns void
  */
-export async function initAccountRpcClient(): Promise<void> {
+export async function startAccountRpcClient(): Promise<void> {
   await connect();
 }
 
-/**
- * Sends an account-creation RPC request and awaits the response.
- * Safe to call concurrently — each call is tracked by its own correlationId.
- */
-export async function requestAccountCreationRpc(
+export async function createAccountRpc(
   payload: AccountRpcPayload,
 ): Promise<{ ok: boolean }> {
   const ch = channel;
@@ -205,10 +215,10 @@ export async function requestAccountCreationRpc(
 }
 
 /**
- * Gracefully closes the connection.
- * Call on SIGTERM / application shutdown.
+ * @description Stop the account RPC client.
+ * @returns void
  */
-export async function closeAccountRpcClient(): Promise<void> {
+export async function stopAccountRpcClient(): Promise<void> {
   isClosing = true;
   rejectAll('client shutting down');
   try { await channel?.close();    } catch { /* ignore */ }

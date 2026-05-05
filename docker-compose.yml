@@ -87,6 +87,8 @@ services:
     depends_on:
       company-service-database:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - app-network
     healthcheck:
