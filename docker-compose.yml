@@ -192,6 +192,8 @@ services:
     restart: always
     env_file:
       - ./email-management-service/.env
+    environment:
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
     depends_on:
       rabbitmq:
         condition: service_healthy
