@@ -1,7 +1,7 @@
 import app from './app';
 import dotenv from 'dotenv';
 import sequelize from './config/database';
-import { startAccountRpcClient } from './messaging/account.rpc.client';
+import { startRpcClient } from './messaging/rpc.client';
 
 dotenv.config();
 
@@ -17,8 +17,8 @@ if (!PORT) {
     await sequelize.sync({ alter: false });
     console.log('Database synchronized successfully');
 
-    await startAccountRpcClient();
-    console.log('Account RPC client started successfully');
+    await startRpcClient();
+    console.log('RPC client started successfully');
     app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
   } catch (err) {
     console.error('error to start the server:', err);

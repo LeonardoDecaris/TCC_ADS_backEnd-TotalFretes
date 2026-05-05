@@ -3,15 +3,13 @@ import GroupVehicleType from "../models/groupVehicleType.model";
 import CnhType from "../models/cnh.model";
 import { translation } from "../utils/i18n";
 import { getLocaleFromRequest } from "../utils/locale";
-import { validateBody, validateParams, idParamSchema } from "../utils/validate";
 import { createGroupVehicleTypeSchema, updateGroupVehicleTypeSchema } from "../schemas/groupVehicleType.schemas";
 
 export const createGroupVehicleType = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
-	const body = await validateBody(req, res, createGroupVehicleTypeSchema);
-	if (!body) return;
-
 	try {
+		const body = createGroupVehicleTypeSchema.parse(req.body);
+
 		const groupVehicleType = await GroupVehicleType.create(body);
 		return res.status(201).json({
 			message: await translation("GROUP_VEHICLE_TYPE.CREATED_SUCCESSFULLY", locale),
@@ -48,11 +46,8 @@ export const getAllGroupVehicleTypes = async (req: Request, res: Response) => {
 
 export const getGroupVehicleTypeById = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
-	const params = await validateParams(req, res, idParamSchema);
-	if (!params) return;
-
 	try {
-		const groupVehicleType = await GroupVehicleType.findByPk(params.id, {
+		const groupVehicleType = await GroupVehicleType.findByPk(req.params.id as string, {
 			include: [
 				{
 					model: CnhType,
@@ -78,13 +73,10 @@ export const getGroupVehicleTypeById = async (req: Request, res: Response) => {
 
 export const updateGroupVehicleType = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
-	const params = await validateParams(req, res, idParamSchema);
-	if (!params) return;
-	const body = await validateBody(req, res, updateGroupVehicleTypeSchema);
-	if (!body) return;
-
 	try {
-		const groupVehicleType = await GroupVehicleType.findByPk(params.id);
+		const body = updateGroupVehicleTypeSchema.parse(req.body);
+
+		const groupVehicleType = await GroupVehicleType.findByPk(req.params.id as string);
 
 		if (!groupVehicleType) {
 			return res.status(404).json({
@@ -107,11 +99,8 @@ export const updateGroupVehicleType = async (req: Request, res: Response) => {
 
 export const deleteGroupVehicleType = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
-	const params = await validateParams(req, res, idParamSchema);
-	if (!params) return;
-
 	try {
-		const groupVehicleType = await GroupVehicleType.findByPk(params.id);
+		const groupVehicleType = await GroupVehicleType.findByPk(req.params.id as string);
 
 		if (!groupVehicleType) {
 			return res.status(404).json({
@@ -130,4 +119,3 @@ export const deleteGroupVehicleType = async (req: Request, res: Response) => {
 		});
 	}
 };
-

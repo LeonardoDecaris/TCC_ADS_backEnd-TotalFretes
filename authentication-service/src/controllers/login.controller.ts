@@ -10,10 +10,10 @@ import { loginSchema } from '../schemas/login.schemas';
 export const login = async (req: Request, res: Response) => {
   const locale = getLocaleFromRequest(req);
   try {
-    const { email, password } = loginSchema.parse(req.body);
+    const body = loginSchema.parse(req.body);
 
     const account = await Account.findOne({
-      where: { email },
+      where: { email: body.email },
       include: [{
         model: AccountType,
         attributes: ['name']
@@ -26,7 +26,7 @@ export const login = async (req: Request, res: Response) => {
       });
     }
 
-    const validPassword = await bcrypt.compare(password, account.password || '');
+    const validPassword = await bcrypt.compare(body.password, account.password || '');
     if (!validPassword) {
       return res.status(401).json({
         message: await translation('AUTH.INVALID_PASSWORD', locale),

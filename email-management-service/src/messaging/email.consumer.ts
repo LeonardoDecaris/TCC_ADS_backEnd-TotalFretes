@@ -1,51 +1,11 @@
 import amqp from 'amqplib';
 import type { Channel, ChannelModel, ConsumeMessage } from 'amqplib';
 import { sendPasswordResetEmail } from '../services/passwordResetMail';
-
-const HEARTBEAT_SEC = 60;
-
-function config() {
-  return {
-    exchange:    process.env.EMAIL_EVENTS_EXCHANGE            ?? 'email.events',
-    queue:       process.env.EMAIL_SEND_QUEUE                 ?? 'email.send',
-    routingKey:  process.env.EMAIL_ROUTING_KEY_PASSWORD_RESET ?? 'email.send.password_reset',
-    dlx:         process.env.EMAIL_DLX_EXCHANGE               ?? 'email.dlx',
-    failedQueue: process.env.EMAIL_SEND_FAILED_QUEUE          ?? 'email.send.failed',
-  };
-}
-
-function amqpUri(): string {
-  const url = process.env.RABBITMQ_URL;
-  if (!url) throw new Error('Environment variable RABBITMQ_URL is not defined.');
-
-  try {
-    const u = new URL(url);
-    if (!u.searchParams.has('heartbeat')) u.searchParams.set('heartbeat', String(HEARTBEAT_SEC));
-    return u.toString();
-  } catch {
-    return url;
-  }
-}
-
-async function assertTopology(ch: Channel): Promise<void> {
-  const { dlx, failedQueue, exchange, queue, routingKey } = config();
-
-  await ch.assertExchange(dlx, 'fanout', { durable: true });
-  await ch.assertQueue(failedQueue, { durable: true });
-  await ch.bindQueue(failedQueue, dlx, '');
-
-  await ch.assertExchange(exchange, 'topic', { durable: true });
-  await ch.assertQueue(queue, {
-    durable: true,
-    arguments: {
-      'x-dead-letter-exchange':    dlx,
-      'x-dead-letter-routing-key': 'failed',
-    },
-  });
-  await ch.bindQueue(queue, exchange, routingKey);
-}
+import { assertEmailTopology, buildEmailAmqpUri, emailAmqpConfig } from './email.amqp';
+import { parsePasswordResetMessage } from '../shared/email.events.types';
 
 let connection: ChannelModel | null = null;
+let channel: Channel | null = null;
 let isClosing = false;
 
 function attachEvents(target: ChannelModel | Channel, label: string): void {
@@ -65,24 +25,14 @@ async function handleMessage(msg: ConsumeMessage, ch: Channel): Promise<void> {
     return;
   }
 
-  if (
-    typeof raw !== 'object' ||
-    raw === null ||
-    (raw as { type?: string }).type !== 'password_reset'
-  ) {
-    ch.ack(msg);
-    return;
-  }
-
-  const { email, codigo } = raw as { email?: unknown; codigo?: unknown };
-
-  if (typeof email !== 'string' || typeof codigo !== 'string' || !email || !codigo) {
+  const job = parsePasswordResetMessage(raw);
+  if (!job) {
     ch.ack(msg);
     return;
   }
 
   try {
-    await sendPasswordResetEmail(email, codigo);
+    await sendPasswordResetEmail(job.email, job.codigo);
     ch.ack(msg);
   } catch (err) {
     console.error('[email consumer] failed to send email:', err);
@@ -91,18 +41,19 @@ async function handleMessage(msg: ConsumeMessage, ch: Channel): Promise<void> {
 }
 
 export async function startEmailConsumer(): Promise<void> {
-  connection = await amqp.connect(amqpUri(), {
+  connection = await amqp.connect(buildEmailAmqpUri(), {
     clientProperties: { connection_name: 'email-management-service-consumer' },
   });
   attachEvents(connection, 'connection');
 
   const ch = await connection.createChannel();
+  channel = ch;
   attachEvents(ch, 'channel');
 
   await ch.prefetch(1);
-  await assertTopology(ch);
+  await assertEmailTopology(ch);
 
-  const { queue } = config();
+  const { queue } = emailAmqpConfig();
 
   await ch.consume(
     queue,
@@ -118,7 +69,9 @@ export async function startEmailConsumer(): Promise<void> {
 
 export async function stopEmailConsumer(): Promise<void> {
   isClosing = true;
+  try { await channel?.close(); } catch { /* ignore */ }
   try { await connection?.close(); } catch { /* ignore */ }
+  channel = null;
   connection = null;
-  isClosing  = false;
+  isClosing = false;
 }

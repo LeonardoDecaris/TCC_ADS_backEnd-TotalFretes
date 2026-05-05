@@ -2,7 +2,9 @@ import app from './app';
 import dotenv from 'dotenv';
 import sequelize from './config/database';
 import { seedAccountTypes } from './config/seedAccountTypes';
-import { startAccountRpcConsumer } from './messaging/account.rpc.consumer';
+import { startRpcConsumer } from './messaging/rpc.consumer';
+import { registerAccountHandler } from './messaging/account.rpc.handler';
+import { startEmailPublisher } from './messaging/email.publisher';
 
 dotenv.config();
 
@@ -22,8 +24,13 @@ if (!PORT) {
     await seedAccountTypes();
     console.log('Account types verified successfully');
 
-    await startAccountRpcConsumer();
-    console.log('Account RPC consumer started successfully');
+    registerAccountHandler();
+
+    await startEmailPublisher();
+    console.log('Email publisher started successfully');
+
+    await startRpcConsumer();
+    console.log('RPC consumer started successfully');
 
     app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
   } catch (err) {

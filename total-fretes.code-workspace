@@ -16,22 +16,6 @@
             "name": "email-management-service",
             "path": "./email-management-service"
         },
-        {
-            "name": "Swagger-service",
-            "path": "./swagger-service"
-        },
-        {
-            "name": "mapbox-service",
-            "path": "./mapbox-service"
-        },
-        {
-            "name": "nginx",
-            "path": "./nginx"
-        },
-        {
-            "name": "i18n-translation-service",
-            "path": "./i18n-translation-service"
-        }
     ],
    
     "settings": {
@@ -43,6 +27,9 @@
             "**/.git": true
         },
         "editor.formatOnSave": true,
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "[typescript]": {
+            "editor.defaultFormatter": "vscode.typescript-language-features"
+        }
     }
 }

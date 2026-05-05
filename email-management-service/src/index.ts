@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import express, { Request, Response } from 'express';
 import cors from 'cors';
-import { startEmailConsumer, closeEmailConsumer } from './messaging/email.consumer';
+import { startEmailConsumer, stopEmailConsumer } from './messaging/email.consumer';
 
 const app = express();
 
@@ -17,7 +17,7 @@ const PORT = process.env.PORT || 3000;
 async function shutdown(signal: string) {
   console.info(`${signal} received, shutting down`);
   try {
-    await closeEmailConsumer();
+    await stopEmailConsumer();
   } catch (e) {
     console.error('Erro ao encerrar RabbitMQ:', e);
   }

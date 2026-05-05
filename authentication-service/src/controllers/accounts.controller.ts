@@ -1,3 +1,5 @@
+// authentication-service/src/controllers/accounts.controller.ts
+
 import { Request, Response } from 'express';
 import { Account } from '../models/accounts.model';
 import AccountType from '../models/accounts_types.model';

@@ -2,15 +2,13 @@ import { Request, Response } from "express";
 import CnhType from "../models/cnh.model";
 import { translation } from "../utils/i18n";
 import { getLocaleFromRequest } from "../utils/locale";
-import { validateBody, validateParams, idParamSchema } from "../utils/validate";
 import { createCnhTypeSchema, updateCnhTypeSchema } from "../schemas/cnh.schemas";
 
 export const createCnhType = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
-	const body = await validateBody(req, res, createCnhTypeSchema);
-	if (!body) return;
-
 	try {
+		const body = createCnhTypeSchema.parse(req.body);
+
 		const cnhType = await CnhType.create(body);
 		return res.status(201).json({
 			message: await translation("CNH_TYPE.CREATED_SUCCESSFULLY", locale),
@@ -39,11 +37,8 @@ export const getAllCnhTypes = async (req: Request, res: Response) => {
 
 export const getCnhTypeById = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
-	const params = await validateParams(req, res, idParamSchema);
-	if (!params) return;
-
 	try {
-		const cnhType = await CnhType.findByPk(params.id);
+		const cnhType = await CnhType.findByPk(req.params.id as string);
 		if (!cnhType) {
 			return res.status(404).json({
 				message: await translation("CNH_TYPE.NOT_FOUND", locale),
@@ -60,13 +55,10 @@ export const getCnhTypeById = async (req: Request, res: Response) => {
 
 export const updateCnhType = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
-	const params = await validateParams(req, res, idParamSchema);
-	if (!params) return;
-	const body = await validateBody(req, res, updateCnhTypeSchema);
-	if (!body) return;
-
 	try {
-		const cnhType = await CnhType.findByPk(params.id);
+		const body = updateCnhTypeSchema.parse(req.body);
+
+		const cnhType = await CnhType.findByPk(req.params.id as string);
 		if (!cnhType) {
 			return res.status(404).json({
 				message: await translation("CNH_TYPE.NOT_FOUND", locale),
@@ -87,11 +79,8 @@ export const updateCnhType = async (req: Request, res: Response) => {
 
 export const deleteCnhType = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
-	const params = await validateParams(req, res, idParamSchema);
-	if (!params) return;
-
 	try {
-		const cnhType = await CnhType.findByPk(params.id);
+		const cnhType = await CnhType.findByPk(req.params.id as string);
 		if (!cnhType) {
 			return res.status(404).json({
 				message: await translation("CNH_TYPE.NOT_FOUND", locale),

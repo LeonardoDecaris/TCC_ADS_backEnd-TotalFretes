@@ -4,7 +4,7 @@ import sequelize from './config/database';
 import { seedCnhTypes } from './config/seedCnh';
 import { seedGroupVehicleType } from './config/seedGrupVehicleType';
 import { seedVehicleType } from './config/seedVehicleType';
-import { startAccountRpcClient } from './messaging/account.rpc.client';
+import { startRpcClient } from './messaging/rpc.client';
 
 dotenv.config();
 
@@ -30,7 +30,7 @@ if (!PORT) {
     await seedVehicleType();
     console.log('Vehicle types seeded successfully');
     
-    await startAccountRpcClient();
+    await startRpcClient();
     console.log('Account RPC client started successfully');
 
     app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
