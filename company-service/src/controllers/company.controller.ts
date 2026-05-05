@@ -268,6 +268,12 @@ export const createCompanyEndAccount = async (req: Request, res: Response) => {
 			});
 		}
 
+		return res.status(201).json({
+			message: await translation("COMPANY.CREATED_WITH_ACCOUNT_SUCCESSFULLY", locale),
+			company,
+			address,
+		});
+
 	} catch (error) {
 		console.error(error);
 		return res.status(500).json({

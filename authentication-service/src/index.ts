@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import sequelize from './config/database';
 import { seedAccountTypes } from './config/seedAccountTypes';
 import { startRpcConsumer } from './messaging/rpc.consumer';
-import { registerAccountHandler } from './messaging/account.rpc.handler';
+import { registerAccountRpcConsumer } from './messaging/account.rpc.consumer';
 import { startEmailPublisher } from './messaging/email.publisher';
 
 dotenv.config();
@@ -24,7 +24,7 @@ if (!PORT) {
     await seedAccountTypes();
     console.log('Account types verified successfully');
 
-    registerAccountHandler();
+    registerAccountRpcConsumer();
 
     await startEmailPublisher();
     console.log('Email publisher started successfully');

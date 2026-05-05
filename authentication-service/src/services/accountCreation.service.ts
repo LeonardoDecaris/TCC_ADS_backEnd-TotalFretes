@@ -4,7 +4,6 @@
 
 import bcrypt from 'bcrypt';
 import { Account } from '../models/accounts.model';
-import { accountSchema } from '../schemas/account.schemas';
 
 export type AccountCreationInput = {
   email: string;
@@ -15,15 +14,13 @@ export type AccountCreationInput = {
 
 export type AccountCreationResult =
   | { ok: true }
-  | { ok: false; reason: 'validation' | 'exists' | 'error' };
+  | { ok: false; reason: 'exists' | 'error' };
 
+/** Persistência após validação no boundary HTTP/RPC (contratos Zod). */
 export async function createAccountRecord(
   input: AccountCreationInput,
 ): Promise<AccountCreationResult> {
-  const parsed = accountSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, reason: 'validation' };
-
-  const { email, password, subject_id, account_type_id } = parsed.data;
+  const { email, password, subject_id, account_type_id } = input;
 
   const existing = await Account.findOne({ where: { email } });
   if (existing) return { ok: false, reason: 'exists' };

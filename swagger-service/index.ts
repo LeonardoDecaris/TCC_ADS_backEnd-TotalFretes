@@ -3,12 +3,12 @@ import swaggerUi from 'swagger-ui-express';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import axios from 'axios';
 import dotenv from 'dotenv';
+
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT ?? 3005;
 
-// URLs base dos serviços — usam env se existir, senão caem para o hostname do Docker
 const AUTH_SERVICE_URL =
   (process.env.AUTH_SERVICE_URL ?? 'http://authentication-service:3000').replace(/\/$/, '');
 const COMPANY_SERVICE_URL =
@@ -20,12 +20,12 @@ const STORAGE_SERVICE_URL =
 const FREIGHT_SERVICE_URL =
   (process.env.FREIGHT_SERVICE_URL ?? 'http://freight-service:3008').replace(/\/$/, '');
 
-interface Service {
+interface ServiceSpecUrl {
   name: string;
   url: string;
 }
 
-const services: Service[] = [
+const specSources: ServiceSpecUrl[] = [
   { name: 'Authentication Service', url: `${AUTH_SERVICE_URL}/api-docs` },
   { name: 'Company Service', url: `${COMPANY_SERVICE_URL}/api-docs` },
   { name: 'User Service', url: `${USER_SERVICE_URL}/api-docs` },
@@ -33,12 +33,12 @@ const services: Service[] = [
   { name: 'Freight Service', url: `${FREIGHT_SERVICE_URL}/api-docs` },
 ];
 
-const fetchSwaggerSpecs = async (): Promise<{ name: string; spec: any }[]> => {
-  const specs: { name: string; spec: any }[] = [];
-  for (const service of services) {
+const fetchSwaggerSpecs = async (): Promise<{ name: string; spec: Record<string, unknown> }[]> => {
+  const specs: { name: string; spec: Record<string, unknown> }[] = [];
+  for (const service of specSources) {
     try {
-      const response = await axios.get(service.url, { timeout: 5000 });
-      const spec = response.data;
+      const response = await axios.get(service.url, { timeout: 8000 });
+      const spec = response.data as Record<string, unknown>;
       if (spec && (spec.paths || spec.openapi || spec.swagger)) {
         specs.push({ name: service.name, spec });
         console.log(`OK: ${service.name} (${service.url})`);
@@ -212,5 +212,4 @@ app.listen(PORT, () => {
   console.log(`Swagger service running at http://localhost:${PORT}`);
   console.log('  Swagger UI: http://localhost:' + PORT + '/swagger-ui');
   console.log('  Docs (JSON): http://localhost:' + PORT + '/docs');
-  console.log('  Garanta que os serviços estão rodando: Auth=3001, Company=3002, User=3003');
 });

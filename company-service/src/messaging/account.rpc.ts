@@ -2,11 +2,12 @@
  * Typed wrapper for account-creation RPC (authentication-service).
  */
 
+import { DEFAULT_ACCOUNT_CREATE_RPC_QUEUE } from '@total-fretes/rpc-contracts';
 import { rpcCall } from './rpc.client';
 import type { RpcEnvelope } from '../shared/rpc.types';
 
 const ACCOUNT_CREATE_QUEUE =
-  process.env.ACCOUNT_CREATE_RPC_QUEUE ?? 'account.create.rpc';
+  process.env.ACCOUNT_CREATE_RPC_QUEUE ?? DEFAULT_ACCOUNT_CREATE_RPC_QUEUE;
 
 export type CreateAccountPayload = {
   email: string;

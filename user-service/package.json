@@ -19,9 +19,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@total-fretes/rpc-contracts": "file:../packages/rpc-contracts",
+    "axios": "^1.13.5",
     "@julioakira/cpf-cnpj-utils": "^2.0.1",
     "amqplib": "^1.0.3",
-    "axios": "^1.13.5",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",

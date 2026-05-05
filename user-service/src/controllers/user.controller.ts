@@ -1,7 +1,7 @@
-import { UniqueConstraintError } from 'sequelize';
 import User from '../models/user.model';
 import CnhType from '../models/cnh.model';
 import { createAccountRpc } from '../messaging/account.rpc';
+import { fetchUserImage } from '../http/storage.http';
 import { isSuccess } from '../shared/rpc.types';
 import { Request, Response } from 'express';
 import {
@@ -43,7 +43,16 @@ export const getUserById = async (req: Request, res: Response) => {
 			});
 		}
 
-		return res.status(200).json(user);
+		const userData = user.toJSON() as Record<string, unknown> & {
+			userImage_id?: number | null;
+		};
+
+		const userImage = userData.userImage_id ? await fetchUserImage(userData.userImage_id) : null;
+
+		return res.status(200).json({
+			...userData,
+			UserImage: userImage,
+		});
 	} catch {
 		return res.status(500).json({
 			message: await translation('USER.GET_BY_ID_FAILED', locale),

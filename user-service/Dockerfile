@@ -1,11 +1,13 @@
 FROM node:22-slim AS build
 
-WORKDIR /app
+WORKDIR /app/packages/rpc-contracts
+COPY packages/rpc-contracts/package.json packages/rpc-contracts/tsconfig.json ./
+COPY packages/rpc-contracts/src ./src
+RUN npm install && npm run build
 
-COPY src /app/src
-COPY package.json /app
-COPY tsconfig.json /app
-
+WORKDIR /app/user-service
+COPY user-service/package.json user-service/tsconfig.json ./
+COPY user-service/src ./src
 RUN npm install
 
 EXPOSE 3001

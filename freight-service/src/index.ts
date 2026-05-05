@@ -21,6 +21,7 @@ if (!PORT) {
     console.log('Freight status types seeded successfully');
     await seedProposalStatusTypes();
     console.log('Proposal status types seeded successfully');
+
     app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
   } catch (err) {
     console.error('error to start the server:', err);

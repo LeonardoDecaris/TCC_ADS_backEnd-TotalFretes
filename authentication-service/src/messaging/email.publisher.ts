@@ -4,7 +4,7 @@ import { assertEmailTopology, buildEmailAmqpUri, emailAmqpConfig } from './email
 import {
   EMAIL_EVENT_PASSWORD_RESET,
   type PasswordResetEmailMessage,
-} from '../shared/email.events.types';
+} from '@total-fretes/rpc-contracts';
 
 function publishConfirmed(
   ch: ConfirmChannel,

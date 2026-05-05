@@ -1,5 +1,3 @@
-// authentication-service/src/controllers/accounts.controller.ts
-
 import { Request, Response } from 'express';
 import { Account } from '../models/accounts.model';
 import AccountType from '../models/accounts_types.model';
@@ -18,12 +16,6 @@ export const createAccount = async (req: Request, res: Response) => {
       if (result.reason === 'exists') {
         return res.status(409).json({
           message: await translation('ACCOUNT.ALREADY_EXISTS_FOR_EMAIL', locale),
-          ok: false,
-        });
-      }
-      if (result.reason === 'validation') {
-        return res.status(400).json({
-          message: await translation('ACCOUNT.CREATE_FAILED', locale),
           ok: false,
         });
       }

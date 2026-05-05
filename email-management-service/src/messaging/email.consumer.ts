@@ -2,7 +2,7 @@ import amqp from 'amqplib';
 import type { Channel, ChannelModel, ConsumeMessage } from 'amqplib';
 import { sendPasswordResetEmail } from '../services/passwordResetMail';
 import { assertEmailTopology, buildEmailAmqpUri, emailAmqpConfig } from './email.amqp';
-import { parsePasswordResetMessage } from '../shared/email.events.types';
+import { passwordResetEmailMessageSchema } from '@total-fretes/rpc-contracts';
 
 let connection: ChannelModel | null = null;
 let channel: Channel | null = null;
@@ -25,14 +25,14 @@ async function handleMessage(msg: ConsumeMessage, ch: Channel): Promise<void> {
     return;
   }
 
-  const job = parsePasswordResetMessage(raw);
-  if (!job) {
+  const job = passwordResetEmailMessageSchema.safeParse(raw);
+  if (!job.success) {
     ch.ack(msg);
     return;
   }
 
   try {
-    await sendPasswordResetEmail(job.email, job.codigo);
+    await sendPasswordResetEmail(job.data.email, job.data.codigo);
     ch.ack(msg);
   } catch (err) {
     console.error('[email consumer] failed to send email:', err);

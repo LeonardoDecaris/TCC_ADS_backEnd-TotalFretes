@@ -1,7 +1,9 @@
 services:
   # ===== AUTHENTICATION SERVICE =====
   authentication-service:
-    build: ./authentication-service
+    build:
+      context: .
+      dockerfile: authentication-service/Dockerfile
     container_name: authentication-service
     restart: always
     env_file:
@@ -41,7 +43,9 @@ services:
 
   # ===== USER SERVICE =====
   user-service:
-    build: ./user-service
+    build:
+      context: .
+      dockerfile: user-service/Dockerfile
     container_name: user-service
     restart: always
     env_file:
@@ -79,7 +83,9 @@ services:
 
   # ===== COMPANY SERVICE =====
   company-service:
-    build: ./company-service
+    build:
+      context: .
+      dockerfile: company-service/Dockerfile
     container_name: company-service
     restart: always
     env_file:
@@ -117,7 +123,9 @@ services:
 
   # ===== STORAGE SERVICE =====
   storage-service:
-    build: ./storage-service
+    build:
+      context: .
+      dockerfile: storage-service/Dockerfile
     container_name: storage-service
     restart: always
     env_file:
@@ -159,9 +167,8 @@ services:
     image: rabbitmq:3-management-alpine
     container_name: rabbitmq
     restart: always
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+    env_file:
+      - .env
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -187,7 +194,9 @@ services:
 
   # ===== AUXILIARY SERVICES =====
   email-management-service:
-    build: ./email-management-service
+    build:
+      context: .
+      dockerfile: email-management-service/Dockerfile
     container_name: email-management-service
     restart: always
     env_file:
@@ -220,7 +229,9 @@ services:
       retries: 5
 
   i18n-translation-service:
-    build: ./i18n-translation-service
+    build:
+      context: .
+      dockerfile: i18n-translation-service/Dockerfile
     container_name: i18n-translation-service
     restart: always
     env_file:
@@ -236,11 +247,16 @@ services:
       retries: 5
 
   freight-service:
-    build: ./freight-service
+    build:
+      context: .
+      dockerfile: freight-service/Dockerfile
     container_name: freight-service
     restart: always
     env_file:
       - ./freight-service/.env
+    depends_on:
+      freight-service-database:
+        condition: service_healthy
     networks:
       - app-network
     healthcheck:
@@ -269,7 +285,9 @@ services:
 
   # ===== API GATEWAY =====
   swagger-service:
-    build: ./swagger-service
+    build:
+      context: .
+      dockerfile: swagger-service/Dockerfile
     container_name: swagger-service
     restart: always
     env_file:
