@@ -4,6 +4,8 @@ import CnhType from "../models/cnh.model";
 import { translation } from "../utils/i18n";
 import { getLocaleFromRequest } from "../utils/locale";
 import { createGroupVehicleTypeSchema, updateGroupVehicleTypeSchema } from "../schemas/groupVehicleType.schemas";
+import { handleZodError } from "../utils/zodError";
+import { sendError } from "../utils/httpResponse";
 
 export const createGroupVehicleType = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
@@ -16,16 +18,15 @@ export const createGroupVehicleType = async (req: Request, res: Response) => {
 			groupVehicleType,
 		});
 	} catch (error) {
+		const zodError = await handleZodError(error, locale);
+		if (zodError) return res.status(zodError.status).json(zodError.body);
 		console.error(error);
-		return res.status(500).json({
-			message: await translation("GROUP_VEHICLE_TYPE.CREATE_FAILED", locale),
-		});
+		return sendError(res, 500, await translation("GROUP_VEHICLE_TYPE.CREATE_FAILED", locale));
 	}
 };
 
 export const getAllGroupVehicleTypes = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
-
 	try {
 		const groupVehicleTypes = await GroupVehicleType.findAll({
 			include: [
@@ -38,9 +39,7 @@ export const getAllGroupVehicleTypes = async (req: Request, res: Response) => {
 		return res.status(200).json(groupVehicleTypes);
 	} catch (error) {
 		console.error(error);
-		return res.status(500).json({
-			message: await translation("GROUP_VEHICLE_TYPE.GET_ALL_FAILED", locale),
-		});
+		return sendError(res, 500, await translation("GROUP_VEHICLE_TYPE.GET_ALL_FAILED", locale));
 	}
 };
 
@@ -57,17 +56,13 @@ export const getGroupVehicleTypeById = async (req: Request, res: Response) => {
 		});
 
 		if (!groupVehicleType) {
-			return res.status(404).json({
-				message: await translation("GROUP_VEHICLE_TYPE.NOT_FOUND", locale),
-			});
+			return sendError(res, 404, await translation("GROUP_VEHICLE_TYPE.NOT_FOUND", locale));
 		}
 
 		return res.status(200).json(groupVehicleType);
 	} catch (error) {
 		console.error(error);
-		return res.status(500).json({
-			message: await translation("GROUP_VEHICLE_TYPE.GET_BY_ID_FAILED", locale),
-		});
+		return sendError(res, 500, await translation("GROUP_VEHICLE_TYPE.GET_BY_ID_FAILED", locale));
 	}
 };
 
@@ -79,9 +74,7 @@ export const updateGroupVehicleType = async (req: Request, res: Response) => {
 		const groupVehicleType = await GroupVehicleType.findByPk(req.params.id as string);
 
 		if (!groupVehicleType) {
-			return res.status(404).json({
-				message: await translation("GROUP_VEHICLE_TYPE.NOT_FOUND", locale),
-			});
+			return sendError(res, 404, await translation("GROUP_VEHICLE_TYPE.NOT_FOUND", locale));
 		}
 
 		await groupVehicleType.update(body);
@@ -90,10 +83,10 @@ export const updateGroupVehicleType = async (req: Request, res: Response) => {
 			groupVehicleType,
 		});
 	} catch (error) {
+		const zodError = await handleZodError(error, locale);
+		if (zodError) return res.status(zodError.status).json(zodError.body);
 		console.error(error);
-		return res.status(500).json({
-			message: await translation("GROUP_VEHICLE_TYPE.UPDATE_FAILED", locale),
-		});
+		return sendError(res, 500, await translation("GROUP_VEHICLE_TYPE.UPDATE_FAILED", locale));
 	}
 };
 
@@ -103,9 +96,7 @@ export const deleteGroupVehicleType = async (req: Request, res: Response) => {
 		const groupVehicleType = await GroupVehicleType.findByPk(req.params.id as string);
 
 		if (!groupVehicleType) {
-			return res.status(404).json({
-				message: await translation("GROUP_VEHICLE_TYPE.NOT_FOUND", locale),
-			});
+			return sendError(res, 404, await translation("GROUP_VEHICLE_TYPE.NOT_FOUND", locale));
 		}
 
 		await groupVehicleType.destroy();
@@ -114,8 +105,6 @@ export const deleteGroupVehicleType = async (req: Request, res: Response) => {
 		});
 	} catch (error) {
 		console.error(error);
-		return res.status(500).json({
-			message: await translation("GROUP_VEHICLE_TYPE.DELETE_FAILED", locale),
-		});
+		return sendError(res, 500, await translation("GROUP_VEHICLE_TYPE.DELETE_FAILED", locale));
 	}
 };

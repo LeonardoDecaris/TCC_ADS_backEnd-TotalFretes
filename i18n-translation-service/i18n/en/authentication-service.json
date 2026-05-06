@@ -1,4 +1,5 @@
 {
+  "VALIDATION.GENERAL_ERROR": "Data validation error.",
   "ACCOUNT": {
     "MISSING_REQUIRED_FIELDS": "Missing required fields.",
     "ALREADY_EXISTS_FOR_EMAIL": "An account already exists for this email.",
@@ -11,6 +12,9 @@
   },
   "ACCOUNT_TYPE": {
     "GET_ALL_FAILED": "Error getting account types."
+  },
+  "VALIDATION": {
+    "GENERAL_ERROR": "Data validation error."
   },
   "AUTH": {
     "EMAIL_AND_PASSWORD_REQUIRED": "Email and password are required.",

@@ -6,6 +6,8 @@ import { generateToken, verifyToken, type JwtRole } from '../utils/jwt';
 import { translation } from '../utils/i18n';
 import { getLocaleFromRequest } from '../utils/locale';
 import { loginSchema } from '../schemas/login.schemas';
+import { sendError } from '../utils/httpResponse';
+import { handleZodError } from '../utils/zodError';
 
 export const login = async (req: Request, res: Response) => {
   const locale = getLocaleFromRequest(req);
@@ -21,16 +23,12 @@ export const login = async (req: Request, res: Response) => {
     });
 
     if (!account) {
-      return res.status(404).json({
-        message: await translation('ACCOUNT.NOT_FOUND', locale),
-      });
+      return sendError(res, 404, await translation('ACCOUNT.NOT_FOUND', locale));
     }
 
     const validPassword = await bcrypt.compare(body.password, account.password || '');
     if (!validPassword) {
-      return res.status(401).json({
-        message: await translation('AUTH.INVALID_PASSWORD', locale),
-      });
+      return sendError(res, 401, await translation('AUTH.INVALID_PASSWORD', locale));
     }
 
     const token = generateToken({ id: account?.subject_id, role: account.AccountType?.name as JwtRole });
@@ -40,10 +38,9 @@ export const login = async (req: Request, res: Response) => {
       token,
     });
   } catch (error) {
-    return res.status(500).json({
-      message: await translation('AUTH.LOGIN_FAILED', locale),
-      error,
-    });
+    const zodError = await handleZodError(error, locale);
+    if (zodError) return res.status(zodError.status).json(zodError.body);
+    return sendError(res, 500, await translation('AUTH.LOGIN_FAILED', locale), { error });
   }
 };
 
@@ -55,27 +52,18 @@ export const validateToken = async (req: Request, res: Response) => {
     const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : bodyToken;
 
     if (!token) {
-      return res.status(401).json({
-        valid: false,
-        message: await translation('AUTH.TOKEN_INVALID_OR_MISSING', locale),
-      });
+      return sendError(res, 401, await translation('AUTH.TOKEN_INVALID_OR_MISSING', locale), { valid: false });
     }
 
     const decoded = verifyToken(token) as { id?: number | string; role?: JwtRole };
     if (!decoded?.id || !decoded?.role) {
-      return res.status(401).json({
-        valid: false,
-        message: await translation('AUTH.TOKEN_INVALID_OR_EXPIRED', locale),
-      });
+      return sendError(res, 401, await translation('AUTH.TOKEN_INVALID_OR_EXPIRED', locale), { valid: false });
     }
 
     const subjectId = Number(decoded.id);
     const account = await Account.findOne({ where: { subject_id: subjectId } });
     if (!account) {
-      return res.status(401).json({
-        valid: false,
-        message: await translation('AUTH.TOKEN_INVALID_OR_EXPIRED', locale),
-      });
+      return sendError(res, 401, await translation('AUTH.TOKEN_INVALID_OR_EXPIRED', locale), { valid: false });
     }
 
     return res.status(200).json({
@@ -83,9 +71,8 @@ export const validateToken = async (req: Request, res: Response) => {
       ok: true,
     });
   } catch (error) {
-    return res.status(401).json({
+    return sendError(res, 401, await translation('AUTH.TOKEN_INVALID_OR_EXPIRED', locale), {
       valid: false,
-      message: await translation('AUTH.TOKEN_INVALID_OR_EXPIRED', locale),
       error: error instanceof Error ? error.message : 'Unknown error',
     });
   }

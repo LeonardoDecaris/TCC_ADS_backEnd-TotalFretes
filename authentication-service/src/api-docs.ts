@@ -13,8 +13,8 @@ export const apiDocs = {
                 type: 'object',
                 required: ['email', 'password',],
                 properties: {
-                  email: { type: 'string', },
-                  password: { type: 'string' },
+                  email: { type: 'string', example: 'app@totalfretes.com.br' },
+                  password: { type: 'string', example: '12345678' },
                 },
               },
             },
@@ -32,7 +32,7 @@ export const apiDocs = {
             'application/json': {
               schema: {
                 type: 'object',
-                properties: { token: { type: 'string' } },
+                properties: { token: { type: 'string', example: 'token' } },
               },
             },
           },
@@ -68,10 +68,10 @@ export const apiDocs = {
               schema: {
                 type: 'object',
                 properties: {
-                  email: { type: 'string' },
-                  password: { type: 'string' },
-                  account_type_id: { type: 'integer' },
-                  subject_id: { type: 'integer' },
+                  email: { type: 'string', example: 'app@totalfretes.com.br' },
+                  password: { type: 'string', example: '12345678' },
+                  account_type_id: { type: 'integer', example: 1 },
+                  subject_id: { type: 'integer', example: 1 },
                 },
               },
             },

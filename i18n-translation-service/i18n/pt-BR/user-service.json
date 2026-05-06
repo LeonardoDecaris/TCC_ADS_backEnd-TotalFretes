@@ -1,9 +1,18 @@
 {
+  "USER.ALREADY_EXISTS": "Já existe usuário com um ou mais dados informados.",
+  "USER.EMAIL_ALREADY_EXISTS": "Já existe um usuário com este e-mail.",
+  "USER.PHONE_ALREADY_EXISTS": "Já existe um usuário com este telefone.",
+  "USER.CPF_ALREADY_EXISTS": "Já existe um usuário com este CPF.",
+  "USER.CNH_NUMBER_ALREADY_EXISTS": "Já existe um usuário com este número de CNH.",
   "USER": {
     "CREATED_SUCCESSFULLY": "Usuário criado com sucesso.",
     "CREATED_WITH_ACCOUNT_SUCCESSFULLY": "Usuário e conta criados com sucesso.",
     "CREATE_FAILED": "Erro ao criar usuário.",
+    "ALREADY_EXISTS": "Já existe usuário com um ou mais dados informados.",
     "EMAIL_ALREADY_EXISTS": "Já existe um usuário com este e-mail.",
+    "PHONE_ALREADY_EXISTS": "Já existe um usuário com este telefone.",
+    "CPF_ALREADY_EXISTS": "Já existe um usuário com este CPF.",
+    "CNH_NUMBER_ALREADY_EXISTS": "Já existe um usuário com este número de CNH.",
     "ACCOUNT_CREATE_FAILED": "Erro ao criar conta de usuário.",
     "GET_ALL_FAILED": "Erro ao buscar usuários.",
     "NOT_FOUND": "Usuário não encontrado.",
@@ -59,6 +68,7 @@
   },
   "VALIDATION": {
     "ERROR": "Erro de validação",
+    "GENERAL_ERROR": "Erro na validação dos dados",
     "NAME_REQUIRED": "Nome é obrigatório",
     "NAME_MIN_LENGTH": "Nome deve ter mais de 2 caracteres",
     "EMAIL_REQUIRED": "Email é obrigatório",

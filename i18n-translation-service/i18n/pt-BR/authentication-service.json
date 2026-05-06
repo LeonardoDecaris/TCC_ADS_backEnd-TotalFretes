@@ -1,4 +1,5 @@
 {
+  "VALIDATION.GENERAL_ERROR": "Erro na validação dos dados.",
   "ACCOUNT": {
     "MISSING_REQUIRED_FIELDS": "Campos obrigatórios ausentes.",
     "ALREADY_EXISTS_FOR_EMAIL": "Já existe uma conta cadastrada para este email.",
@@ -11,6 +12,9 @@
   },
   "ACCOUNT_TYPE": {
     "GET_ALL_FAILED": "Erro ao buscar tipos de conta."
+  },
+  "VALIDATION": {
+    "GENERAL_ERROR": "Erro na validação dos dados."
   },
   "AUTH": {
     "EMAIL_AND_PASSWORD_REQUIRED": "Email e senha são obrigatórios.",

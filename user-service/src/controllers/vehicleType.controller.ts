@@ -4,24 +4,25 @@ import GroupVehicleType from "../models/groupVehicleType.model";
 import { translation } from "../utils/i18n";
 import { getLocaleFromRequest } from "../utils/locale";
 import { createVehicleTypeSchema, updateVehicleTypeSchema } from "../schemas/vehicleType.schemas";
+import { handleZodError } from "../utils/zodError";
+import { sendError } from "../utils/httpResponse";
 
 export const createVehicleType = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
 	try {
 		const body = createVehicleTypeSchema.parse(req.body);
+		await VehicleType.create(body);
 
-		const vehicleType = await VehicleType.create(body);
 		return res.status(201).json({
 			message: await translation("VEHICLE_TYPE.CREATED_SUCCESSFULLY", locale),
-			vehicleType,
 		});
 	} catch (error) {
-		const err = error as Error;
-		console.error("[VehicleType.create]", err?.message ?? err);
-		return res.status(500).json({
-			message: await translation("VEHICLE_TYPE.CREATE_FAILED", locale),
-			...(process.env.NODE_ENV !== "production" && err?.message && { detail: err.message }),
-		});
+		const zodError = await handleZodError(error, locale);
+		if (zodError) {
+			return res.status(zodError.status).json(zodError.body);
+		}
+		
+		return sendError(res, 500, await translation("VEHICLE_TYPE.CREATE_FAILED", locale), { error });
 	}
 };
 
@@ -39,10 +40,7 @@ export const getAllVehicleTypes = async (req: Request, res: Response) => {
 		});
 		return res.status(200).json(vehicleTypes);
 	} catch (error) {
-		console.error(error);
-		return res.status(500).json({
-			message: await translation("VEHICLE_TYPE.GET_ALL_FAILED", locale),
-		});
+		return sendError(res, 500, await translation("VEHICLE_TYPE.GET_ALL_FAILED", locale), { error });
 	}
 };
 
@@ -59,43 +57,35 @@ export const getVehicleTypeById = async (req: Request, res: Response) => {
 		});
 
 		if (!vehicleType) {
-			return res.status(404).json({
-				message: await translation("VEHICLE_TYPE.NOT_FOUND", locale),
-			});
+			return sendError(res, 404, await translation("VEHICLE_TYPE.NOT_FOUND", locale));
 		}
 
 		return res.status(200).json(vehicleType);
 	} catch (error) {
-		console.error(error);
-		return res.status(500).json({
-			message: await translation("VEHICLE_TYPE.GET_BY_ID_FAILED", locale),
-		});
+		return sendError(res, 500, await translation("VEHICLE_TYPE.GET_BY_ID_FAILED", locale), { error });
 	}
 };
 
 export const updateVehicleType = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
 	try {
+
 		const body = updateVehicleTypeSchema.parse(req.body);
-
+		
 		const vehicleType = await VehicleType.findByPk(req.params.id as string);
-
 		if (!vehicleType) {
-			return res.status(404).json({
-				message: await translation("VEHICLE_TYPE.NOT_FOUND", locale),
-			});
+			return sendError(res, 404, await translation("VEHICLE_TYPE.NOT_FOUND", locale));
 		}
 
 		await vehicleType.update(body);
 		return res.status(200).json({
 			message: await translation("VEHICLE_TYPE.UPDATED_SUCCESSFULLY", locale),
-			vehicleType,
 		});
 	} catch (error) {
-		console.error(error);
-		return res.status(500).json({
-			message: await translation("VEHICLE_TYPE.UPDATE_FAILED", locale),
-		});
+		const zodError = await handleZodError(error, locale);
+		if (zodError) return res.status(zodError.status).json(zodError.body);
+
+		return sendError(res, 500, await translation("VEHICLE_TYPE.UPDATE_FAILED", locale), { error });
 	}
 };
 
@@ -105,9 +95,7 @@ export const deleteVehicleType = async (req: Request, res: Response) => {
 		const vehicleType = await VehicleType.findByPk(req.params.id as string);
 
 		if (!vehicleType) {
-			return res.status(404).json({
-				message: await translation("VEHICLE_TYPE.NOT_FOUND", locale),
-			});
+			return sendError(res, 404, await translation("VEHICLE_TYPE.NOT_FOUND", locale));
 		}
 
 		await vehicleType.destroy();
@@ -115,9 +103,6 @@ export const deleteVehicleType = async (req: Request, res: Response) => {
 			message: await translation("VEHICLE_TYPE.DELETED_SUCCESSFULLY", locale),
 		});
 	} catch (error) {
-		console.error(error);
-		return res.status(500).json({
-			message: await translation("VEHICLE_TYPE.DELETE_FAILED", locale),
-		});
+		return sendError(res, 500, await translation("VEHICLE_TYPE.DELETE_FAILED", locale), { error });
 	}
 };
