@@ -1,16 +1,10 @@
 import User from '../models/user.model';
 import CnhType from '../models/cnh.model';
 import { createAccountRpc } from '../messaging/account.rpc';
-import { fetchUserImage } from '../http/storage.http';
-import { deleteAuthAccountForUserSubject } from '../http/auth.http';
+import { getUserImage } from '../http/storage.http';
 import { isSuccess } from '../shared/rpc.types';
 import { Request, Response } from 'express';
-import { ZodError } from 'zod';
-import {
-	createUserSchema,
-	updateUserSchema,
-	createUserEndAccountSchema,
-} from '../schemas/user.schemas';
+import { createUserSchema, updateUserSchema, createUserEndAccountSchema } from '../schemas/user.schemas';
 import { translation } from '../utils/i18n';
 import { getLocaleFromRequest } from '../utils/locale';
 
@@ -18,19 +12,11 @@ export const createUser = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
 	try {
 		const body = createUserSchema.parse(req.body);
-
-		const user = await User.create(body);
+		await User.create(body);
 		return res.status(201).json({
 			message: await translation('USER.CREATED_SUCCESSFULLY', locale),
-			user,
 		});
-	} catch (error) {
-		if (error instanceof ZodError) {
-			return res.status(400).json({
-				message: await translation('USER.CREATE_FAILED', locale),
-				issues: error.issues,
-			});
-		}
+	} catch {
 		return res.status(500).json({
 			message: await translation('USER.CREATE_FAILED', locale),
 		});
@@ -41,7 +27,7 @@ export const getUserById = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
 	try {
 		const user = await User.findOne({
-			where: { id: req.params.id as string },
+			where: { id: req.params.id },
 			include: [{ model: CnhType, required: false }],
 		});
 
@@ -50,12 +36,9 @@ export const getUserById = async (req: Request, res: Response) => {
 				message: await translation('USER.NOT_FOUND', locale),
 			});
 		}
-
-		const userData = user.toJSON() as Record<string, unknown> & {
-			userImage_id?: number | null;
-		};
-
-		const userImage = userData.userImage_id ? await fetchUserImage(userData.userImage_id) : null;
+		
+		const userImage = user.userImage_id ? await getUserImage(user.userImage_id) : null;
+		const userData = user.toJSON();
 
 		return res.status(200).json({
 			...userData,
@@ -111,14 +94,6 @@ export const deleteUser = async (req: Request, res: Response) => {
 			return res.status(404).json({ message: await translation('USER.NOT_FOUND', locale) });
 		}
 
-		const userId = Number(user.id);
-		const authDeleted = await deleteAuthAccountForUserSubject(userId);
-		if (authDeleted === 'error') {
-			return res.status(502).json({
-				message: await translation('USER.DELETE_FAILED', locale),
-			});
-		}
-
 		await user.destroy();
 		return res.status(200).json({ message: await translation('USER.DELETED_SUCCESSFULLY', locale) });
 	} catch {
@@ -141,6 +116,7 @@ export const createUserEndAccount = async (req: Request, res: Response) => {
 		}
 
 		const user = await User.create(body);
+
 		if (!user.id) {
 			await user.destroy();
 			return res.status(500).json({
@@ -165,13 +141,7 @@ export const createUserEndAccount = async (req: Request, res: Response) => {
 		return res.status(201).json({
 			message: await translation('USER.CREATED_WITH_ACCOUNT_SUCCESSFULLY', locale),
 		});
-	} catch (error) {
-		if (error instanceof ZodError) {
-			return res.status(400).json({
-				message: await translation('USER.CREATE_FAILED', locale),
-				issues: error.issues,
-			});
-		}
+	} catch {
 		return res.status(500).json({ message: await translation('USER.CREATE_FAILED', locale) });
 	}
 };
