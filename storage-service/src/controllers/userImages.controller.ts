@@ -4,6 +4,7 @@ import UserImage from '../models/userImages.model';
 import { copyToBackup, getStoredFullPath, getStoredRelativePath, removeFromBackup } from '../utils/upload';
 import { translation } from '../utils/i18n';
 import { getLocaleFromRequest } from '../utils/locale';
+import { getUserImageJsonByPk } from '../services/userImage.service';
 
 type RequestWithFile = Request & {
   file?: { originalname: string; filename: string; mimetype: string; size: number };
@@ -68,7 +69,7 @@ export const getUserImageById = async (req: Request, res: Response) => {
         message: await translation('USER_IMAGE.INVALID_ID', locale),
       });
     }
-    const userImage = await UserImage.findByPk(id);
+    const userImage = await getUserImageJsonByPk(id);
     if (!userImage) {
       return res.status(404).json({
         message: await translation('USER_IMAGE.NOT_FOUND', locale),

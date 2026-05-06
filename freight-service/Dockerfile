@@ -1,11 +1,12 @@
 FROM node:22-slim AS build
 
-WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+  && rm -rf /var/lib/apt/lists/*
 
-COPY src /app/src
-COPY package.json /app
-COPY tsconfig.json /app
+WORKDIR /app/freight-service
 
+COPY freight-service/package.json freight-service/tsconfig.json ./
+COPY freight-service/src ./src
 RUN npm install
 
 EXPOSE 3008

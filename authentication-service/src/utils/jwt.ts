@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import jwt from "jsonwebtoken";
+import { inflateRaw } from 'zlib';
 
 dotenv.config();
 
@@ -12,7 +13,13 @@ if (!JWT_SECRET) {
 
 export type JwtRole = 'USER' | 'COMPANY' | 'ADMIN';
 
-export const generateToken = (user: { id: string; role: JwtRole }): string => {
+
+export type JwtPayload = {
+  id?: number;
+  role?: JwtRole;
+};
+
+export const generateToken = (user: JwtPayload): string => {
   const payload = { id: user.id, role: user.role };
   return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 };

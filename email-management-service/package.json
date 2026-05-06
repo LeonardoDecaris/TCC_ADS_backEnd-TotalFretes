@@ -5,24 +5,35 @@
   "main": "index.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint --no-error-on-unmatched-pattern \"src/**/*.ts\" \"test/**/*.ts\"",
+    "lint:fix": "eslint --no-error-on-unmatched-pattern \"src/**/*.ts\" \"test/**/*.ts\" --fix"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@total-fretes/rpc-contracts": "file:../packages/rpc-contracts",
+    "amqplib": "^1.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "nodemailer": "^8.0.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/amqplib": "^0.10.8",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^25.3.2",
     "@types/nodemailer": "^7.0.11",
+    "eslint": "^9.39.1",
+    "globals": "^16.4.0",
     "ts-node-dev": "^2.0.0",
+    "typescript-eslint": "^8.46.2",
     "typescript": "^5.9.3"
   }
 }

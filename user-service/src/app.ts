@@ -8,7 +8,6 @@ import groupVehicleTypeRoutes from './routes/groupVehicleType.routes';
 import vehicleTypeRoutes from './routes/vehicleType.routes';
 import vehicleRoutes from './routes/vehicle.routes';
 
-
 const app = express();
 app.use(cors());
 app.use(express.json());

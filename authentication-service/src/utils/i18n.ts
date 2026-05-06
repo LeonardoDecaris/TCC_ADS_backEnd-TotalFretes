@@ -1,29 +1,32 @@
-import axios from "axios";
+import axios from 'axios';
 
 const I18N_SERVICE_URL = process.env.I18N_SERVICE_URL;
 
-/** Resolve valor em objeto aninhado por chave com pontos (ex: "AUTH.LOGIN_SUCCESSFUL"). */
-const getNested = (obj: Record<string, unknown>, key: string): string | undefined => {
-  const parts = key.split(".");
-  let current: unknown = obj;
-  for (const part of parts) {
-    if (current == null || typeof current !== "object") return undefined;
-    current = (current as Record<string, unknown>)[part];
-  }
-  return typeof current === "string" ? current : undefined;
-};
+function getNestedValue(obj: Record<string, any>, path: string): string | undefined {
+  if (!path || typeof path !== 'string') return undefined;
+  const value = path.split('.').reduce<any>(
+    (acc, key) => (acc && typeof acc === 'object' ? acc[key] : undefined),
+    obj,
+  );
+  return typeof value === 'string' ? value : undefined;
+}
 
-export const translation = async (code: string, locale = "pt-BR"): Promise<string> => {
+export const translation = async (code: string, locale = 'pt-BR'): Promise<string> => {
   try {
     if (!I18N_SERVICE_URL) return code;
 
     const url = `${I18N_SERVICE_URL}/i18n/${locale}/authentication-service.json`;
-    const { data } = await axios.get<Record<string, unknown>>(url, { timeout: 2000 });
+    const { data } = await axios.get<Record<string, any>>(url, { timeout: 2000 });
+    const obj = data ?? {};
 
-    if (!data) return code;
-    return getNested(data, code) ?? code;
+    const byFlat = obj[code];
+    if (typeof byFlat === 'string') return byFlat;
+
+    const byNested = getNestedValue(obj, code);
+    if (typeof byNested === 'string') return byNested;
+
+    return code;
   } catch {
     return code;
   }
 };
-

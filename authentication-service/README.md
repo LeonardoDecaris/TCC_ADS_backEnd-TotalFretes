@@ -34,6 +34,13 @@ Microserviço responsável por credenciais, login e emissão de JWT. As credenci
 
 > Na inicialização, o serviço garante automaticamente os registros padrão de tipo e status.
 
+## Mensageria e cache (recuperação de senha)
+
+- **Redis** (`REDIS_URL`): armazena o código de redefinição (TTL 15 minutos), permitindo múltiplas instâncias do serviço.
+- **RabbitMQ** (`RABBITMQ_URL`): o envio do e-mail é enfileirado; o `email-management-service` consome a fila (não há mais chamada HTTP direta com axios).
+
+Variáveis opcionais (padrões entre parênteses): `EMAIL_EVENTS_EXCHANGE` (`email.events`), `EMAIL_SEND_QUEUE` (`email.send`), `EMAIL_ROUTING_KEY_PASSWORD_RESET` (`email.send.password_reset`), `EMAIL_DLX_EXCHANGE` (`email.dlx`), `EMAIL_SEND_FAILED_QUEUE` (`email.send.failed`).
+
 ## Endpoints
 
 ### `POST /auth/login`
@@ -45,7 +52,7 @@ Login com `email` e `password`. Retorna JWT com:
 
 ### `POST /auth/forgot-password`
 
-Recebe `email`, verifica se existe conta, gera um código numérico de redefinição (6 dígitos), salva com expiração de 15 minutos e envia para o e-mail informado.
+Recebe `email`, verifica se existe conta, gera um código numérico de redefinição (6 dígitos), grava no Redis (expira em 15 minutos) e publica o envio do e-mail na fila RabbitMQ (processamento assíncrono no `email-management-service`).
 
 Payload:
 
@@ -154,7 +161,8 @@ Health check para load balancer e orquestração.
 ```json
 {
   "status": "up",
-  "database": "connected"
+  "database": "connected",
+  "redis": "connected"
 }
 ```
 
@@ -163,7 +171,8 @@ Health check para load balancer e orquestração.
 ```json
 {
   "status": "down",
-  "database": "disconnected"
+  "database": "disconnected",
+  "redis": "disconnected"
 }
 ```
 

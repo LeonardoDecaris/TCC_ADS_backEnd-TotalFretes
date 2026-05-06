@@ -1,13 +1,19 @@
 services:
   # ===== AUTHENTICATION SERVICE =====
   authentication-service:
-    build: ./authentication-service
+    build:
+      context: .
+      dockerfile: authentication-service/Dockerfile
     container_name: authentication-service
     restart: always
     env_file:
       - ./authentication-service/.env
     depends_on:
       authentication-service-database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     networks:
       - app-network
@@ -37,13 +43,17 @@ services:
 
   # ===== USER SERVICE =====
   user-service:
-    build: ./user-service
+    build:
+      context: .
+      dockerfile: user-service/Dockerfile
     container_name: user-service
     restart: always
     env_file:
       - ./user-service/.env
     depends_on:
       user-service-database:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     networks:
       - app-network
@@ -73,13 +83,17 @@ services:
 
   # ===== COMPANY SERVICE =====
   company-service:
-    build: ./company-service
+    build:
+      context: .
+      dockerfile: company-service/Dockerfile
     container_name: company-service
     restart: always
     env_file:
       - ./company-service/.env
     depends_on:
       company-service-database:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     networks:
       - app-network
@@ -109,7 +123,9 @@ services:
 
   # ===== STORAGE SERVICE =====
   storage-service:
-    build: ./storage-service
+    build:
+      context: .
+      dockerfile: storage-service/Dockerfile
     container_name: storage-service
     restart: always
     env_file:
@@ -146,13 +162,50 @@ services:
     ports:
       - "3309:3306"
 
+  # ===== MESSAGE BROKER & CACHE =====
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: always
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # ===== AUXILIARY SERVICES =====
   email-management-service:
-    build: ./email-management-service
+    build:
+      context: .
+      dockerfile: email-management-service/Dockerfile
     container_name: email-management-service
     restart: always
     env_file:
       - ./email-management-service/.env
+    environment:
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     networks:
       - app-network
     healthcheck:
@@ -176,7 +229,9 @@ services:
       retries: 5
 
   i18n-translation-service:
-    build: ./i18n-translation-service
+    build:
+      context: .
+      dockerfile: i18n-translation-service/Dockerfile
     container_name: i18n-translation-service
     restart: always
     env_file:
@@ -192,11 +247,16 @@ services:
       retries: 5
 
   freight-service:
-    build: ./freight-service
+    build:
+      context: .
+      dockerfile: freight-service/Dockerfile
     container_name: freight-service
     restart: always
     env_file:
       - ./freight-service/.env
+    depends_on:
+      freight-service-database:
+        condition: service_healthy
     networks:
       - app-network
     healthcheck:
@@ -225,7 +285,9 @@ services:
 
   # ===== API GATEWAY =====
   swagger-service:
-    build: ./swagger-service
+    build:
+      context: .
+      dockerfile: swagger-service/Dockerfile
     container_name: swagger-service
     restart: always
     env_file:

@@ -5,15 +5,13 @@ import Vehicle from "../models/vehicle.model";
 import VehicleType from "../models/vehicleType.model";
 import { translation } from "../utils/i18n";
 import { getLocaleFromRequest } from "../utils/locale";
-import { validateBody, validateParams, idParamSchema } from "../utils/validate";
 import { createVehicleSchema, updateVehicleSchema } from "../schemas/vehicle.schemas";
 
 export const createVehicle = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
-	const body = await validateBody(req, res, createVehicleSchema);
-	if (!body) return;
-
 	try {
+		const body = createVehicleSchema.parse(req.body);
+
 		const vehicle = await Vehicle.create({
 			...body,
 			chassisNumber: body.chassisNumber ?? "",
@@ -90,11 +88,8 @@ export const getAllVehicles = async (req: Request, res: Response) => {
 
 export const getVehicleById = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
-	const params = await validateParams(req, res, idParamSchema);
-	if (!params) return;
-
 	try {
-		const vehicle = await Vehicle.findByPk(params.id, {
+		const vehicle = await Vehicle.findByPk(req.params.id as string, {
 			include: [
 				{
 					model: VehicleType,
@@ -120,13 +115,10 @@ export const getVehicleById = async (req: Request, res: Response) => {
 
 export const updateVehicle = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
-	const params = await validateParams(req, res, idParamSchema);
-	if (!params) return;
-	const body = await validateBody(req, res, updateVehicleSchema);
-	if (!body) return;
-
 	try {
-		const vehicle = await Vehicle.findByPk(params.id);
+		const body = updateVehicleSchema.parse(req.body);
+
+		const vehicle = await Vehicle.findByPk(req.params.id as string);
 
 		if (!vehicle) {
 			return res.status(404).json({
@@ -149,11 +141,8 @@ export const updateVehicle = async (req: Request, res: Response) => {
 
 export const deleteVehicle = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
-	const params = await validateParams(req, res, idParamSchema);
-	if (!params) return;
-
 	try {
-		const vehicle = await Vehicle.findByPk(params.id);
+		const vehicle = await Vehicle.findByPk(req.params.id as string);
 
 		if (!vehicle) {
 			return res.status(404).json({
@@ -172,4 +161,3 @@ export const deleteVehicle = async (req: Request, res: Response) => {
 		});
 	}
 };
-

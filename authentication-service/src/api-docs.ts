@@ -52,7 +52,10 @@ export const apiDocs = {
       get: {
         summary: 'Health check',
         tags: ['Auth'],
-        responses: { 200: { description: 'Serviço e banco ok' }, 503: { description: 'Banco indisponível' } },
+        responses: {
+          200: { description: 'Serviço, banco e Redis ok' },
+          503: { description: 'Banco e/ou Redis indisponível' },
+        },
       },
     },
     '/account': {

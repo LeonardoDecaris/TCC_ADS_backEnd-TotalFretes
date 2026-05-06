@@ -5,28 +5,19 @@ import AccountType from '../models/accounts_types.model';
 import { generateToken, verifyToken, type JwtRole } from '../utils/jwt';
 import { translation } from '../utils/i18n';
 import { getLocaleFromRequest } from '../utils/locale';
-
-const normalizeRole = (name?: string): 'USER' | 'COMPANY' | 'ADMIN' => {
-  const normalized = (name || '').trim().toUpperCase();
-  if (normalized === 'COMPANY' || normalized === 'EMPRESA') return 'COMPANY';
-  if (normalized === 'ADMIN' || normalized === 'ADMINISTRADOR') return 'ADMIN';
-  return 'USER';
-};
+import { loginSchema } from '../schemas/login.schemas';
 
 export const login = async (req: Request, res: Response) => {
   const locale = getLocaleFromRequest(req);
   try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({
-        message: await translation('AUTH.EMAIL_AND_PASSWORD_REQUIRED', locale),
-      });
-    }
+    const body = loginSchema.parse(req.body);
 
     const account = await Account.findOne({
-      where: { email },
-      include: [{ model: AccountType, attributes: ['name'] }],
+      where: { email: body.email },
+      include: [{
+        model: AccountType,
+        attributes: ['name']
+      }],
     });
 
     if (!account) {
@@ -35,29 +26,18 @@ export const login = async (req: Request, res: Response) => {
       });
     }
 
-    const validPassword = await bcrypt.compare(password, account.password || '');
-
+    const validPassword = await bcrypt.compare(body.password, account.password || '');
     if (!validPassword) {
       return res.status(401).json({
         message: await translation('AUTH.INVALID_PASSWORD', locale),
       });
     }
 
-    const accountType = account.AccountType?.name;
-    const role = normalizeRole(accountType);
-
-    const token = generateToken({
-      id: String(account.subject_id),
-      role,
-    });
+    const token = generateToken({ id: account?.subject_id, role: account.AccountType?.name as JwtRole });
 
     return res.status(200).json({
       message: await translation('AUTH.LOGIN_SUCCESSFUL', locale),
       token,
-      user: {
-        id: account.subject_id,
-        role,
-      },
     });
   } catch (error) {
     return res.status(500).json({
@@ -100,10 +80,7 @@ export const validateToken = async (req: Request, res: Response) => {
 
     return res.status(200).json({
       valid: true,
-      user: {
-        id: subjectId,
-        role: decoded.role,
-      },
+      ok: true,
     });
   } catch (error) {
     return res.status(401).json({

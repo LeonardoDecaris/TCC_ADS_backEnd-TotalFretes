@@ -3,11 +3,11 @@ FROM node:22-slim
 RUN apt-get update && apt-get install -y --no-install-recommends curl \
   && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
+WORKDIR /app/swagger-service
 
-COPY index.ts /app
-COPY package.json /app
-COPY tsconfig.json /app
+COPY swagger-service/package.json swagger-service/tsconfig.json ./
+COPY swagger-service/*.ts ./
+
 RUN npm install
 
 EXPOSE 3005

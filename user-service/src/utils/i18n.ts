@@ -1,17 +1,17 @@
-import axios from "axios";
+import axios from 'axios';
 
 const I18N_SERVICE_URL = process.env.I18N_SERVICE_URL;
 
 function getNestedValue(obj: Record<string, any>, path: string): string | undefined {
-  if (!path || typeof path !== "string") return undefined;
-  const value = path.split(".").reduce<any>(
-    (acc, key) => (acc && typeof acc === "object" ? acc[key] : undefined),
-    obj
+  if (!path || typeof path !== 'string') return undefined;
+  const value = path.split('.').reduce<any>(
+    (acc, key) => (acc && typeof acc === 'object' ? acc[key] : undefined),
+    obj,
   );
-  return typeof value === "string" ? value : undefined;
+  return typeof value === 'string' ? value : undefined;
 }
 
-export const translation = async (code: string, locale = "pt-BR"): Promise<string> => {
+export const translation = async (code: string, locale = 'pt-BR'): Promise<string> => {
   try {
     if (!I18N_SERVICE_URL) return code;
 
@@ -20,13 +20,13 @@ export const translation = async (code: string, locale = "pt-BR"): Promise<strin
     const obj = data ?? {};
 
     const byFlat = obj[code];
-    if (typeof byFlat === "string") return byFlat;
+    if (typeof byFlat === 'string') return byFlat;
 
     const byNested = getNestedValue(obj, code);
-    if (typeof byNested === "string") return byNested;
+    if (typeof byNested === 'string') return byNested;
 
     return code;
-  } catch (error) {
+  } catch {
     return code;
   }
 };

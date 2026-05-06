@@ -1,0 +1,19 @@
+{
+  "name": "@total-fretes/rpc-contracts",
+  "version": "1.0.0",
+  "description": "Contratos RPC/eventos compartilhados (Zod + tipos)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build"
+  },
+  "dependencies": {
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.9.3"
+  },
+  "files": ["dist"]
+}
