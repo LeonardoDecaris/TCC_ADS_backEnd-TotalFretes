@@ -1,15 +1,20 @@
 import axios from 'axios';
+import { AxiosError } from 'axios';
 
-export async function getUserImage(userImageId: number): Promise<unknown | null> {
-  const base = (process.env.STORAGE_SERVICE_URL ?? '').replace(/\/$/, '');
-  if (!base) return null;
+export async function getUserImage({ id }: { id: number }) {
+  const base = (process.env.STORAGE_SERVICE_URL ?? '')
   try {
-    const res = await axios.get(`${base}/user-images/${userImageId}`, {
+    const response = await axios.get(`${base}/user-images/${id}`, {
       timeout: 3000,
-      validateStatus: (s) => s === 200,
+      headers: { 'Content-Type': 'application/json' },
     });
-    return res.data as unknown;
-  } catch {
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      if (error.response?.status === 404) {
+        return null;
+      }
+    }
     return null;
   }
 }

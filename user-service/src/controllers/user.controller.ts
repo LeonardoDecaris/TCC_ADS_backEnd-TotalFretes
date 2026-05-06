@@ -1,8 +1,7 @@
 import User from '../models/user.model';
 import CnhType from '../models/cnh.model';
-import { createAccountRpc } from '../messaging/account.rpc';
+import { createAccountHttp } from '../http/account.http';
 import { getUserImage } from '../http/storage.http';
-import { isSuccess } from '../shared/rpc.types';
 import { Request, Response } from 'express';
 import { createUserSchema, updateUserSchema, createUserEndAccountSchema } from '../schemas/user.schemas';
 import { translation } from '../utils/i18n';
@@ -10,6 +9,7 @@ import { getLocaleFromRequest } from '../utils/locale';
 import { handleZodError } from '../utils/zodError';
 import { sendError } from '../utils/httpResponse';
 import { Op } from 'sequelize';
+import { deleteAccountHttp } from '../http/delet.http';
 
 const uniqueFields = ['email', 'phoneNumber', 'cpf', 'cnhNumber'] as const;
 type UniqueField = (typeof uniqueFields)[number];
@@ -44,6 +44,7 @@ export const createUser = async (req: Request, res: Response) => {
 				],
 			},
 		});
+
 		const conflicts = getUniqueConflicts(body, existingUsers);
 		if (conflicts.length > 0) {
 			const conflictMessages = await Promise.all(
@@ -56,6 +57,7 @@ export const createUser = async (req: Request, res: Response) => {
 		}
 
 		await User.create(body);
+
 		return res.status(201).json({
 			message: await translation('USER.CREATED_SUCCESSFULLY', locale),
 		});
@@ -79,7 +81,7 @@ export const getUserById = async (req: Request, res: Response) => {
 			return sendError(res, 404, await translation('USER.NOT_FOUND', locale));
 		}
 
-		const userImage = user.userImage_id ? await getUserImage(user.userImage_id) : null;
+		const userImage = user.userImage_id ? await getUserImage({ id: user.userImage_id }) : null;
 		const userData = user.toJSON();
 
 		return res.status(200).json({
@@ -155,10 +157,13 @@ export const deleteUser = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
 	try {
 		const user = await User.findByPk(req.params.id as string);
+
 		if (!user) {
 			return sendError(res, 404, await translation('USER.NOT_FOUND', locale));
 		}
 
+		await deleteAccountHttp({ id: user.id! });
+		
 		await user.destroy();
 		return res.status(200).json({ message: await translation('USER.DELETED_SUCCESSFULLY', locale) });
 	} catch (error) {
@@ -171,11 +176,26 @@ export const createUserEndAccount = async (req: Request, res: Response) => {
 	try {
 		const body = createUserEndAccountSchema.parse(req.body);
 
-		const exeistUser = await User.findOne({
-			where: { email: body.email, },
+		const existingUsers = await User.findAll({
+			where: {
+				[Op.or]: [
+					{ email: body.email },
+					{ phoneNumber: body.phoneNumber },
+					{ cpf: body.cpf },
+					{ cnhNumber: body.cnhNumber },
+				],
+			},
 		});
-		if (exeistUser) {
-			return sendError(res, 409, await translation('USER.EMAIL_ALREADY_EXISTS', locale));
+
+		const conflicts = getUniqueConflicts(body, existingUsers);
+		if (conflicts.length > 0) {
+			const conflictMessages = await Promise.all(
+				conflicts.map((field) => translation(conflictMessageByField[field], locale)),
+			);
+			return sendError(res, 409, await translation('USER.ALREADY_EXISTS', locale), {
+				conflicts,
+				conflictMessages,
+			});
 		}
 
 		const user = await User.create(body);
@@ -185,14 +205,14 @@ export const createUserEndAccount = async (req: Request, res: Response) => {
 			return sendError(res, 500, await translation('USER.CREATE_FAILED', locale));
 		}
 
-		const account = await createAccountRpc({
+		const accountCreated = await createAccountHttp({
 			email: body.email,
 			password: body.password,
 			subject_id: user.id,
 			account_type_id: body.account_type_id,
 		});
 
-		if (!isSuccess(account)) {
+		if (!accountCreated) {
 			await user.destroy();
 			return sendError(res, 500, await translation('USER.CREATE_FAILED', locale));
 		}

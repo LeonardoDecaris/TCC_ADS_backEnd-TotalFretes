@@ -12,7 +12,7 @@ export const createGroupVehicleType = async (req: Request, res: Response) => {
 	try {
 		const body = createGroupVehicleTypeSchema.parse(req.body);
 
-		const groupVehicleType = await GroupVehicleType.create(body);
+		const groupVehicleType = await GroupVehicleType.create(body)
 		return res.status(201).json({
 			message: await translation("GROUP_VEHICLE_TYPE.CREATED_SUCCESSFULLY", locale),
 			groupVehicleType,
@@ -20,7 +20,7 @@ export const createGroupVehicleType = async (req: Request, res: Response) => {
 	} catch (error) {
 		const zodError = await handleZodError(error, locale);
 		if (zodError) return res.status(zodError.status).json(zodError.body);
-		console.error(error);
+
 		return sendError(res, 500, await translation("GROUP_VEHICLE_TYPE.CREATE_FAILED", locale));
 	}
 };
@@ -29,12 +29,7 @@ export const getAllGroupVehicleTypes = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
 	try {
 		const groupVehicleTypes = await GroupVehicleType.findAll({
-			include: [
-				{
-					model: CnhType,
-					attributes: ["id", "name"],
-				},
-			],
+			include: [{ model: CnhType, attributes: ["id", "name"] }],
 		});
 		return res.status(200).json(groupVehicleTypes);
 	} catch (error) {
@@ -47,12 +42,7 @@ export const getGroupVehicleTypeById = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
 	try {
 		const groupVehicleType = await GroupVehicleType.findByPk(req.params.id as string, {
-			include: [
-				{
-					model: CnhType,
-					attributes: ["id", "name"],
-				},
-			],
+			include: [{ model: CnhType, attributes: ["id", "name"] }],
 		});
 
 		if (!groupVehicleType) {
@@ -61,7 +51,6 @@ export const getGroupVehicleTypeById = async (req: Request, res: Response) => {
 
 		return res.status(200).json(groupVehicleType);
 	} catch (error) {
-		console.error(error);
 		return sendError(res, 500, await translation("GROUP_VEHICLE_TYPE.GET_BY_ID_FAILED", locale));
 	}
 };
@@ -85,7 +74,7 @@ export const updateGroupVehicleType = async (req: Request, res: Response) => {
 	} catch (error) {
 		const zodError = await handleZodError(error, locale);
 		if (zodError) return res.status(zodError.status).json(zodError.body);
-		console.error(error);
+
 		return sendError(res, 500, await translation("GROUP_VEHICLE_TYPE.UPDATE_FAILED", locale));
 	}
 };
@@ -104,7 +93,6 @@ export const deleteGroupVehicleType = async (req: Request, res: Response) => {
 			message: await translation("GROUP_VEHICLE_TYPE.DELETED_SUCCESSFULLY", locale),
 		});
 	} catch (error) {
-		console.error(error);
 		return sendError(res, 500, await translation("GROUP_VEHICLE_TYPE.DELETE_FAILED", locale));
 	}
 };

@@ -14,10 +14,8 @@ export const createVehicle = async (req: Request, res: Response) => {
 	try {
 		const body = createVehicleSchema.parse(req.body);
 
-		await Vehicle.create({
-			...body,
-			chassisNumber: body.chassisNumber ?? "",
-		});
+		await Vehicle.create(body);
+
 		return res.status(201).json({
 			message: await translation("VEHICLE.CREATED_SUCCESSFULLY", locale),
 		});
@@ -25,7 +23,7 @@ export const createVehicle = async (req: Request, res: Response) => {
 		const zodError = await handleZodError(error, locale);
 		if (zodError) return res.status(zodError.status).json(zodError.body);
 
-		return sendError(res, 500, await translation("VEHICLE.CREATE_FAILED", locale), { error });
+		return sendError(res, 500, await translation("VEHICLE.CREATE_FAILED", locale));
 	}
 };
 
@@ -35,10 +33,7 @@ export const createVehicleAndAttachToUser = async (req: Request, res: Response) 
 	try {
 
 		const body = createVehicleSchema.parse(req.body);
-		const vehicle = await Vehicle.create({
-			...body,
-			chassisNumber: body.chassisNumber ?? "",
-		}, { transaction });
+		const vehicle = await Vehicle.create(body, { transaction });
 
 		const user = await User.findByPk(req.user?.id, { transaction });
 

@@ -12,6 +12,8 @@ const PORT = process.env.PORT ? Number(process.env.PORT) : 3004;
 app.use(cors());
 app.use(express.json());
 
+app.get('/health', (_req, res) => res.status(200).send('ok'));
+
 app.use(mapBox);
 
 // Start server
