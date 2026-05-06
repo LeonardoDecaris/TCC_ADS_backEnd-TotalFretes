@@ -2,8 +2,10 @@ import User from '../models/user.model';
 import CnhType from '../models/cnh.model';
 import { createAccountRpc } from '../messaging/account.rpc';
 import { fetchUserImage } from '../http/storage.http';
+import { deleteAuthAccountForUserSubject } from '../http/auth.http';
 import { isSuccess } from '../shared/rpc.types';
 import { Request, Response } from 'express';
+import { ZodError } from 'zod';
 import {
 	createUserSchema,
 	updateUserSchema,
@@ -22,7 +24,13 @@ export const createUser = async (req: Request, res: Response) => {
 			message: await translation('USER.CREATED_SUCCESSFULLY', locale),
 			user,
 		});
-	} catch {
+	} catch (error) {
+		if (error instanceof ZodError) {
+			return res.status(400).json({
+				message: await translation('USER.CREATE_FAILED', locale),
+				issues: error.issues,
+			});
+		}
 		return res.status(500).json({
 			message: await translation('USER.CREATE_FAILED', locale),
 		});
@@ -102,6 +110,15 @@ export const deleteUser = async (req: Request, res: Response) => {
 		if (!user) {
 			return res.status(404).json({ message: await translation('USER.NOT_FOUND', locale) });
 		}
+
+		const userId = Number(user.id);
+		const authDeleted = await deleteAuthAccountForUserSubject(userId);
+		if (authDeleted === 'error') {
+			return res.status(502).json({
+				message: await translation('USER.DELETE_FAILED', locale),
+			});
+		}
+
 		await user.destroy();
 		return res.status(200).json({ message: await translation('USER.DELETED_SUCCESSFULLY', locale) });
 	} catch {
@@ -123,7 +140,7 @@ export const createUserEndAccount = async (req: Request, res: Response) => {
 			});
 		}
 
-		const user = await User.create(body)
+		const user = await User.create(body);
 		if (!user.id) {
 			await user.destroy();
 			return res.status(500).json({
@@ -148,7 +165,13 @@ export const createUserEndAccount = async (req: Request, res: Response) => {
 		return res.status(201).json({
 			message: await translation('USER.CREATED_WITH_ACCOUNT_SUCCESSFULLY', locale),
 		});
-	} catch {
+	} catch (error) {
+		if (error instanceof ZodError) {
+			return res.status(400).json({
+				message: await translation('USER.CREATE_FAILED', locale),
+				issues: error.issues,
+			});
+		}
 		return res.status(500).json({ message: await translation('USER.CREATE_FAILED', locale) });
 	}
 };

@@ -1,7 +1,3 @@
-/**
- * Typed wrapper for account-creation RPC (authentication-service).
- */
-
 import { DEFAULT_ACCOUNT_CREATE_RPC_QUEUE } from '@total-fretes/rpc-contracts';
 import { rpcCall } from './rpc.client';
 import type { RpcEnvelope } from '../shared/rpc.types';

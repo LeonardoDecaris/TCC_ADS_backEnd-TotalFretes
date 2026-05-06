@@ -2,7 +2,6 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
-import { internalServiceAuth } from './middleware/internalServiceAuth';
 import { postInternalTranslate } from './controllers/internalTranslate.controller';
 
 const app = express();
@@ -47,7 +46,7 @@ app.use(
   }),
 );
 
-app.post('/internal/translate', internalServiceAuth, postInternalTranslate);
+app.post('/internal/translate', postInternalTranslate);
 
 app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   const status = err && typeof err === 'object' && 'status' in err ? Number((err as { status?: number }).status) : 500;

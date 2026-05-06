@@ -16,6 +16,26 @@
             "name": "email-management-service",
             "path": "./email-management-service"
         },
+        {
+            "name": "freight-service",
+            "path": "./freight-service"
+        },
+        {
+            "name": "i18n-translation-service",
+            "path": "./i18n-translation-service"
+        },
+        {
+            "name": "mapbox-service",
+            "path": "./mapbox-service"
+        },
+        {
+            "name": "storage-service",
+            "path": "./storage-service"
+        },
+        {
+            "name": "swagger-service",
+            "path": "./swagger-service"
+        }
     ],
    
     "settings": {

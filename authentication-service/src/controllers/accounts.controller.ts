@@ -93,3 +93,26 @@ export const deleteAccount = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const deleteAccountSubject = async (req: Request, res: Response) => {
+  const locale = getLocaleFromRequest(req);
+  try {
+    const account = await Account.findOne({ where: { subject_id: req.params.id as string } });
+
+    if (!account) {
+      return res.status(404).json({
+        message: await translation('ACCOUNT.NOT_FOUND', locale),
+      });
+    }
+
+    await account.destroy();
+    return res.status(200).json({
+      message: await translation('ACCOUNT.DELETED_SUCCESSFULLY', locale),
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: await translation('ACCOUNT.DELETE_FAILED', locale),
+      error,
+    });
+  }
+};
