@@ -1,4 +1,5 @@
 {
+    "VALIDATION.GENERAL_ERROR": "Erro na validação dos dados.",
     "COMPANY": {
         "CREATED_SUCCESSFULLY": "Empresa criada com sucesso.",
         "CREATE_FAILED": "Erro ao criar empresa.",
@@ -10,7 +11,8 @@
         "DELETED_SUCCESSFULLY": "Empresa deletada com sucesso.",
         "DELETE_FAILED": "Erro ao deletar empresa.",
         "CREATED_WITH_ACCOUNT_SUCCESSFULLY": "Empresa e conta criadas com sucesso.",
-        "ACCOUNT_CREATE_FAILED": "Falha ao criar a conta de acesso. Os dados de cadastro foram desfeitos."
+        "ACCOUNT_CREATE_FAILED": "Falha ao criar a conta de acesso. Os dados de cadastro foram desfeitos.",
+        "EMAIL_ALREADY_EXISTS": "Já existe uma empresa com este e-mail."
     },
     "COMPANY_ADDRESS": {
         "CREATED_SUCCESSFULLY": "Endereço da empresa criado com sucesso.",
@@ -25,6 +27,7 @@
     },
     "VALIDATION": {
         "ERROR": "Erro de validação",
+        "GENERAL_ERROR": "Erro na validação dos dados.",
         "NAME_REQUIRED": "Nome é obrigatório",
         "NAME_MIN_LENGTH": "Nome deve ter mais de 2 caracteres",
         "EMAIL_REQUIRED": "Email é obrigatório",

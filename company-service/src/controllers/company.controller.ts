@@ -11,6 +11,8 @@ import { isSuccess, isError } from "../shared/rpc.types";
 import { translation } from "../utils/i18n";
 
 import { getLocaleFromRequest } from "../utils/locale";
+import { sendError } from "../utils/httpResponse";
+import { handleZodError } from "../utils/zodError";
 
 import {
 
@@ -45,14 +47,10 @@ export const createCompany = async (req: Request, res: Response) => {
 		});
 
 	} catch (error) {
-
+		const zodError = await handleZodError(error, locale);
+		if (zodError) return res.status(zodError.status).json(zodError.body);
 		console.error(error);
-
-		return res.status(500).json({
-
-			message: await translation("COMPANY.CREATE_FAILED", locale),
-
-		});
+		return sendError(res, 500, await translation("COMPANY.CREATE_FAILED", locale));
 
 	}
 
@@ -69,12 +67,7 @@ export const getCompanyById = async (req: Request, res: Response) => {
 		const company = await Company.findByPk(req.params.id as string);
 
 		if (!company) {
-
-			return res.status(404).json({
-
-				message: await translation("COMPANY.NOT_FOUND", locale),
-
-			});
+			return sendError(res, 404, await translation("COMPANY.NOT_FOUND", locale));
 
 		}
 
@@ -84,11 +77,7 @@ export const getCompanyById = async (req: Request, res: Response) => {
 
 		console.error(error);
 
-		return res.status(500).json({
-
-			message: await translation("COMPANY.GET_BY_ID_FAILED", locale),
-
-		});
+		return sendError(res, 500, await translation("COMPANY.GET_BY_ID_FAILED", locale));
 
 	}
 
@@ -110,11 +99,7 @@ export const getAllCompanies = async (req: Request, res: Response) => {
 
 		console.error(error);
 
-		return res.status(500).json({
-
-			message: await translation("COMPANY.GET_ALL_FAILED", locale),
-
-		});
+		return sendError(res, 500, await translation("COMPANY.GET_ALL_FAILED", locale));
 
 	}
 
@@ -155,14 +140,10 @@ export const updateCompany = async (req: Request, res: Response) => {
 		});
 
 	} catch (error) {
-
+		const zodError = await handleZodError(error, locale);
+		if (zodError) return res.status(zodError.status).json(zodError.body);
 		console.error(error);
-
-		return res.status(500).json({
-
-			message: await translation("COMPANY.UPDATE_FAILED", locale),
-
-		});
+		return sendError(res, 500, await translation("COMPANY.UPDATE_FAILED", locale));
 
 	}
 
@@ -179,12 +160,7 @@ export const deleteCompany = async (req: Request, res: Response) => {
 		const company = await Company.findByPk(req.params.id as string);
 
 		if (!company) {
-
-			return res.status(404).json({
-
-				message: await translation("COMPANY.NOT_FOUND", locale),
-
-			});
+			return sendError(res, 404, await translation("COMPANY.NOT_FOUND", locale));
 
 		}
 
@@ -200,11 +176,7 @@ export const deleteCompany = async (req: Request, res: Response) => {
 
 		console.error(error);
 
-		return res.status(500).json({
-
-			message: await translation("COMPANY.DELETE_FAILED", locale),
-
-		});
+		return sendError(res, 500, await translation("COMPANY.DELETE_FAILED", locale));
 
 	}
 
@@ -221,9 +193,8 @@ export const createCompanyEndAccount = async (req: Request, res: Response) => {
 			where: { email: body.email, },
 		});
 		if (exeistCompany) {
-			return res.status(400).json({
+			return sendError(res, 409, await translation("COMPANY.EMAIL_ALREADY_EXISTS", locale), {
 				error: 'email_already_exists',
-				message: await translation("COMPANY.EMAIL_ALREADY_EXISTS", locale),
 			});
 		}
 
@@ -231,26 +202,20 @@ export const createCompanyEndAccount = async (req: Request, res: Response) => {
 		const address = await CompanyAddress.create(body);
 		if (!address.id) {
 			await address.destroy();
-			return res.status(500).json({
-				message: await translation("COMPANY.CREATE_FAILED", locale),
-			});
+			return sendError(res, 500, await translation("COMPANY.CREATE_FAILED", locale));
 		}
 
 		const company = await Company.create(body);
 		if (!company.id) {
 			console.log(company);
 			await company.destroy();
-			return res.status(500).json({
-				message: await translation("COMPANY.CREATE_FAILED", locale),
-			});
+			return sendError(res, 500, await translation("COMPANY.CREATE_FAILED", locale));
 		}
 
 		if (!company.id) {
 			await company.destroy();
 			await address.destroy();
-			return res.status(500).json({
-				message: await translation("COMPANY.CREATE_FAILED", locale),
-			});
+			return sendError(res, 500, await translation("COMPANY.CREATE_FAILED", locale));
 		}
 
 		const account = await createAccountRpc({
@@ -263,9 +228,7 @@ export const createCompanyEndAccount = async (req: Request, res: Response) => {
 		if (!isSuccess(account)) {
 			await company.destroy();
 			await address.destroy();
-			return res.status(500).json({
-				message: await translation("COMPANY.CREATE_FAILED", locale),
-			});
+			return sendError(res, 500, await translation("COMPANY.CREATE_FAILED", locale));
 		}
 
 		return res.status(201).json({
@@ -275,9 +238,9 @@ export const createCompanyEndAccount = async (req: Request, res: Response) => {
 		});
 
 	} catch (error) {
+		const zodError = await handleZodError(error, locale);
+		if (zodError) return res.status(zodError.status).json(zodError.body);
 		console.error(error);
-		return res.status(500).json({
-			message: await translation("COMPANY.CREATE_FAILED", locale),
-		});
+		return sendError(res, 500, await translation("COMPANY.CREATE_FAILED", locale));
 	}
 };

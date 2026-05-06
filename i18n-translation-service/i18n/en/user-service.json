@@ -1,9 +1,18 @@
 {
+  "USER.ALREADY_EXISTS": "A user already exists with one or more provided fields.",
+  "USER.EMAIL_ALREADY_EXISTS": "A user with this email already exists.",
+  "USER.PHONE_ALREADY_EXISTS": "A user with this phone number already exists.",
+  "USER.CPF_ALREADY_EXISTS": "A user with this CPF already exists.",
+  "USER.CNH_NUMBER_ALREADY_EXISTS": "A user with this driver license number already exists.",
   "USER": {
     "CREATED_SUCCESSFULLY": "User created successfully.",
     "CREATED_WITH_ACCOUNT_SUCCESSFULLY": "User and account created successfully.",
     "CREATE_FAILED": "Error creating user.",
+    "ALREADY_EXISTS": "A user already exists with one or more provided fields.",
     "EMAIL_ALREADY_EXISTS": "A user with this email already exists.",
+    "PHONE_ALREADY_EXISTS": "A user with this phone number already exists.",
+    "CPF_ALREADY_EXISTS": "A user with this CPF already exists.",
+    "CNH_NUMBER_ALREADY_EXISTS": "A user with this driver license number already exists.",
     "ACCOUNT_CREATE_FAILED": "Error creating user account.",
     "GET_ALL_FAILED": "Error fetching users.",
     "NOT_FOUND": "User not found.",
@@ -59,6 +68,7 @@
   },
   "VALIDATION": {
     "ERROR": "Validation error",
+    "GENERAL_ERROR": "Data validation error",
     "NAME_REQUIRED": "Name is required",
     "NAME_MIN_LENGTH": "Name must be more than 2 characters",
     "EMAIL_REQUIRED": "Email is required",

@@ -1,4 +1,5 @@
 {
+    "VALIDATION.GENERAL_ERROR": "Data validation error.",
     "COMPANY": {
         "CREATED_SUCCESSFULLY": "Company created successfully.",
         "CREATE_FAILED": "Error creating company.",
@@ -10,7 +11,8 @@
         "DELETED_SUCCESSFULLY": "Company deleted successfully.",
         "DELETE_FAILED": "Error deleting company.",
         "CREATED_WITH_ACCOUNT_SUCCESSFULLY": "Company and account created successfully.",
-        "ACCOUNT_CREATE_FAILED": "Failed to create access account. Registration was rolled back."
+        "ACCOUNT_CREATE_FAILED": "Failed to create access account. Registration was rolled back.",
+        "EMAIL_ALREADY_EXISTS": "A company with this email already exists."
     },
     "COMPANY_ADDRESS": {
         "CREATED_SUCCESSFULLY": "Company address created successfully.",
@@ -25,6 +27,7 @@
     },
     "VALIDATION": {
         "ERROR": "Validation error",
+        "GENERAL_ERROR": "Data validation error.",
         "NAME_REQUIRED": "Name is required",
         "NAME_MIN_LENGTH": "Name must be more than 2 characters",
         "EMAIL_REQUIRED": "Email is required",
