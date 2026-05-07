@@ -7,7 +7,7 @@ import { translation } from "../utils/i18n";
 import { getLocaleFromRequest } from "../utils/locale";
 import { createVehicleSchema, updateVehicleSchema } from "../schemas/vehicle.schemas";
 import { handleZodError } from "../utils/zodError";
-import { sendError } from "../utils/httpResponse";
+import { sendError } from "../services/httpResponse";
 
 export const createVehicle = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
@@ -20,10 +20,9 @@ export const createVehicle = async (req: Request, res: Response) => {
 			message: await translation("VEHICLE.CREATED_SUCCESSFULLY", locale),
 		});
 	} catch (error) {
-		const zodError = await handleZodError(error, locale);
-		if (zodError) return res.status(zodError.status).json(zodError.body);
-
-		return sendError(res, 500, await translation("VEHICLE.CREATE_FAILED", locale));
+		const zodError = await handleZodError(error, locale, res);
+		if (zodError) return;
+		return sendError(res, 500, 'VEHICLE.CREATE_FAILED', locale);
 	}
 };
 
@@ -39,7 +38,7 @@ export const createVehicleAndAttachToUser = async (req: Request, res: Response) 
 
 		if (!user) {
 			await transaction.rollback();
-			return sendError(res, 404, await translation("USER.NOT_FOUND", locale));
+			return sendError(res, 404, 'USER.NOT_FOUND', locale);
 		}
 
 		await user.update({ vehicle_id: vehicle.id }, { transaction });
@@ -49,11 +48,11 @@ export const createVehicleAndAttachToUser = async (req: Request, res: Response) 
 			message: await translation("VEHICLE.CREATED_SUCCESSFULLY", locale),
 		});
 	} catch (error) {
-		const zodError = await handleZodError(error, locale);
-		if (zodError) return res.status(zodError.status).json(zodError.body);
+		const zodError = await handleZodError(error, locale, res);
+		if (zodError) return;
 		await transaction.rollback();
 
-		return sendError(res, 500, await translation("VEHICLE.CREATE_FAILED", locale), { error });
+		return sendError(res, 500, 'VEHICLE.CREATE_FAILED', locale);
 	}
 };
 
@@ -65,7 +64,7 @@ export const getAllVehicles = async (req: Request, res: Response) => {
 		});
 		return res.status(200).json(vehicles);
 	} catch (error) {
-		return sendError(res, 500, await translation("VEHICLE.GET_ALL_FAILED", locale), { error });
+		return sendError(res, 500, 'VEHICLE.GET_ALL_FAILED', locale);
 	}
 };
 
@@ -77,12 +76,12 @@ export const getVehicleById = async (req: Request, res: Response) => {
 		});
 
 		if (!vehicle) {
-			return sendError(res, 404, await translation("VEHICLE.NOT_FOUND", locale));
+			return sendError(res, 404, 'VEHICLE.NOT_FOUND', locale);
 		}
 
 		return res.status(200).json(vehicle);
 	} catch (error) {
-		return sendError(res, 500, await translation("VEHICLE.GET_BY_ID_FAILED", locale), { error });
+		return sendError(res, 500, 'VEHICLE.GET_BY_ID_FAILED', locale);
 	}
 };
 
@@ -93,7 +92,7 @@ export const updateVehicle = async (req: Request, res: Response) => {
 
 		const vehicle = await Vehicle.findByPk(req.params.id as string);
 		if (!vehicle) {
-			return sendError(res, 404, await translation("VEHICLE.NOT_FOUND", locale));
+			return sendError(res, 404, 'VEHICLE.NOT_FOUND', locale);
 		}
 
 		await vehicle.update(body);
@@ -101,10 +100,10 @@ export const updateVehicle = async (req: Request, res: Response) => {
 			message: await translation("VEHICLE.UPDATED_SUCCESSFULLY", locale),
 		});
 	} catch (error) {
-		const zodError = await handleZodError(error, locale);
-		if (zodError) return res.status(zodError.status).json(zodError.body);
+		const zodError = await handleZodError(error, locale, res);
+		if (zodError) return;
 
-		return sendError(res, 500, await translation("VEHICLE.UPDATE_FAILED", locale), { error });
+		return sendError(res, 500, 'VEHICLE.UPDATE_FAILED', locale);
 	}
 };
 
@@ -114,7 +113,7 @@ export const deleteVehicle = async (req: Request, res: Response) => {
 		const vehicle = await Vehicle.findByPk(req.params.id as string);
 
 		if (!vehicle) {
-			return sendError(res, 404, await translation("VEHICLE.NOT_FOUND", locale));
+			return sendError(res, 404, 'VEHICLE.NOT_FOUND', locale);
 		}
 
 		await vehicle.destroy();
@@ -122,6 +121,6 @@ export const deleteVehicle = async (req: Request, res: Response) => {
 			message: await translation("VEHICLE.DELETED_SUCCESSFULLY", locale),
 		});
 	} catch (error) {
-		return sendError(res, 500, await translation("VEHICLE.DELETE_FAILED", locale), { error });
+		return sendError(res, 500, 'VEHICLE.DELETE_FAILED', locale);
 	}
 };

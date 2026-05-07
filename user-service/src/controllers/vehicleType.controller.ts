@@ -5,7 +5,7 @@ import { translation } from "../utils/i18n";
 import { getLocaleFromRequest } from "../utils/locale";
 import { createVehicleTypeSchema, updateVehicleTypeSchema } from "../schemas/vehicleType.schemas";
 import { handleZodError } from "../utils/zodError";
-import { sendError } from "../utils/httpResponse";
+import { sendError } from "../services/httpResponse";
 
 export const createVehicleType = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
@@ -17,12 +17,12 @@ export const createVehicleType = async (req: Request, res: Response) => {
 			message: await translation("VEHICLE_TYPE.CREATED_SUCCESSFULLY", locale),
 		});
 	} catch (error) {
-		const zodError = await handleZodError(error, locale);
+		const zodError = await handleZodError(error, locale, res);
 		if (zodError) {
-			return res.status(zodError.status).json(zodError.body);
+			return;
 		}
 		
-		return sendError(res, 500, await translation("VEHICLE_TYPE.CREATE_FAILED", locale), { error });
+		return sendError(res, 500, 'VEHICLE_TYPE.CREATE_FAILED', locale);
 	}
 };
 
@@ -40,7 +40,7 @@ export const getAllVehicleTypes = async (req: Request, res: Response) => {
 		});
 		return res.status(200).json(vehicleTypes);
 	} catch (error) {
-		return sendError(res, 500, await translation("VEHICLE_TYPE.GET_ALL_FAILED", locale), { error });
+		return sendError(res, 500, 'VEHICLE_TYPE.GET_ALL_FAILED', locale);
 	}
 };
 
@@ -57,12 +57,12 @@ export const getVehicleTypeById = async (req: Request, res: Response) => {
 		});
 
 		if (!vehicleType) {
-			return sendError(res, 404, await translation("VEHICLE_TYPE.NOT_FOUND", locale));
+			return sendError(res, 404, 'VEHICLE_TYPE.NOT_FOUND', locale);
 		}
 
 		return res.status(200).json(vehicleType);
 	} catch (error) {
-		return sendError(res, 500, await translation("VEHICLE_TYPE.GET_BY_ID_FAILED", locale), { error });
+		return sendError(res, 500, 'VEHICLE_TYPE.GET_BY_ID_FAILED', locale);
 	}
 };
 
@@ -74,7 +74,7 @@ export const updateVehicleType = async (req: Request, res: Response) => {
 		
 		const vehicleType = await VehicleType.findByPk(req.params.id as string);
 		if (!vehicleType) {
-			return sendError(res, 404, await translation("VEHICLE_TYPE.NOT_FOUND", locale));
+			return sendError(res, 404, 'VEHICLE_TYPE.NOT_FOUND', locale);
 		}
 
 		await vehicleType.update(body);
@@ -82,10 +82,10 @@ export const updateVehicleType = async (req: Request, res: Response) => {
 			message: await translation("VEHICLE_TYPE.UPDATED_SUCCESSFULLY", locale),
 		});
 	} catch (error) {
-		const zodError = await handleZodError(error, locale);
-		if (zodError) return res.status(zodError.status).json(zodError.body);
+		const zodError = await handleZodError(error, locale, res);
+		if (zodError) return;
 
-		return sendError(res, 500, await translation("VEHICLE_TYPE.UPDATE_FAILED", locale), { error });
+		return sendError(res, 500, 'VEHICLE_TYPE.UPDATE_FAILED', locale);
 	}
 };
 
@@ -95,7 +95,7 @@ export const deleteVehicleType = async (req: Request, res: Response) => {
 		const vehicleType = await VehicleType.findByPk(req.params.id as string);
 
 		if (!vehicleType) {
-			return sendError(res, 404, await translation("VEHICLE_TYPE.NOT_FOUND", locale));
+			return sendError(res, 404, 'VEHICLE_TYPE.NOT_FOUND', locale);
 		}
 
 		await vehicleType.destroy();
@@ -103,6 +103,6 @@ export const deleteVehicleType = async (req: Request, res: Response) => {
 			message: await translation("VEHICLE_TYPE.DELETED_SUCCESSFULLY", locale),
 		});
 	} catch (error) {
-		return sendError(res, 500, await translation("VEHICLE_TYPE.DELETE_FAILED", locale), { error });
+		return sendError(res, 500, 'VEHICLE_TYPE.DELETE_FAILED', locale);
 	}
 };

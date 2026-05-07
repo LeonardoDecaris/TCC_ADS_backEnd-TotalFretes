@@ -49,6 +49,7 @@ export const validateResetCode = async (req: Request, res: Response) => {
   const locale = getLocaleFromRequest(req);
   try {
     const { email, code } = req.body;
+    console.log('dados enviados do api:', { email, code });
     if (!email || !code) {
       return sendError(res, 400, await translation('PASSWORD_RESET.EMAIL_AND_CODE_REQUIRED', locale));
     }

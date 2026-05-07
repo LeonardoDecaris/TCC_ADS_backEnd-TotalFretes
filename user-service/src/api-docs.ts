@@ -1,6 +1,13 @@
 export const apiDocs = {
   openapi: '3.0.0',
   info: { title: 'User Service', version: '1.0.0' },
+  tags: [
+    { name: 'User', description: 'Cadastro e gestão de usuários (user-service)' },
+    { name: 'CNH', description: 'CNH / carteira de motorista (user-service)' },
+    { name: 'GroupVehicleType', description: 'Grupos de tipo de veículo (user-service)' },
+    { name: 'VehicleType', description: 'Tipos de veículo (user-service)' },
+    { name: 'Vehicle', description: 'Veículos do motorista (user-service)' },
+  ],
   paths: {
     '/user': {
       post: {
