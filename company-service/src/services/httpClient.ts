@@ -63,4 +63,3 @@ export function createHttpClient(clientOptions: HttpClientOptions): HttpClient {
     },
   };
 }
-

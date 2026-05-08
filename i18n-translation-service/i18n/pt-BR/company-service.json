@@ -12,7 +12,9 @@
         "DELETE_FAILED": "Erro ao deletar empresa.",
         "CREATED_WITH_ACCOUNT_SUCCESSFULLY": "Empresa e conta criadas com sucesso.",
         "ACCOUNT_CREATE_FAILED": "Falha ao criar a conta de acesso. Os dados de cadastro foram desfeitos.",
-        "EMAIL_ALREADY_EXISTS": "Já existe uma empresa com este e-mail."
+        "ALREADY_EXISTS": "Já existe empresa com um ou mais dados informados.",
+        "EMAIL_ALREADY_EXISTS": "Já existe uma empresa com este e-mail.",
+        "CNPJ_ALREADY_EXISTS": "Já existe uma empresa com este CNPJ."
     },
     "COMPANY_ADDRESS": {
         "CREATED_SUCCESSFULLY": "Endereço da empresa criado com sucesso.",

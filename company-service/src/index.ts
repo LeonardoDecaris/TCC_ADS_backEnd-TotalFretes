@@ -13,6 +13,7 @@ if (!PORT) {
   try {
     await sequelize.authenticate();
     console.log('Database authenticated successfully');
+
     await sequelize.sync({ alter: false });
     console.log('Database synchronized successfully');
 

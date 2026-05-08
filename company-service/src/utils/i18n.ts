@@ -1,6 +1,5 @@
-import axios from 'axios';
+import { getI18nHttp } from '../services/service';
 
-const I18N_SERVICE_URL = process.env.I18N_SERVICE_URL;
 
 function getNestedValue(obj: Record<string, any>, path: string): string | undefined {
   if (!path || typeof path !== 'string') return undefined;
@@ -12,21 +11,15 @@ function getNestedValue(obj: Record<string, any>, path: string): string | undefi
 }
 
 export const translation = async (code: string, locale = 'pt-BR'): Promise<string> => {
-  try {
-    if (!I18N_SERVICE_URL) return code;
+  if (!process.env.I18N_SERVICE_URL) return code;
 
-    const url = `${I18N_SERVICE_URL}/i18n/${locale}/company-service.json`;
-    const { data } = await axios.get<Record<string, any>>(url, { timeout: 2000 });
-    const obj = data ?? {};
+  const data = await getI18nHttp({ locale: locale || 'pt-BR' });
 
-    const byFlat = obj[code];
-    if (typeof byFlat === 'string') return byFlat;
+  const byFlat = data[code];
+  if (typeof byFlat === 'string') return byFlat;
 
-    const byNested = getNestedValue(obj, code);
-    if (typeof byNested === 'string') return byNested;
+  const byNested = getNestedValue(data, code);
+  if (typeof byNested === 'string') return byNested;
 
-    return code;
-  } catch {
-    return code;
-  }
+  return code;
 };

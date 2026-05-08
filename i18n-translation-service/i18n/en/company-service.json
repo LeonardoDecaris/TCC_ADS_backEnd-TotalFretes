@@ -12,7 +12,9 @@
         "DELETE_FAILED": "Error deleting company.",
         "CREATED_WITH_ACCOUNT_SUCCESSFULLY": "Company and account created successfully.",
         "ACCOUNT_CREATE_FAILED": "Failed to create access account. Registration was rolled back.",
-        "EMAIL_ALREADY_EXISTS": "A company with this email already exists."
+        "ALREADY_EXISTS": "A company with one or more of the provided details already exists.",
+        "EMAIL_ALREADY_EXISTS": "A company with this email already exists.",
+        "CNPJ_ALREADY_EXISTS": "A company with this CNPJ already exists."
     },
     "COMPANY_ADDRESS": {
         "CREATED_SUCCESSFULLY": "Company address created successfully.",

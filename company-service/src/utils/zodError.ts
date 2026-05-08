@@ -1,16 +1,22 @@
 import { ZodError } from 'zod';
 import { translation } from './i18n';
+import { sendValidationError, type ValidationIssue } from '../services/HttpResponse';
+import { Response } from 'express';
 
-export const handleZodError = async (error: unknown, locale: string) => {
-  if (error instanceof ZodError) {
-    return {
-      status: 400,
-      body: {
-        status: 400,
-        message: await translation('VALIDATION.GENERAL_ERROR', locale),
-        errors: error.issues.map((err) => err.path[0]),
-      },
-    };
-  }
-  return null;
+export const handleZodError = async (
+  error: unknown,
+  locale: string,
+  res: Response,
+): Promise<boolean> => {
+  if (!(error instanceof ZodError)) return false;
+
+  const issues: ValidationIssue[] = await Promise.all(
+    error.issues.map(async (issue) => ({
+      field: issue.path.join('.') || 'unknown',
+      message: await translation(issue.message, locale),
+    })),
+  );
+
+  await sendValidationError(res, 'VALIDATION.GENERAL_ERROR', locale, issues);
+  return true;
 };

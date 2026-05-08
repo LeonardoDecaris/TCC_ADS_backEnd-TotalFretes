@@ -12,6 +12,8 @@ export type ConflictDetail = {
 };
 
 type BaseErrorBody = {
+
+  
   status: number;
   code: string;
   message: string;
