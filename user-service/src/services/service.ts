@@ -36,11 +36,11 @@ export async function deleteAccountHttp({ id }: { id: number }) {
 }
 
 export async function getUserImageHttp({ id }: { id: number }) {
-  const result = await storageClient.get<{ url: string }>(`/user-images/${id}`, {
-    fallback: { url: '' },
-    silentStatuses: [404],
+  const result = await storageClient.get(`/user-images/${id}`, {
+    fallback: '',
+    silentStatuses: [404],  
   });
-  return result.url;
+  return result;
 }
 
 export async function getI18nHttp({ locale }: { locale: string }) {

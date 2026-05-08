@@ -1,6 +1,6 @@
 import { ZodError } from 'zod';
 import { translation } from './i18n';
-import { sendValidationError, type ValidationIssue } from '../services/HttpResponse';
+import { sendValidationError, type ValidationIssue } from '../services/httpResponse';
 import { Response } from 'express';
 
 export const handleZodError = async (

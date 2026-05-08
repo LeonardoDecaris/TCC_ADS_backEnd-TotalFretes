@@ -6,7 +6,7 @@ import {
 	createCompanyAddressSchema,
 	updateCompanyAddressSchema,
 } from "../schemas/company.schemas";
-import { sendError } from "../services/HttpResponse";
+import { sendError } from "../services/httpResponse";
 import { handleZodError } from "../utils/zodError";
 
 export const createCompanyAddress = async (req: Request, res: Response) => {
