@@ -1,6 +1,7 @@
 import app from './app';
 import dotenv from 'dotenv';
 import sequelize from './config/database';
+import { ensureCompanyAddressCountryColumn } from './database/ensureCompanyAddressCountryColumn';
 
 dotenv.config();
 
@@ -16,6 +17,9 @@ if (!PORT) {
 
     await sequelize.sync({ alter: false });
     console.log('Database synchronized successfully');
+
+    await ensureCompanyAddressCountryColumn();
+    console.log('Company address country column ensured successfully');
 
     app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
   } catch (err) {

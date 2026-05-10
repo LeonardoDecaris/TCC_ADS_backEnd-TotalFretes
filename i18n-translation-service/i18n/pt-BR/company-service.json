@@ -44,6 +44,7 @@
         "COMPANY_IMAGE_POSITIVE": "Imagem da empresa deve ser um ID válido",
         "COMPANY_ADDRESS_INT": "Endereço da empresa deve ser um número inteiro",
         "COMPANY_ADDRESS_POSITIVE": "Endereço da empresa deve ser um ID válido",
+        "COUNTRY_REQUIRED": "País é obrigatório",
         "CEP_REQUIRED": "CEP é obrigatório",
         "STREET_REQUIRED": "Rua é obrigatória",
         "DISTRICT_REQUIRED": "Bairro é obrigatório",

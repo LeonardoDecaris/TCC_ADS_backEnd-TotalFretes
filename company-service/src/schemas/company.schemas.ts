@@ -62,6 +62,7 @@ export const createCompanySchema = z.object(baseCompanyFields);
 export const updateCompanySchema = z.object(baseCompanyFields).partial();
 
 export const createCompanyAddressSchema = z.object({
+	country: z.string().min(1, "VALIDATION.COUNTRY_REQUIRED"),
 	cep: z.string().min(1, "VALIDATION.CEP_REQUIRED"),
 	street: z.string().min(1, "VALIDATION.STREET_REQUIRED"),
 	district: z.string().min(1, "VALIDATION.DISTRICT_REQUIRED"),
