@@ -44,6 +44,7 @@
         "COMPANY_IMAGE_POSITIVE": "Company image must be a valid ID",
         "COMPANY_ADDRESS_INT": "Company address must be an integer",
         "COMPANY_ADDRESS_POSITIVE": "Company address must be a valid ID",
+        "COUNTRY_REQUIRED": "Country is required",
         "CEP_REQUIRED": "ZIP code is required",
         "STREET_REQUIRED": "Street is required",
         "DISTRICT_REQUIRED": "District is required",
