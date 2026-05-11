@@ -25,7 +25,7 @@ export async function createAccountHttp(data: CreateAccountData) {
 }
 
 export async function getI18nHttp({ locale }: { locale: string }) {
-	const result = await i18nClient.get<{ [key: string]: string }>(`/i18n/${locale}/user-service.json`, {
+	const result = await i18nClient.get<{ [key: string]: string }>(`/i18n/${locale}/company-service.json`, {
 		fallback: {},
 		silentStatuses: [404],
 	});

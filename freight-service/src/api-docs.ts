@@ -25,7 +25,8 @@ export const apiDocs = {
 		'/cargo-type': {
 			post: {
 				summary: 'Criar tipo de carga',
-				description: 'Normalmente restrito a ADMIN (ver controller).',
+				description:
+					'Rotas POST/PUT/DELETE de tipo de carga exigem papel COMPANY no authorizeRoles; ADMIN também é aceito pelo mesmo middleware.',
 				tags: ['CargoType'],
 				security: [{ bearerAuth: [] }],
 				requestBody: {
@@ -498,7 +499,6 @@ export const apiDocs = {
 				properties: {
 					id: { type: 'integer' },
 					name: { type: 'string' },
-					weight: { type: 'number', nullable: true },
 					vehicleType: { type: 'string' },
 					imageCargo_id: { type: 'integer', nullable: true },
 					createdAt: { type: 'string', format: 'date-time' },
@@ -510,7 +510,6 @@ export const apiDocs = {
 				required: ['name', 'vehicleType'],
 				properties: {
 					name: { type: 'string', minLength: 1 },
-					weight: { type: 'number' },
 					vehicleType: { type: 'string', minLength: 1 },
 					imageCargo_id: { type: 'integer', minimum: 1 },
 				},
@@ -519,7 +518,6 @@ export const apiDocs = {
 				type: 'object',
 				properties: {
 					name: { type: 'string', minLength: 1 },
-					weight: { type: 'number' },
 					vehicleType: { type: 'string', minLength: 1 },
 					imageCargo_id: { type: 'integer', minimum: 1 },
 				},
@@ -593,6 +591,7 @@ export const apiDocs = {
 					daysLimit: { type: 'integer', nullable: true },
 					originalValue: { type: 'number' },
 					finalValue: { type: 'number', nullable: true },
+					weight: { type: 'number', nullable: true },
 					createdAt: { type: 'string', format: 'date-time' },
 					updatedAt: { type: 'string', format: 'date-time' },
 					CargoType: { type: 'object', nullable: true },
@@ -610,6 +609,7 @@ export const apiDocs = {
 					'destination_lat',
 					'destination_lng',
 					'originalValue',
+					'weight',
 				],
 				properties: {
 					cargoType_id: { type: 'integer', minimum: 1 },
@@ -622,6 +622,7 @@ export const apiDocs = {
 					status_id: { type: 'integer', minimum: 1 },
 					daysLimit: { type: 'integer', minimum: 1 },
 					originalValue: { type: 'number', minimum: 0 },
+					weight: { type: 'number', minimum: 0.01, description: 'Peso da carga (kg), > 0' },
 				},
 			},
 			FreightUpdate: {
@@ -637,6 +638,7 @@ export const apiDocs = {
 					status_id: { type: 'integer', minimum: 1 },
 					daysLimit: { type: 'integer', minimum: 1 },
 					originalValue: { type: 'number', minimum: 0 },
+					weight: { type: 'number', minimum: 0.01, description: 'Peso da carga (kg), > 0' },
 				},
 			},
 			MessageWithFreight: {

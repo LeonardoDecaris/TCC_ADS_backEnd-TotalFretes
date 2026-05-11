@@ -1,5 +1,6 @@
 import { z } from "zod";
 import validator from "validator";
+import { isValidCnpjInRfb2229, normalizeCnpj } from "../utils/cnpjInRfb2229";
 
 const nameSchema = z
 	.string()
@@ -32,7 +33,8 @@ const websiteSchema = z
 const cnpjSchema = z
 	.string()
 	.min(1, "VALIDATION.CNPJ_REQUIRED")
-	.refine((v) => v.length >= 14, "VALIDATION.CNPJ_INVALID");
+	.transform((v) => normalizeCnpj(v))
+	.refine((v) => isValidCnpjInRfb2229(v), "VALIDATION.CNPJ_INVALID");
 
 const companyImageIdSchema = z
 	.number()

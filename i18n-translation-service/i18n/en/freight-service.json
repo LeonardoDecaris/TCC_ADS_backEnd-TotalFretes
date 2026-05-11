@@ -78,6 +78,7 @@
     "VEHICLE_TYPE_REQUIRED": "Vehicle type is required.",
     "IMAGE_CARGO_ID_INVALID": "Invalid cargo image identifier.",
     "FREIGHT_ID_INVALID": "Invalid freight.",
-    "PROPOSAL_VALUE_INVALID": "Invalid proposal value."
+    "PROPOSAL_VALUE_INVALID": "Invalid proposal value.",
+    "WEIGHT_INVALID": "Invalid weight (enter a value greater than zero, in kg)."
   }
 }
