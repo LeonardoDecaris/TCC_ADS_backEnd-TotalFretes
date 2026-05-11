@@ -1,13 +1,15 @@
 import FreightStatusType from '../models/freightStatusTypes.model';
 import { FreightStatusSlug } from './statusTypes.constants';
 
-/** Ciclo de vida sugerido: open → assigned → in_transit → delivered (cancelled em qualquer momento). */
+/** Ordem: Disponível (1) … Concluído (7). */
 const DEFAULT_FREIGHT_STATUS_TYPES: readonly string[] = [
-	FreightStatusSlug.OPEN,
-	FreightStatusSlug.ASSIGNED,
-	FreightStatusSlug.IN_TRANSIT,
-	FreightStatusSlug.DELIVERED,
-	FreightStatusSlug.CANCELLED,
+	FreightStatusSlug.DISPONIVEL,
+	FreightStatusSlug.CANCELADO,
+	FreightStatusSlug.VINCULADO,
+	FreightStatusSlug.EM_TRANSITO,
+	FreightStatusSlug.EM_ROTA_ENTREGA,
+	FreightStatusSlug.ENTREGUE,
+	FreightStatusSlug.CONCLUIDO,
 ];
 
 export const seedFreightStatusTypes = async (): Promise<void> => {

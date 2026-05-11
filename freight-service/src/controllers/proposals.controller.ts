@@ -10,8 +10,10 @@ import { getLocaleFromRequest } from '../utils/locale';
 import { idParamSchema, validateBody, validateParams } from '../utils/validate';
 import {
 	ACCEPTED_PROPOSAL_STATUS_NAMES,
+	FreightStatusSlug,
 	ProposalStatusSlug,
 } from '../config/statusTypes.constants';
+import FreightStatusType from '../models/freightStatusTypes.model';
 
 const getProposalInclude = () => [
 	{
@@ -49,14 +51,14 @@ export const createProposal = async (req: Request, res: Response) => {
 			});
 		}
 
-		const pendingStatus = await ProposalStatusType.findOne({
-			where: { name: ProposalStatusSlug.PENDING },
+		const enviadaStatus = await ProposalStatusType.findOne({
+			where: { name: ProposalStatusSlug.ENVIADA },
 		});
 
 		const proposal = await Proposal.create({
 			...body,
 			driver_id: req.user!.id,
-			status_id: pendingStatus?.id,
+			status_id: enviadaStatus?.id,
 		});
 
 		return res.status(201).json({
@@ -248,6 +250,11 @@ export const acceptProposal = async (req: Request, res: Response) => {
 			});
 		}
 
+		const vinculadoStatus = await FreightStatusType.findOne({
+			where: { name: FreightStatusSlug.VINCULADO },
+			transaction,
+		});
+
 		await proposal.update(
 			{
 				status_id: acceptedStatus.id,
@@ -259,6 +266,7 @@ export const acceptProposal = async (req: Request, res: Response) => {
 			{
 				assignedDriver_id: proposal.driver_id,
 				finalValue: proposal.value,
+				...(vinculadoStatus?.id != null ? { status_id: vinculadoStatus.id } : {}),
 			},
 			{ transaction }
 		);
