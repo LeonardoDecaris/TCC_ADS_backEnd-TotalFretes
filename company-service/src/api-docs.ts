@@ -13,7 +13,11 @@ export const apiDocs = {
                 type: 'object',
                 properties: {
                   name: { type: 'string' },
-                  cnpj: { type: 'string' },
+                  cnpj: {
+                    type: 'string',
+                    description:
+                      'CNPJ conforme IN RFB 2.229/2024 (14 caracteres; dígitos e/ou letras A–Z após normalização no backend).',
+                  },
                   email: { type: 'string' },
                   phoneNumber: { type: 'string' },
                 },
@@ -50,7 +54,11 @@ export const apiDocs = {
                 type: 'object',
                 properties: {
                   name: { type: 'string' },
-                  cnpj: { type: 'string' },
+                  cnpj: {
+                    type: 'string',
+                    description:
+                      'CNPJ conforme IN RFB 2.229/2024 (14 caracteres; dígitos e/ou letras A–Z após normalização no backend).',
+                  },
                   email: { type: 'string' },
                   phoneNumber: { type: 'string' },
                 },
@@ -100,7 +108,12 @@ export const apiDocs = {
                   birthFundation: { type: 'string', example: '2020-05-15' },
                   phoneNumber: { type: 'string', example: '11987654321' },
                   website: { type: 'string', format: 'uri', example: 'https://empresa.com.br' },
-                  cnpj: { type: 'string', example: '11444777000161' },
+                  cnpj: {
+                    type: 'string',
+                    description:
+                      'CNPJ conforme IN RFB 2.229/2024 (14 caracteres; dígitos e/ou letras A–Z após normalização no backend).',
+                    example: '11444777000161',
+                  },
                   country: {
                     type: 'string',
                     description: 'Código do país usado no endereço. Ex.: BR, US, PT.',

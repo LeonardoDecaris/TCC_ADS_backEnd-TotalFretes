@@ -14,7 +14,13 @@
         "ACCOUNT_CREATE_FAILED": "Falha ao criar a conta de acesso. Os dados de cadastro foram desfeitos.",
         "ALREADY_EXISTS": "Já existe empresa com um ou mais dados informados.",
         "EMAIL_ALREADY_EXISTS": "Já existe uma empresa com este e-mail.",
-        "CNPJ_ALREADY_EXISTS": "Já existe uma empresa com este CNPJ."
+        "CNPJ_ALREADY_EXISTS": "Já existe uma empresa com este CNPJ.",
+        "PHONE_NUMBER_ALREADY_EXISTS": "Já existe uma empresa com este telefone."
+    },
+    "USER": {
+        "EMAIL_ALREADY_EXISTS": "Já existe um cadastro com este e-mail.",
+        "CNPJ_ALREADY_EXISTS": "Já existe um cadastro com este CNPJ.",
+        "PHONE_NUMBER_ALREADY_EXISTS": "Já existe um cadastro com este telefone."
     },
     "COMPANY_ADDRESS": {
         "CREATED_SUCCESSFULLY": "Endereço da empresa criado com sucesso.",

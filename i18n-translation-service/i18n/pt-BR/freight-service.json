@@ -78,6 +78,7 @@
     "VEHICLE_TYPE_REQUIRED": "Tipo de veículo é obrigatório.",
     "IMAGE_CARGO_ID_INVALID": "Identificador da imagem da carga inválido.",
     "FREIGHT_ID_INVALID": "Frete inválido.",
-    "PROPOSAL_VALUE_INVALID": "Valor da proposta inválido."
+    "PROPOSAL_VALUE_INVALID": "Valor da proposta inválido.",
+    "WEIGHT_INVALID": "Peso inválido (informe um valor maior que zero, em kg)."
   }
 }

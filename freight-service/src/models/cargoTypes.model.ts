@@ -4,7 +4,6 @@ import sequelize from '../config/database';
 export class CargoType extends Model {
     id: number | undefined;
     name: string | undefined;
-    weight: number | undefined;
     vehicleType: string | undefined;
     imageCargo_id: number | undefined;
 }
@@ -18,10 +17,6 @@ CargoType.init({
     name: {
         type: DataTypes.STRING,
         allowNull: false,
-    },
-    weight: {
-        type: DataTypes.FLOAT,
-        allowNull: true,
     },
     vehicleType: {
         type: DataTypes.STRING,

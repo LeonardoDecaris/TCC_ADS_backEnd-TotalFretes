@@ -2,31 +2,40 @@ import axios from 'axios';
 
 const I18N_SERVICE_URL = process.env.I18N_SERVICE_URL;
 
-function getNestedValue(obj: Record<string, any>, path: string): string | undefined {
-  if (!path || typeof path !== 'string') return undefined;
-  const value = path.split('.').reduce<any>(
-    (acc, key) => (acc && typeof acc === 'object' ? acc[key] : undefined),
-    obj,
-  );
-  return typeof value === 'string' ? value : undefined;
+/** Monta mapa `DOMÍNIO.CHAVE` → texto a partir de objetos aninhados e chaves literais com `.` */
+function collectStringLeaves(
+	obj: Record<string, unknown>,
+	prefix = '',
+	out: Record<string, string> = {},
+): Record<string, string> {
+	for (const [k, v] of Object.entries(obj)) {
+		const path = prefix ? `${prefix}.${k}` : k;
+		if (typeof v === 'string') {
+			out[path] = v;
+		} else if (v !== null && typeof v === 'object' && !Array.isArray(v)) {
+			collectStringLeaves(v as Record<string, unknown>, path, out);
+		}
+	}
+	return out;
 }
 
 export const translation = async (code: string, locale = 'pt-BR'): Promise<string> => {
-  try {
-    if (!I18N_SERVICE_URL) return code;
+	try {
+		if (!I18N_SERVICE_URL) return code;
 
-    const url = `${I18N_SERVICE_URL}/i18n/${locale}/freight-service.json`;
-    const { data } = await axios.get<Record<string, any>>(url, { timeout: 2000 });
-    const obj = data ?? {};
+		const url = `${I18N_SERVICE_URL}/i18n/${locale}/freight-service.json`;
+		const { data } = await axios.get<Record<string, unknown>>(url, { timeout: 2000 });
+		const obj = data ?? {};
 
-    const byFlat = obj[code];
-    if (typeof byFlat === 'string') return byFlat;
+		const direct = obj[code];
+		if (typeof direct === 'string') return direct;
 
-    const byNested = getNestedValue(obj, code);
-    if (typeof byNested === 'string') return byNested;
+		const flat = collectStringLeaves(obj);
+		const resolved = flat[code];
+		if (typeof resolved === 'string') return resolved;
 
-    return code;
-  } catch {
-    return code;
-  }
+		return code;
+	} catch {
+		return code;
+	}
 };

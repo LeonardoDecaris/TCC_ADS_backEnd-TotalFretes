@@ -25,6 +25,7 @@ export const createFreightSchema = z.object({
 		.optional(),
 	daysLimit: z.coerce.number().int().positive('VALIDATION.DAYS_LIMIT_INVALID').optional(),
 	originalValue: z.coerce.number().nonnegative('VALIDATION.ORIGINAL_VALUE_INVALID'),
+	weight: z.coerce.number().positive('VALIDATION.WEIGHT_INVALID'),
 });
 
 export const updateFreightSchema = z.object({
@@ -42,4 +43,5 @@ export const updateFreightSchema = z.object({
 		.optional(),
 	daysLimit: z.coerce.number().int().positive('VALIDATION.DAYS_LIMIT_INVALID').optional(),
 	originalValue: z.coerce.number().nonnegative('VALIDATION.ORIGINAL_VALUE_INVALID').optional(),
+	weight: z.coerce.number().positive('VALIDATION.WEIGHT_INVALID').optional(),
 });

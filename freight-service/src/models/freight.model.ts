@@ -18,6 +18,8 @@ export class Freight extends Model {
 	daysLimit: number | undefined;
 	originalValue: number | undefined;
 	finalValue: number | undefined;
+	/** Peso da carga do frete (kg). */
+	weight: number | undefined;
 }
 
 Freight.init({
@@ -75,6 +77,10 @@ Freight.init({
 		allowNull: false,
 	},
 	finalValue: {
+		type: DataTypes.FLOAT,
+		allowNull: true,
+	},
+	weight: {
 		type: DataTypes.FLOAT,
 		allowNull: true,
 	},

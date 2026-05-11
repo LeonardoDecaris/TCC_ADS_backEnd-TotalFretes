@@ -14,7 +14,13 @@
         "ACCOUNT_CREATE_FAILED": "Failed to create access account. Registration was rolled back.",
         "ALREADY_EXISTS": "A company with one or more of the provided details already exists.",
         "EMAIL_ALREADY_EXISTS": "A company with this email already exists.",
-        "CNPJ_ALREADY_EXISTS": "A company with this CNPJ already exists."
+        "CNPJ_ALREADY_EXISTS": "A company with this CNPJ already exists.",
+        "PHONE_NUMBER_ALREADY_EXISTS": "A company with this phone number already exists."
+    },
+    "USER": {
+        "EMAIL_ALREADY_EXISTS": "An account with this email already exists.",
+        "CNPJ_ALREADY_EXISTS": "An account with this CNPJ already exists.",
+        "PHONE_NUMBER_ALREADY_EXISTS": "An account with this phone number already exists."
     },
     "COMPANY_ADDRESS": {
         "CREATED_SUCCESSFULLY": "Company address created successfully.",

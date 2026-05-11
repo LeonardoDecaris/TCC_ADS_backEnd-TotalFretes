@@ -130,6 +130,7 @@ export const updateFreight = async (req: Request, res: Response) => {
 		}
 
 		await freight.update(body);
+		await freight.reload({ include: getFreightInclude() });
 		return res.status(200).json({
 			message: await translation('FREIGHT.UPDATED_SUCCESSFULLY', locale),
 			freight,
