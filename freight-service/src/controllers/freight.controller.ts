@@ -26,14 +26,14 @@ export const createFreight = async (req: Request, res: Response) => {
 	if (!body) return;
 
 	try {
-		const openStatus = await FreightStatusType.findOne({
-			where: { name: FreightStatusSlug.OPEN },
+		const defaultStatus = await FreightStatusType.findOne({
+			where: { name: FreightStatusSlug.DISPONIVEL },
 		});
 
 		const freight = await Freight.create({
 			...body,
 			company_id: req.user!.id,
-			status_id: body.status_id ?? openStatus?.id,
+			status_id: body.status_id ?? defaultStatus?.id,
 		});
 
 		return res.status(201).json({

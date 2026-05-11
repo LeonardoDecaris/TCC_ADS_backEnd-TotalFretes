@@ -2,10 +2,9 @@ import ProposalStatusType from '../models/proposalsStatusTypes.model';
 import { ProposalStatusSlug } from './statusTypes.constants';
 
 const DEFAULT_PROPOSAL_STATUS_TYPES: readonly string[] = [
-	ProposalStatusSlug.PENDING,
-	ProposalStatusSlug.ACCEPTED,
-	ProposalStatusSlug.REJECTED,
-	ProposalStatusSlug.WITHDRAWN,
+	ProposalStatusSlug.ENVIADA,
+	ProposalStatusSlug.RECUSADA,
+	ProposalStatusSlug.ACEITA,
 ];
 
 export const seedProposalStatusTypes = async (): Promise<void> => {
