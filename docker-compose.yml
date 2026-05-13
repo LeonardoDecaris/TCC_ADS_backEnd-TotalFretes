@@ -12,9 +12,9 @@ services:
       authentication-service-database:
         condition: service_healthy
       redis:
-        condition: service_healthy
+        condition: service_started
       rabbitmq:
-        condition: service_healthy
+        condition: service_started
     networks:
       - app-network
     healthcheck:
@@ -39,6 +39,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 40s
     ports:
       - "3306:3306"
 
@@ -54,15 +55,14 @@ services:
     depends_on:
       user-service-database:
         condition: service_healthy
-      authentication-service:
-        condition: service_healthy
     networks:
       - app-network
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 60s
 
   user-service-database:
     image: mysql:8.0
@@ -79,6 +79,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 40s
     ports:
       - "3307:3306"
 
@@ -100,7 +101,8 @@ services:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3002/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 60s
 
   company-service-database:
     image: mysql:8.0
@@ -117,6 +119,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 40s
     ports:
       - "3308:3306"
 
@@ -141,7 +144,8 @@ services:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3007/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 60s
 
   storage-service-database:
     image: mysql:8.0
@@ -158,6 +162,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 40s
     ports:
       - "3309:3306"
 
@@ -174,11 +179,11 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping && rabbitmq-diagnostics -q check_running && rabbitmq-diagnostics -q check_local_alarms"]
       interval: 10s
       timeout: 15s
-      retries: 8
-      start_period: 60s
+      retries: 12
+      start_period: 90s
 
   redis:
     image: redis:7-alpine
@@ -190,7 +195,8 @@ services:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 30s
 
   # ===== AUXILIARY SERVICES =====
   email-management-service:
@@ -205,14 +211,15 @@ services:
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
     depends_on:
       rabbitmq:
-        condition: service_healthy
+        condition: service_started
     networks:
       - app-network
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3003/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 60s
 
   mapbox-service:
     build: ./mapbox-service
@@ -226,7 +233,8 @@ services:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3004/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 60s
 
   i18n-translation-service:
     build:
@@ -244,7 +252,8 @@ services:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3006/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 60s
 
   freight-service:
     build:
@@ -263,7 +272,8 @@ services:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3008/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 60s
     
   freight-service-database:
     image: mysql:8.0
@@ -280,6 +290,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 40s
     ports:
       - "3310:3306"
 
@@ -298,22 +309,32 @@ services:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3005/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 60s
 
   nginx:
     build: ./nginx
     container_name: nginx
     restart: always
     depends_on:
-      - authentication-service
-      - user-service
-      - company-service
-      - email-management-service
-      - mapbox-service
-      - swagger-service
-      - i18n-translation-service
-      - storage-service
-      - freight-service
+      authentication-service:
+        condition: service_started
+      user-service:
+        condition: service_started
+      company-service:
+        condition: service_started
+      email-management-service:
+        condition: service_started
+      mapbox-service:
+        condition: service_started
+      swagger-service:
+        condition: service_started
+      i18n-translation-service:
+        condition: service_started
+      storage-service:
+        condition: service_started
+      freight-service:
+        condition: service_started
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/conf.d:/etc/nginx/conf.d:ro

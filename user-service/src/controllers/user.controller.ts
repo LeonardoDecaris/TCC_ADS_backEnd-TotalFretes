@@ -58,7 +58,7 @@ export const getUserById = async (req: Request, res: Response) => {
 		if (!user) return sendError(res, 404, 'USER.NOT_FOUND', locale);
 
 		const userImage = user.userImage_id ? await getUserImageHttp({ id: user.userImage_id }) : null;
-		console.log('userImage', userImage);
+
 		return res.status(200).json({ ...user.toJSON(), UserImage: userImage });
 	} catch (error) {
 		return sendError(res, 500, 'USER.GET_BY_ID_FAILED', locale);

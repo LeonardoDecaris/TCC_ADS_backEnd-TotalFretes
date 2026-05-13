@@ -32,6 +32,7 @@ export const createVehicleAndAttachToUser = async (req: Request, res: Response) 
 	try {
 
 		const body = createVehicleSchema.parse(req.body);
+		console.log();
 		const vehicle = await Vehicle.create(body, { transaction });
 
 		const user = await User.findByPk(req.user?.id, { transaction });
