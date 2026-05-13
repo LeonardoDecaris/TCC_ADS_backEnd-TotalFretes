@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import axios from 'axios';
 import { z } from 'zod';
 
-// Zod schema for validation (coordenadasMotorista opcional = rota só origem → destino)
 const querySchema = z.object({
   coordenadasMotorista: z
     .string()
@@ -12,12 +11,25 @@ const querySchema = z.object({
   moradaDestino: z.string(),
 });
 
-// Helper function to call Mapbox Geocoding API
-async function getCoordinates(address: string): Promise<[number, number]> {
+const forwardQuerySchema = z.object({
+  q: z.string().trim().min(2, 'Consulta muito curta').max(256, 'Consulta muito longa'),
+});
+
+const reverseQuerySchema = z.object({
+  lng: z.coerce.number().min(-180).max(180),
+  lat: z.coerce.number().min(-90).max(90),
+});
+
+function getMapboxToken(): string {
   const token = process.env.MAPBOX_SECRET_TOKEN;
   if (!token) {
     throw new Error('MAPBOX_SECRET_TOKEN não configurado no .env');
   }
+  return token;
+}
+
+async function getCoordinates(address: string): Promise<[number, number]> {
+  const token = getMapboxToken();
 
   const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json`;
   const response = await axios.get(url, {
@@ -35,14 +47,10 @@ async function getCoordinates(address: string): Promise<[number, number]> {
   return features[0].center;
 }
 
-// Helper function to call Mapbox Directions API
 async function getRoute(coordinates: [number, number][]): Promise<any> {
-  const token = process.env.MAPBOX_SECRET_TOKEN;
-  if (!token) {
-    throw new Error('MAPBOX_SECRET_TOKEN não configurado no .env');
-  }
+  const token = getMapboxToken();
 
-  const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${coordinates.map(coord => coord.join(',')).join(';')}`;
+  const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${coordinates.map((coord) => coord.join(',')).join(';')}`;
   const response = await axios.get(url, {
     params: {
       access_token: token,
@@ -54,10 +62,8 @@ async function getRoute(coordinates: [number, number][]): Promise<any> {
   return response.data;
 }
 
-// Controller function
 export async function getMapBoxRoute(req: Request, res: Response) {
   try {
-    // Validate query parameters
     const { coordenadasMotorista, moradaCarga, moradaDestino } = querySchema.parse(req.query);
 
     const cargaCoords = await getCoordinates(moradaCarga);
@@ -65,11 +71,9 @@ export async function getMapBoxRoute(req: Request, res: Response) {
 
     let routeData: any;
     if (coordenadasMotorista) {
-      // Rota em 3 pontos: motorista → carga → destino
       const motoristaCoords = coordenadasMotorista.split(',').map(Number) as [number, number];
       routeData = await getRoute([motoristaCoords, cargaCoords, destinoCoords]);
     } else {
-      // Rota em 2 pontos: origem (carga) → destino (sem GPS do motorista)
       routeData = await getRoute([cargaCoords, destinoCoords]);
     }
 
@@ -104,6 +108,81 @@ export async function getMapBoxRoute(req: Request, res: Response) {
     res.json(response);
   } catch (error: any) {
     console.error(error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: error.message, issues: error.issues });
+    }
+    res.status(500).json({ error: error.message });
+  }
+}
+
+export async function geocodeForward(req: Request, res: Response) {
+  try {
+    const { q } = forwardQuerySchema.parse(req.query);
+    const token = getMapboxToken();
+
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json`;
+    let response = await axios.get(url, {
+      params: {
+        access_token: token,
+        limit: 8,
+        country: 'BR',
+      },
+    });
+
+    let features = response.data?.features ?? [];
+    if (features.length === 0) {
+      response = await axios.get(url, {
+        params: {
+          access_token: token,
+          limit: 8,
+        },
+      });
+      features = response.data?.features ?? [];
+    }
+    const simplified = features.map((f: any) => ({
+      id: f.id as string,
+      place_name: f.place_name as string,
+      center: f.center as [number, number],
+    }));
+
+    res.json({ features: simplified });
+  } catch (error: any) {
+    console.error(error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: error.message, issues: error.issues });
+    }
+    res.status(500).json({ error: error.message });
+  }
+}
+
+export async function geocodeReverse(req: Request, res: Response) {
+  try {
+    const { lng, lat } = reverseQuerySchema.parse(req.query);
+    const token = getMapboxToken();
+
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json`;
+    const response = await axios.get(url, {
+      params: {
+        access_token: token,
+        limit: 1,
+      },
+    });
+
+    const features = response.data?.features ?? [];
+    if (features.length === 0) {
+      return res.status(404).json({ error: 'Endereço não encontrado para as coordenadas informadas' });
+    }
+
+    const f = features[0];
+    res.json({
+      place_name: f.place_name as string,
+      center: f.center as [number, number],
+    });
+  } catch (error: any) {
+    console.error(error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: error.message, issues: error.issues });
+    }
     res.status(500).json({ error: error.message });
   }
 }

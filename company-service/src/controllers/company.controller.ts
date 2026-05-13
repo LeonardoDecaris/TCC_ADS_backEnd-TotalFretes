@@ -55,7 +55,15 @@ export const createCompany = async (req: Request, res: Response) => {
 export const getCompanyById = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
 	try {
-		const company = await Company.findByPk(req.params.id as string);
+		const company = await Company.findByPk(req.params.id as string, {
+			include: [
+				{
+					model: CompanyAddress,
+					attributes: ["id", "country", "cep", "street", "district", "number", "city", "state"],
+					required: false,
+				},
+			],
+		});
 		if (!company) {
 			return sendError(res, 404, "COMPANY.NOT_FOUND", locale);
 		}
