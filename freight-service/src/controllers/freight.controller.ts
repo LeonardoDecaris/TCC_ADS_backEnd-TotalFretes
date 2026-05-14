@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import CargoType from '../models/cargoTypes.model';
 import Freight from '../models/freight.model';
 import FreightStatusType from '../models/freightStatusTypes.model';
+import Proposal from '../models/proposals.model';
 import { FreightStatusSlug } from '../config/statusTypes.constants';
 import { createFreightSchema, updateFreightSchema } from '../schemas/freight.schemas';
 import { translation } from '../utils/i18n';
@@ -11,12 +12,14 @@ import { idParamSchema, validateBody, validateParams } from '../utils/validate';
 const getFreightInclude = () => [
 	{
 		model: CargoType,
+		as: 'cargo',
 		required: false,
 	},
 	{
 		model: FreightStatusType,
+		as: 'status',
 		required: false,
-	},
+	}
 ];
 
 export const createFreight = async (req: Request, res: Response) => {
@@ -99,6 +102,27 @@ export const getFreightById = async (req: Request, res: Response) => {
 		return res.status(200).json(freight);
 	} catch (error) {
 		console.error(error);
+		return res.status(500).json({
+			message: await translation('FREIGHT.GET_BY_ID_FAILED', locale),
+		});
+	}
+};
+
+export const getFreightByUserId = async (req: Request, res: Response) => {
+	const locale = getLocaleFromRequest(req);
+
+	try {
+		const freight = await Freight.findOne({
+			where: { assignedDriver_id: req.params.id },
+			include: getFreightInclude(),
+		});
+
+		console.log("freight", freight);
+
+		return res.status(200).json(freight);
+	} catch (error) {
+		console.error(error);
+		console.log("erro", error);
 		return res.status(500).json({
 			message: await translation('FREIGHT.GET_BY_ID_FAILED', locale),
 		});
