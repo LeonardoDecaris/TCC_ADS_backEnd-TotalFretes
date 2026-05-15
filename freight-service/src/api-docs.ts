@@ -580,6 +580,7 @@ export const apiDocs = {
 					id: { type: 'integer' },
 					company_id: { type: 'integer' },
 					cargoType_id: { type: 'integer' },
+					name: { type: 'string', nullable: true, maxLength: 255 },
 					origin_label: { type: 'string' },
 					origin_lat: { type: 'number' },
 					origin_lng: { type: 'number' },
@@ -602,6 +603,7 @@ export const apiDocs = {
 				type: 'object',
 				required: [
 					'cargoType_id',
+					'name',
 					'origin_label',
 					'origin_lat',
 					'origin_lng',
@@ -613,6 +615,7 @@ export const apiDocs = {
 				],
 				properties: {
 					cargoType_id: { type: 'integer', minimum: 1 },
+					name: { type: 'string', minLength: 1, maxLength: 255, description: 'Nome do frete' },
 					origin_label: { type: 'string', minLength: 1 },
 					origin_lat: { type: 'number', minimum: -90, maximum: 90 },
 					origin_lng: { type: 'number', minimum: -180, maximum: 180 },
@@ -629,6 +632,7 @@ export const apiDocs = {
 				type: 'object',
 				properties: {
 					cargoType_id: { type: 'integer', minimum: 1 },
+					name: { type: 'string', minLength: 1, maxLength: 255 },
 					origin_label: { type: 'string', minLength: 1 },
 					origin_lat: { type: 'number', minimum: -90, maximum: 90 },
 					origin_lng: { type: 'number', minimum: -180, maximum: 180 },
