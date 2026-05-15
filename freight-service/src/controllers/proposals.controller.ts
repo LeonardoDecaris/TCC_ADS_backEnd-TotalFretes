@@ -8,6 +8,7 @@ import { acceptProposalSchema, createProposalSchema, updateProposalSchema } from
 import { translation } from '../utils/i18n';
 import { getLocaleFromRequest } from '../utils/locale';
 import { idParamSchema, validateBody, validateParams } from '../utils/validate';
+import { recordFreightStatusHistory } from '../services/freightStatusHistory.service';
 import {
 	ACCEPTED_PROPOSAL_STATUS_NAMES,
 	FreightStatusSlug,
@@ -255,6 +256,8 @@ export const acceptProposal = async (req: Request, res: Response) => {
 			transaction,
 		});
 
+		const previousFreightStatusId = freight.status_id ?? null;
+
 		await proposal.update(
 			{
 				status_id: acceptedStatus.id,
@@ -270,6 +273,12 @@ export const acceptProposal = async (req: Request, res: Response) => {
 			},
 			{ transaction }
 		);
+
+		if (vinculadoStatus?.id != null && freight.id != null) {
+			await recordFreightStatusHistory(freight.id, vinculadoStatus.id, previousFreightStatusId, {
+				transaction,
+			});
+		}
 
 		await transaction.commit();
 

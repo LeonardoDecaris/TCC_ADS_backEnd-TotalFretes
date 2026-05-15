@@ -1,6 +1,7 @@
 import app from './app';
 import dotenv from 'dotenv';
 import sequelize from './config/database';
+import './models/associations';
 import { seedFreightStatusTypes } from './config/seedFreightStatusTypes';
 import { seedProposalStatusTypes } from './config/seedProposalStatusTypes';
 

@@ -20,6 +20,8 @@ export class Freight extends Model {
 	finalValue: number | undefined;
 	/** Peso da carga do frete (kg). */
 	weight: number | undefined;
+	/** Nome identificador do frete (ex.: título para listagem e detalhe). */
+	name: string | undefined;
 }
 
 Freight.init({
@@ -35,6 +37,10 @@ Freight.init({
 	cargoType_id: {
 		type: DataTypes.INTEGER,
 		allowNull: false,
+	},
+	name: {
+		type: DataTypes.STRING(255),
+		allowNull: true,
 	},
 	origin_label: {
 		type: DataTypes.STRING,

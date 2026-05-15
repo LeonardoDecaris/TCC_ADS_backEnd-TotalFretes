@@ -1,14 +1,17 @@
 import { Request, Response } from 'express';
+import type { Order } from 'sequelize';
 import CargoType from '../models/cargoTypes.model';
 import Freight from '../models/freight.model';
+import FreightStatusHistory from '../models/freightStatusHistory.model';
 import FreightStatusType from '../models/freightStatusTypes.model';
 import { FreightStatusSlug } from '../config/statusTypes.constants';
 import { createFreightSchema, updateFreightSchema } from '../schemas/freight.schemas';
+import { recordFreightStatusHistory } from '../services/freightStatusHistory.service';
 import { translation } from '../utils/i18n';
 import { getLocaleFromRequest } from '../utils/locale';
 import { idParamSchema, validateBody, validateParams } from '../utils/validate';
 
-const getFreightInclude = () => [
+const getFreightListInclude = () => [
 	{
 		model: CargoType,
 		required: false,
@@ -16,6 +19,23 @@ const getFreightInclude = () => [
 	{
 		model: FreightStatusType,
 		required: false,
+	},
+];
+
+const getFreightDetailInclude = () => [
+	...getFreightListInclude(),
+	{
+		model: FreightStatusHistory,
+		as: 'FreightStatusHistories',
+		required: false,
+		separate: true,
+		order: [['occurred_at', 'ASC']] as Order,
+		include: [
+			{
+				model: FreightStatusType,
+				required: false,
+			},
+		],
 	},
 ];
 
@@ -30,15 +50,28 @@ export const createFreight = async (req: Request, res: Response) => {
 			where: { name: FreightStatusSlug.DISPONIVEL },
 		});
 
+		const statusId = body.status_id ?? defaultStatus?.id;
+
 		const freight = await Freight.create({
 			...body,
 			company_id: req.user!.id,
-			status_id: body.status_id ?? defaultStatus?.id,
+			status_id: statusId,
 		});
+
+		if (freight.id != null && statusId != null) {
+			await recordFreightStatusHistory(freight.id, statusId, null);
+		}
+
+		const created =
+			freight.id != null
+				? await Freight.findByPk(freight.id, {
+						include: getFreightDetailInclude(),
+					})
+				: null;
 
 		return res.status(201).json({
 			message: await translation('FREIGHT.CREATED_SUCCESSFULLY', locale),
-			freight,
+			freight: created ?? freight,
 		});
 	} catch (error) {
 		console.error(error);
@@ -61,7 +94,7 @@ export const getAllFreights = async (req: Request, res: Response) => {
 
 		const freights = await Freight.findAll({
 			where,
-			include: getFreightInclude(),
+			include: getFreightListInclude(),
 		});
 
 		return res.status(200).json(freights);
@@ -81,7 +114,7 @@ export const getFreightById = async (req: Request, res: Response) => {
 
 	try {
 		const freight = await Freight.findByPk(params.id, {
-			include: getFreightInclude(),
+			include: getFreightDetailInclude(),
 		});
 
 		if (!freight) {
@@ -129,8 +162,14 @@ export const updateFreight = async (req: Request, res: Response) => {
 			});
 		}
 
+		const previousStatusId = freight.status_id ?? null;
 		await freight.update(body);
-		await freight.reload({ include: getFreightInclude() });
+
+		if (body.status_id !== undefined && freight.id != null) {
+			await recordFreightStatusHistory(freight.id, body.status_id, previousStatusId);
+		}
+
+		await freight.reload({ include: getFreightDetailInclude() });
 		return res.status(200).json({
 			message: await translation('FREIGHT.UPDATED_SUCCESSFULLY', locale),
 			freight,
