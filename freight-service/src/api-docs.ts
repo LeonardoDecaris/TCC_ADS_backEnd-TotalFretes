@@ -22,6 +22,38 @@ export const apiDocs = {
 		{ name: 'Proposal', description: 'Propostas de motoristas' },
 	],
 	paths: {
+		'/': {
+			get: {
+				summary: 'Health básico do serviço',
+				tags: ['Freight'],
+				responses: {
+					200: {
+						description: 'Resposta padrão do serviço',
+						content: {
+							'text/plain': {
+								schema: { type: 'string', example: 'Hello World!' },
+							},
+						},
+					},
+				},
+			},
+		},
+		'/api-docs': {
+			get: {
+				summary: 'OpenAPI JSON do Freight Service',
+				tags: ['Freight'],
+				responses: {
+					200: {
+						description: 'Documento OpenAPI',
+						content: {
+							'application/json': {
+								schema: { type: 'object', additionalProperties: true },
+							},
+						},
+					},
+				},
+			},
+		},
 		'/cargo-type': {
 			post: {
 				summary: 'Criar tipo de carga',
@@ -351,11 +383,39 @@ export const apiDocs = {
 			},
 			get: {
 				summary: 'Listar propostas',
-				description: 'ADMIN: todas. USER: apenas as próprias.',
+				description:
+					'ADMIN: todas. USER: apenas as próprias. COMPANY: propostas dos fretes da empresa. ' +
+					'Filtros opcionais: freight_id e status (aceita,enviada,recusada,nao_selecionada).',
 				tags: ['Proposal'],
 				security: [{ bearerAuth: [] }],
+				parameters: [
+					{
+						name: 'freight_id',
+						in: 'query',
+						required: false,
+						description: 'Filtra por ID do frete',
+						schema: { type: 'integer', minimum: 1 },
+					},
+					{
+						name: 'status',
+						in: 'query',
+						required: false,
+						description:
+							'Filtra por status. Aceita string única (`enviada`) ou CSV (`enviada,aceita`).',
+						schema: {
+							oneOf: [
+								{ type: 'string', example: 'enviada' },
+								{
+									type: 'string',
+									example: 'enviada,aceita',
+								},
+							],
+						},
+					},
+				],
 				responses: {
 					200: { description: 'Lista', content: { 'application/json': { schema: { type: 'array', items: { $ref: '#/components/schemas/Proposal' } } } } },
+					400: { $ref: '#/components/responses/BadRequest' },
 					401: { $ref: '#/components/responses/Unauthorized' },
 					500: { $ref: '#/components/responses/ServerError' },
 				},
@@ -426,6 +486,36 @@ export const apiDocs = {
 				responses: {
 					200: { description: 'Aceito', content: { 'application/json': { schema: { $ref: '#/components/schemas/MessageWithProposal' } } } },
 					400: { description: 'Status aceito não cadastrado (seed)', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorBody' } } } },
+					401: { $ref: '#/components/responses/Unauthorized' },
+					403: { $ref: '#/components/responses/Forbidden' },
+					404: { $ref: '#/components/responses/NotFound' },
+					500: { $ref: '#/components/responses/ServerError' },
+				},
+			},
+		},
+		'/proposal/{id}/reject': {
+			patch: {
+				summary: 'Recusar proposta',
+				description:
+					'Empresa dona do frete ou ADMIN. Body vazio `{}`. ' +
+					'Atualiza status da proposta para recusada.',
+				tags: ['Proposal'],
+				security: [{ bearerAuth: [] }],
+				parameters: [{ $ref: '#/components/parameters/IdPath' }],
+				requestBody: {
+					required: false,
+					content: {
+						'application/json': {
+							schema: { type: 'object', additionalProperties: false, description: 'Sem campos obrigatórios' },
+						},
+					},
+				},
+				responses: {
+					200: {
+						description: 'Recusada',
+						content: { 'application/json': { schema: { $ref: '#/components/schemas/MessageWithProposal' } } },
+					},
+					400: { $ref: '#/components/responses/BadRequest' },
 					401: { $ref: '#/components/responses/Unauthorized' },
 					403: { $ref: '#/components/responses/Forbidden' },
 					404: { $ref: '#/components/responses/NotFound' },
@@ -542,9 +632,22 @@ export const apiDocs = {
 				type: 'object',
 				properties: {
 					id: { type: 'integer' },
-					name: { type: 'string' },
+					name: {
+						type: 'string',
+						enum: ['enviada', 'recusada', 'aceita', 'nao_selecionada'],
+					},
 					createdAt: { type: 'string', format: 'date-time' },
 					updatedAt: { type: 'string', format: 'date-time' },
+				},
+			},
+			FreightStatusHistory: {
+				type: 'object',
+				properties: {
+					id: { type: 'integer' },
+					freight_id: { type: 'integer' },
+					status_id: { type: 'integer' },
+					occurred_at: { type: 'string', format: 'date-time' },
+					FreightStatusType: { $ref: '#/components/schemas/FreightStatusType', nullable: true },
 				},
 			},
 			StatusTypeNameBody: {
@@ -597,6 +700,10 @@ export const apiDocs = {
 					updatedAt: { type: 'string', format: 'date-time' },
 					CargoType: { type: 'object', nullable: true },
 					FreightStatusType: { $ref: '#/components/schemas/FreightStatusType', nullable: true },
+					FreightStatusHistories: {
+						type: 'array',
+						items: { $ref: '#/components/schemas/FreightStatusHistory' },
+					},
 				},
 			},
 			FreightCreate: {

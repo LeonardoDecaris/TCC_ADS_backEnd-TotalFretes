@@ -7,7 +7,7 @@ const router = express.Router();
 router.post('/', createUser);
 router.post('/end-account', createUserEndAccount);
 
-router.get('/:id', authMiddleware, allowOwnerOrRoles(), getUserById);
+router.get('/:id', authMiddleware, allowOwnerOrRoles('COMPANY'), getUserById);
 router.get('/', authMiddleware, authorizeRoles('ADMIN'), getAllUsers);
 router.patch('/:id', authMiddleware, allowOwnerOrRoles(), patchUser);
 router.put('/:id', authMiddleware, allowOwnerOrRoles(), updateUser);

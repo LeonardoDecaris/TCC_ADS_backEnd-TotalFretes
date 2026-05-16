@@ -80,6 +80,14 @@ app.get('/docs', async (_req: Request, res: Response) => {
           bearerFormat: 'JWT',
         },
       },
+      schemas: {},
+      responses: {},
+      parameters: {},
+      requestBodies: {},
+      headers: {},
+      examples: {},
+      links: {},
+      callbacks: {},
     },
     security: [
       {
@@ -92,6 +100,28 @@ app.get('/docs', async (_req: Request, res: Response) => {
   specs.forEach((service) => {
     const paths = service.spec?.paths ?? {};
     swaggerDocument.paths = { ...swaggerDocument.paths, ...paths };
+
+    const components = (service.spec?.components ?? {}) as any;
+    const componentSections = [
+      'schemas',
+      'responses',
+      'parameters',
+      'requestBodies',
+      'headers',
+      'examples',
+      'links',
+      'callbacks',
+      'securitySchemes',
+    ] as const;
+
+    componentSections.forEach((section) => {
+      const sectionValue = (components as any)[section] as Record<string, unknown> | undefined;
+      if (!sectionValue || typeof sectionValue !== 'object') return;
+      (swaggerDocument.components as any)[section] = {
+        ...((swaggerDocument.components as any)[section] ?? {}),
+        ...sectionValue,
+      };
+    });
   });
 
   // adiciona seletor de idioma no Authorize do Swagger UI

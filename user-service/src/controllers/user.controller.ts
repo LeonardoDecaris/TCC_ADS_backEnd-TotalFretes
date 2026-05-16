@@ -1,5 +1,7 @@
 import User from '../models/user.model';
 import CnhType from '../models/cnh.model';
+import Vehicle from '../models/vehicle.model';
+import VehicleType from '../models/vehicleType.model';
 import { createAccountHttp, getUserImageHttp, deleteAccountHttp } from '../services/service';
 import { Request, Response } from 'express';
 import { createUserSchema, updateUserSchema, createUserEndAccountSchema } from '../schemas/user.schemas';
@@ -52,7 +54,14 @@ export const getUserById = async (req: Request, res: Response) => {
 	try {
 		const user = await User.findOne({
 			where: { id: req.params.id },
-			include: [{ model: CnhType, required: false }],
+			include: [
+				{ model: CnhType, required: false },
+				{
+					model: Vehicle,
+					required: false,
+					include: [{ model: VehicleType, required: false }],
+				},
+			],
 		});
 
 		if (!user) return sendError(res, 404, 'USER.NOT_FOUND', locale);
