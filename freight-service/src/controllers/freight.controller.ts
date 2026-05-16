@@ -1,9 +1,11 @@
 import { Request, Response } from 'express';
 import type { Order } from 'sequelize';
+import sequelize from '../config/database';
 import CargoType from '../models/cargoTypes.model';
 import Freight from '../models/freight.model';
 import FreightStatusHistory from '../models/freightStatusHistory.model';
 import FreightStatusType from '../models/freightStatusTypes.model';
+import Proposal from '../models/proposals.model';
 import { FreightStatusSlug } from '../config/statusTypes.constants';
 import { createFreightSchema, freightListPaginatedQuerySchema, updateFreightSchema } from '../schemas/freight.schemas';
 import { recordFreightStatusHistory } from '../services/freightStatusHistory.service';
@@ -246,26 +248,42 @@ export const deleteFreight = async (req: Request, res: Response) => {
 	const params = await validateParams(req, res, idParamSchema);
 	if (!params) return;
 
+	const transaction = await sequelize.transaction();
+
 	try {
 		const freight = await Freight.findByPk(params.id);
 
 		if (!freight) {
+			await transaction.rollback();
 			return res.status(404).json({
 				message: await translation('FREIGHT.NOT_FOUND', locale),
 			});
 		}
 
 		if (req.user?.role !== 'ADMIN' && req.user?.id !== Number(freight.company_id)) {
+			await transaction.rollback();
 			return res.status(403).json({
 				message: await translation('AUTH.FORBIDDEN', locale),
 			});
 		}
 
-		await freight.destroy();
+		await Proposal.destroy({
+			where: { freight_id: freight.id },
+			transaction,
+		});
+
+		await FreightStatusHistory.destroy({
+			where: { freight_id: freight.id },
+			transaction,
+		});
+
+		await freight.destroy({ transaction });
+		await transaction.commit();
 		return res.status(200).json({
 			message: await translation('FREIGHT.DELETED_SUCCESSFULLY', locale),
 		});
 	} catch (error) {
+		await transaction.rollback();
 		console.error(error);
 		return res.status(500).json({
 			message: await translation('FREIGHT.DELETE_FAILED', locale),
