@@ -79,6 +79,9 @@
     "IMAGE_CARGO_ID_INVALID": "Invalid cargo image identifier.",
     "FREIGHT_ID_INVALID": "Invalid freight.",
     "PROPOSAL_VALUE_INVALID": "Invalid proposal value.",
-    "WEIGHT_INVALID": "Invalid weight (enter a value greater than zero, in kg)."
+    "WEIGHT_INVALID": "Invalid weight (enter a value greater than zero, in kg).",
+    "PAGE_INVALID": "Invalid page number (use an integer greater than or equal to 1).",
+    "LIMIT_INVALID": "Invalid per-page limit (use an integer between 1 and 50).",
+    "LIMIT_MAX": "Per-page limit cannot be greater than 50."
   }
 }

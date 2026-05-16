@@ -29,6 +29,22 @@ export const createFreightSchema = z.object({
 	weight: z.coerce.number().positive('VALIDATION.WEIGHT_INVALID'),
 });
 
+/** Query string para listagem paginada de fretes (`GET /freight?page=&limit=`). */
+export const freightListPaginatedQuerySchema = z
+	.object({
+		page: z.coerce.number().int().min(1, 'VALIDATION.PAGE_INVALID'),
+		limit: z.coerce
+			.number()
+			.int()
+			.min(1, 'VALIDATION.LIMIT_INVALID')
+			.max(50, 'VALIDATION.LIMIT_MAX')
+			.optional(),
+	})
+	.transform((data) => ({
+		page: data.page,
+		limit: data.limit ?? 20,
+	}));
+
 export const updateFreightSchema = z.object({
 	cargoType_id: z.coerce.number().int().positive('VALIDATION.CARGO_TYPE_ID_INVALID').optional(),
 	name: z.string().trim().min(1, 'VALIDATION.FREIGHT_NAME_REQUIRED').max(255, 'VALIDATION.FREIGHT_NAME_MAX').optional(),

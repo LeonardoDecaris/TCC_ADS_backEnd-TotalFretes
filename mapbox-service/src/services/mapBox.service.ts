@@ -150,24 +150,23 @@ async function getRoute(coordinates: Coordinate[]): Promise<MapboxDirectionsResp
 	return data;
 }
 
+function mergeCoordinates(a: Coordinate[] = [], b: Coordinate[] = []): Coordinate[] {
+	if (!a.length) return b;
+	if (!b.length) return a;
+	const last = a[a.length - 1];
+	const first = b[0];
+	const isDuplicateJoin = last[0] === first[0] && last[1] === first[1];
+	return isDuplicateJoin ? [...a, ...b.slice(1)] : [...a, ...b];
+}
+
 function mergeRouteGeometries(
 	geomA: { type?: string; coordinates?: Coordinate[] },
 	geomB: { type?: string; coordinates?: Coordinate[] },
 ): { type: 'LineString'; coordinates: Coordinate[] } {
-	const ca = geomA?.coordinates;
-	const cb = geomB?.coordinates;
-
-	if (!ca?.length && cb?.length) return { type: 'LineString', coordinates: cb };
-	if (ca?.length && !cb?.length) return { type: 'LineString', coordinates: ca };
-	if (!ca?.length || !cb?.length) {
-		return { type: 'LineString', coordinates: (ca ?? cb ?? []) as Coordinate[] };
-	}
-
-	const last = ca[ca.length - 1];
-	const first = cb[0];
-	const dup = last[0] === first[0] && last[1] === first[1];
-	const merged = dup ? [...ca, ...cb.slice(1)] : [...ca, ...cb];
-	return { type: 'LineString', coordinates: merged as Coordinate[] };
+	return {
+		type: 'LineString',
+		coordinates: mergeCoordinates(geomA?.coordinates, geomB?.coordinates),
+	};
 }
 
 function pickPrimeiraInstrucao(route: MapboxRoute): {

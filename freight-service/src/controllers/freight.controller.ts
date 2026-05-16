@@ -4,13 +4,12 @@ import CargoType from '../models/cargoTypes.model';
 import Freight from '../models/freight.model';
 import FreightStatusHistory from '../models/freightStatusHistory.model';
 import FreightStatusType from '../models/freightStatusTypes.model';
-import Proposal from '../models/proposals.model';
 import { FreightStatusSlug } from '../config/statusTypes.constants';
-import { createFreightSchema, updateFreightSchema } from '../schemas/freight.schemas';
+import { createFreightSchema, freightListPaginatedQuerySchema, updateFreightSchema } from '../schemas/freight.schemas';
 import { recordFreightStatusHistory } from '../services/freightStatusHistory.service';
 import { translation } from '../utils/i18n';
 import { getLocaleFromRequest } from '../utils/locale';
-import { idParamSchema, validateBody, validateParams } from '../utils/validate';
+import { idParamSchema, validateBody, validateParams, validateQuery } from '../utils/validate';
 
 const getFreightListInclude = () => [
 	{
@@ -87,17 +86,52 @@ export const createFreight = async (req: Request, res: Response) => {
 export const getAllFreights = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
 
+	const where =
+		req.user?.role === 'ADMIN'
+			? undefined
+			: req.user?.role === 'COMPANY'
+				? { company_id: req.user.id }
+				: undefined;
+
+	const listInclude = getFreightListInclude();
+	const listOrder: Order = [
+		['createdAt', 'DESC'],
+		['id', 'DESC'],
+	];
+
+	const pageRaw = req.query.page;
+	const usePagination =
+		pageRaw !== undefined && pageRaw !== '' && !(Array.isArray(pageRaw) && pageRaw.length === 0);
+
 	try {
-		const where =
-			req.user?.role === 'ADMIN'
-				? undefined
-				: req.user?.role === 'COMPANY'
-					? { company_id: req.user.id }
-					: undefined;
+		if (usePagination) {
+			const query = await validateQuery(req, res, freightListPaginatedQuerySchema);
+			if (!query) return;
+
+			const { rows, count } = await Freight.findAndCountAll({
+				where,
+				include: listInclude,
+				limit: query.limit,
+				offset: (query.page - 1) * query.limit,
+				order: listOrder,
+			});
+
+			const total = typeof count === 'number' ? count : (count as { length: number }).length;
+			const hasMore = query.page * query.limit < total;
+
+			return res.status(200).json({
+				items: rows,
+				total,
+				page: query.page,
+				limit: query.limit,
+				hasMore,
+			});
+		}
 
 		const freights = await Freight.findAll({
 			where,
-			include: getFreightListInclude(),
+			include: listInclude,
+			order: listOrder,
 		});
 
 		return res.status(200).json(freights);
@@ -147,7 +181,7 @@ export const getFreightByUserId = async (req: Request, res: Response) => {
 	try {
 		const freight = await Freight.findOne({
 			where: { assignedDriver_id: req.params.id },
-			include: getFreightInclude(),
+			include: getFreightListInclude(),
 		});
 
 		console.log("freight", freight);
@@ -235,6 +269,58 @@ export const deleteFreight = async (req: Request, res: Response) => {
 		console.error(error);
 		return res.status(500).json({
 			message: await translation('FREIGHT.DELETE_FAILED', locale),
+		});
+	}
+};
+
+
+export const cancelFreight = async (req: Request, res: Response) => {
+	const locale = getLocaleFromRequest(req);
+
+	const params = await validateParams(req, res, idParamSchema);
+	if (!params) return;
+
+	try {
+		const freight = await Freight.findByPk(params.id);
+
+		if (!freight) {
+			return res.status(404).json({
+				message: await translation('FREIGHT.NOT_FOUND', locale),
+			});
+		}
+
+		if (req.user?.role !== 'ADMIN' && req.user?.id !== Number(freight.assignedDriver_id)) {
+			return res.status(403).json({
+				message: await translation('AUTH.FORBIDDEN', locale),
+			});
+		}
+
+		const canceladoStatus = await FreightStatusType.findOne({
+			where: { name: FreightStatusSlug.CANCELADO },
+		});
+
+		const statusId = canceladoStatus?.id ?? 2;
+		const previousStatusId = freight.status_id ?? null;
+
+		await freight.update({
+			assignedDriver_id: null,
+			status_id: statusId,
+		});
+
+		if (freight.id != null) {
+			await recordFreightStatusHistory(freight.id, statusId, previousStatusId);
+		}
+
+		await freight.reload({ include: getFreightDetailInclude() });
+
+		return res.status(200).json({
+			message: await translation('FREIGHT.CANCELLED_SUCCESSFULLY', locale),
+			freight,
+		});
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({
+			message: await translation('FREIGHT.CANCEL_FAILED', locale),
 		});
 	}
 };

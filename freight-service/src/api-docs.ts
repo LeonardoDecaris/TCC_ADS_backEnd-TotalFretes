@@ -273,11 +273,51 @@ export const apiDocs = {
 			},
 			get: {
 				summary: 'Listar fretes',
-				description: 'ADMIN: todos. COMPANY: apenas fretes da empresa. USER: lista sem filtro de dono (ver controller).',
+				description:
+					'Sem `page`: resposta é um array de fretes (legado). Com `page` (≥1): resposta paginada `{ items, total, page, limit, hasMore }`. `limit` opcional (padrão 20, máx. 50). ADMIN: todos. COMPANY: apenas fretes da empresa.',
 				tags: ['Freight'],
 				security: [{ bearerAuth: [] }],
+				parameters: [
+					{
+						name: 'page',
+						in: 'query',
+						required: false,
+						schema: { type: 'integer', minimum: 1 },
+						description: 'Se informado, ativa paginação.',
+					},
+					{
+						name: 'limit',
+						in: 'query',
+						required: false,
+						schema: { type: 'integer', minimum: 1, maximum: 50, default: 20 },
+						description: 'Tamanho da página (apenas com `page`).',
+					},
+				],
 				responses: {
-					200: { description: 'Lista', content: { 'application/json': { schema: { type: 'array', items: { $ref: '#/components/schemas/Freight' } } } } },
+					200: {
+						description: 'Lista em array (sem `page`) ou página (com `page`)',
+						content: {
+							'application/json': {
+								schema: {
+									oneOf: [
+										{ type: 'array', items: { $ref: '#/components/schemas/Freight' } },
+										{
+											type: 'object',
+											required: ['items', 'total', 'page', 'limit', 'hasMore'],
+											properties: {
+												items: { type: 'array', items: { $ref: '#/components/schemas/Freight' } },
+												total: { type: 'integer' },
+												page: { type: 'integer' },
+												limit: { type: 'integer' },
+												hasMore: { type: 'boolean' },
+											},
+										},
+									],
+								},
+							},
+						},
+					},
+					400: { $ref: '#/components/responses/BadRequest' },
 					401: { $ref: '#/components/responses/Unauthorized' },
 					500: { $ref: '#/components/responses/ServerError' },
 				},

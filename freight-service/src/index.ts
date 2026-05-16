@@ -2,6 +2,7 @@ import app from './app';
 import dotenv from 'dotenv';
 import sequelize from './config/database';
 import './models/associations';
+import { seedCargoTypes } from './config/seedCargoTypes';
 import { seedFreightStatusTypes } from './config/seedFreightStatusTypes';
 import { seedProposalStatusTypes } from './config/seedProposalStatusTypes';
 
@@ -18,6 +19,8 @@ if (!PORT) {
     console.log('Database authenticated successfully');
     await sequelize.sync({ alter: false });
     console.log('Database synchronized successfully');
+    await seedCargoTypes();
+    console.log('Cargo types seeded successfully');
     await seedFreightStatusTypes();
     console.log('Freight status types seeded successfully');
     await seedProposalStatusTypes();
