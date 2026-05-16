@@ -96,6 +96,6 @@ Freight.init({
 	timestamps: true,
 });
 
-Freight.belongsTo(CargoType, { foreignKey: 'cargoType_id' });
-Freight.belongsTo(FreightStatusType, { foreignKey: 'status_id' });
+Freight.belongsTo(CargoType, { foreignKey: 'cargoType_id', as: 'cargo' });
+Freight.belongsTo(FreightStatusType, { foreignKey: 'status_id', as: 'status' });
 export default Freight;

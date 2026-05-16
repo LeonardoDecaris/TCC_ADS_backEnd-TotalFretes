@@ -79,3 +79,53 @@ export async function validateParams<T>(
 	res.status(400).json({ message });
 	return undefined;
 }
+
+/**
+ * Valida a query string (req.query) contra um schema Zod.
+ * Em sucesso: retorna os dados parseados (tipados).
+ * Em falha: envia 400 com erros formatados e retorna undefined.
+ */
+export async function validateQuery<T>(
+	req: Request,
+	res: Response,
+	schema: z.ZodType<T>
+): Promise<T | undefined> {
+	const result = schema.safeParse(req.query);
+
+	if (result.success) {
+		return result.data;
+	}
+
+	const errors = result.error.flatten();
+	const fieldErrors = errors.fieldErrors as Record<string, string[] | undefined>;
+	const formErrors = errors.formErrors ?? [];
+
+	const locale = getLocaleFromRequest(req);
+	const genericMessage = await translation('VALIDATION.ERROR', locale);
+
+	const translatedDetails: Record<string, string[]> = {};
+	for (const [field, messages] of Object.entries(fieldErrors ?? {})) {
+		if (!messages) continue;
+		translatedDetails[field] = await Promise.all(
+			messages.map((msg) => translation(msg, locale))
+		);
+	}
+
+	const translatedFormErrors = await Promise.all(
+		formErrors.map((msg) => translation(msg, locale))
+	);
+
+	const firstDetailMessage = Object.values(translatedDetails)[0]?.[0]
+		?? translatedFormErrors[0];
+
+	const message = firstDetailMessage ?? genericMessage;
+
+	res.status(400).json({
+		message,
+		error: genericMessage,
+		formErrors: translatedFormErrors,
+		details: translatedDetails,
+	});
+
+	return undefined;
+}
