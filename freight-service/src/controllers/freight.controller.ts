@@ -342,3 +342,67 @@ export const cancelFreight = async (req: Request, res: Response) => {
 		});
 	}
 };
+
+export const completeFreight = async (req: Request, res: Response) => {
+	const locale = getLocaleFromRequest(req);
+
+	const params = await validateParams(req, res, idParamSchema);
+	if (!params) return;
+
+	try {
+		const freight = await Freight.findByPk(params.id);
+
+		if (!freight) {
+			return res.status(404).json({
+				message: await translation('FREIGHT.NOT_FOUND', locale),
+			});
+		}
+
+		if (req.user?.role !== 'ADMIN' && req.user?.id !== Number(freight.company_id)) {
+			return res.status(403).json({
+				message: await translation('AUTH.FORBIDDEN', locale),
+			});
+		}
+
+		const entregueStatus = await FreightStatusType.findOne({
+			where: { name: FreightStatusSlug.ENTREGUE },
+		});
+
+		if (entregueStatus?.id != null && freight.status_id !== entregueStatus.id) {
+			return res.status(400).json({
+				message: await translation('FREIGHT.UPDATE_FAILED', locale),
+			});
+		}
+
+		const concluidoStatus = await FreightStatusType.findOne({
+			where: { name: FreightStatusSlug.CONCLUIDO },
+		});
+
+		if (!concluidoStatus?.id) {
+			return res.status(400).json({
+				message: await translation('FREIGHT.UPDATE_FAILED', locale),
+			});
+		}
+
+		const previousStatusId = freight.status_id ?? null;
+		await freight.update({
+			status_id: concluidoStatus.id,
+		});
+
+		if (freight.id != null) {
+			await recordFreightStatusHistory(freight.id, concluidoStatus.id, previousStatusId);
+		}
+
+		await freight.reload({ include: getFreightDetailInclude() });
+
+		return res.status(200).json({
+			message: await translation('FREIGHT.UPDATED_SUCCESSFULLY', locale),
+			freight,
+		});
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({
+			message: await translation('FREIGHT.UPDATE_FAILED', locale),
+		});
+	}
+};
