@@ -149,7 +149,16 @@ export const createCompanyEndAccount = async (req: Request, res: Response) => {
 			return sendError(res, 500, "COMPANY.CREATE_FAILED", locale);
 		}
 
-		const company = await Company.create(body);
+		const company = await Company.create({
+			name: body.name,
+			email: body.email,
+			birthFundation: body.birthFundation,
+			phoneNumber: body.phoneNumber,
+			website: body.website,
+			cnpj: body.cnpj,
+			company_image_id: body.company_image_id,
+			companyAddress_id: address.id,
+		});
 		if (!company.id) {
 			await company.destroy();
 			await address.destroy();
