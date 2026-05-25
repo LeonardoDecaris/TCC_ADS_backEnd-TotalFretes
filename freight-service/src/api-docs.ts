@@ -425,10 +425,39 @@ export const apiDocs = {
 				summary: 'Listar propostas',
 				description:
 					'ADMIN: todas. USER: apenas as próprias. COMPANY: propostas dos fretes da empresa. ' +
-					'Filtros opcionais: freight_id e status (aceita,enviada,recusada,nao_selecionada).',
+					'Sem `page`: retorna array (legado). Com `page`: retorna `{ items, total, page, limit, hasMore }`. ' +
+					'Filtro principal: `proposal_status` (enviada/aceita).',
 				tags: ['Proposal'],
 				security: [{ bearerAuth: [] }],
 				parameters: [
+					{
+						name: 'page',
+						in: 'query',
+						required: false,
+						description: 'Se informado, ativa paginação.',
+						schema: { type: 'integer', minimum: 1 },
+					},
+					{
+						name: 'limit',
+						in: 'query',
+						required: false,
+						description: 'Tamanho da página (apenas com `page`).',
+						schema: { type: 'integer', minimum: 1, maximum: 50, default: 20 },
+					},
+					{
+						name: 'proposal_status',
+						in: 'query',
+						required: false,
+						description: 'Filtro de status de proposta para listagem principal.',
+						schema: { type: 'string', enum: ['enviada', 'aceita'] },
+					},
+					{
+						name: 'search',
+						in: 'query',
+						required: false,
+						description: 'Busca por nome/rota do frete associado.',
+						schema: { type: 'string' },
+					},
 					{
 						name: 'freight_id',
 						in: 'query',
@@ -454,9 +483,71 @@ export const apiDocs = {
 					},
 				],
 				responses: {
-					200: { description: 'Lista', content: { 'application/json': { schema: { type: 'array', items: { $ref: '#/components/schemas/Proposal' } } } } },
+					200: {
+						description: 'Lista (array legado ou página)',
+						content: {
+							'application/json': {
+								schema: {
+									oneOf: [
+										{ type: 'array', items: { $ref: '#/components/schemas/Proposal' } },
+										{
+											type: 'object',
+											required: ['items', 'total', 'page', 'limit', 'hasMore'],
+											properties: {
+												items: { type: 'array', items: { $ref: '#/components/schemas/Proposal' } },
+												total: { type: 'integer' },
+												page: { type: 'integer' },
+												limit: { type: 'integer' },
+												hasMore: { type: 'boolean' },
+											},
+										},
+									],
+								},
+							},
+						},
+					},
 					400: { $ref: '#/components/responses/BadRequest' },
 					401: { $ref: '#/components/responses/Unauthorized' },
+					500: { $ref: '#/components/responses/ServerError' },
+				},
+			},
+		},
+		'/proposal/freight-summary': {
+			get: {
+				summary: 'Listagem paginada de fretes com propostas agregadas',
+				description:
+					'Empresa ou ADMIN. Agrupa propostas por frete (ativos: exclui Cancelado, Concluido, Entregue). ' +
+					'`proposal_status`: enviada (padrão) ou aceita. KPIs em `summary`.',
+				tags: ['Proposal'],
+				security: [{ bearerAuth: [] }],
+				parameters: [
+					{ name: 'page', in: 'query', schema: { type: 'integer', minimum: 1, default: 1 } },
+					{
+						name: 'limit',
+						in: 'query',
+						schema: { type: 'integer', minimum: 1, maximum: 50, default: 6 },
+					},
+					{
+						name: 'proposal_status',
+						in: 'query',
+						description:
+							'enviada = pendentes (Enviada); aceita = Aceita. Recusada e Nao Selecionada nunca retornam.',
+						schema: { type: 'string', enum: ['enviada', 'aceita'], default: 'enviada' },
+					},
+					{ name: 'search', in: 'query', schema: { type: 'string' } },
+				],
+				responses: {
+					200: {
+						description: 'Lista paginada',
+						content: {
+							'application/json': {
+								schema: { $ref: '#/components/schemas/ProposalFreightSummaryResponse' },
+							},
+						},
+					},
+					400: { $ref: '#/components/responses/BadRequest' },
+					401: { $ref: '#/components/responses/Unauthorized' },
+					403: { $ref: '#/components/responses/Forbidden' },
 					500: { $ref: '#/components/responses/ServerError' },
 				},
 			},
@@ -832,6 +923,41 @@ export const apiDocs = {
 				properties: {
 					message: { type: 'string' },
 					proposal: { $ref: '#/components/schemas/Proposal' },
+				},
+			},
+			ProposalFreightSummaryItem: {
+				type: 'object',
+				properties: {
+					freight: { $ref: '#/components/schemas/Freight' },
+					proposalCount: { type: 'integer' },
+					pendingCount: { type: 'integer' },
+					bestValue: { type: 'number' },
+					averageValue: { type: 'number' },
+					referenceValue: { type: 'number' },
+				},
+			},
+			ProposalFreightSummaryKpis: {
+				type: 'object',
+				properties: {
+					freightsWithProposals: { type: 'integer' },
+					totalProposals: { type: 'integer' },
+					pendingProposals: { type: 'integer' },
+					acceptedProposals: { type: 'integer' },
+					freightsInNegotiation: { type: 'integer' },
+				},
+			},
+			ProposalFreightSummaryResponse: {
+				type: 'object',
+				properties: {
+					items: {
+						type: 'array',
+						items: { $ref: '#/components/schemas/ProposalFreightSummaryItem' },
+					},
+					total: { type: 'integer' },
+					page: { type: 'integer' },
+					limit: { type: 'integer' },
+					hasMore: { type: 'boolean' },
+					summary: { $ref: '#/components/schemas/ProposalFreightSummaryKpis' },
 				},
 			},
 		},

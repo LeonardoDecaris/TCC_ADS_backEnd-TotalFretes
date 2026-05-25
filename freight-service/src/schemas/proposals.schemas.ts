@@ -15,6 +15,16 @@ export const rejectProposalSchema = z.object({});
 
 export const proposalListQuerySchema = z.object({
 	freight_id: z.coerce.number().int().positive('VALIDATION.FREIGHT_ID_INVALID').optional(),
+	page: z.coerce.number().int().min(1, 'VALIDATION.PAGE_INVALID').optional(),
+	limit: z.coerce.number().int().min(1, 'VALIDATION.LIMIT_INVALID').max(50, 'VALIDATION.LIMIT_MAX').optional(),
+	proposal_status: z.enum(['enviada', 'aceita', 'recusada', 'nao_selecionada', 'todas']).optional(),
+	search: z
+		.string()
+		.optional()
+		.transform((value) => {
+			const trimmed = value?.trim();
+			return trimmed && trimmed.length > 0 ? trimmed : undefined;
+		}),
 	status: z
 		.union([z.string(), z.array(z.string())])
 		.optional()
@@ -27,4 +37,36 @@ export const proposalListQuerySchema = z.object({
 				.filter(Boolean);
 			return normalized.length > 0 ? normalized : undefined;
 		}),
-});
+})
+	.transform((data) => ({
+		...data,
+		proposal_status:
+			data.page != null && data.proposal_status == null ? ('enviada' as const) : data.proposal_status,
+	}));
+
+/** Query para listagem paginada de fretes com propostas agregadas (`GET /proposal/freight-summary`). */
+export const proposalFreightSummaryQuerySchema = z
+	.object({
+		page: z.coerce.number().int().min(1, 'VALIDATION.PAGE_INVALID').optional(),
+		limit: z.coerce
+			.number()
+			.int()
+			.min(1, 'VALIDATION.LIMIT_INVALID')
+			.max(50, 'VALIDATION.LIMIT_MAX')
+			.optional(),
+		/** `enviada` → Enviada (pendentes); `aceita` → Aceita. Recusada e Nao Selecionada nunca entram. */
+		proposal_status: z.enum(['enviada', 'aceita']).optional(),
+		search: z
+			.string()
+			.optional()
+			.transform((value) => {
+				const trimmed = value?.trim();
+				return trimmed && trimmed.length > 0 ? trimmed : undefined;
+			}),
+	})
+	.transform((data) => ({
+		page: data.page ?? 1,
+		limit: data.limit ?? 6,
+		proposal_status: data.proposal_status ?? 'enviada',
+		search: data.search,
+	}));

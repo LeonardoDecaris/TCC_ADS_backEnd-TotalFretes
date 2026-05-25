@@ -1,0 +1,2 @@
+-- Seeds de teste rodam no startup do freight-service (ver src/config/runDatabaseSeeds.ts).
+-- Opcional: npm run seed:test

@@ -2,9 +2,7 @@ import app from './app';
 import dotenv from 'dotenv';
 import sequelize from './config/database';
 import './models/associations';
-import { seedCargoTypes } from './config/seedCargoTypes';
-import { seedFreightStatusTypes } from './config/seedFreightStatusTypes';
-import { seedProposalStatusTypes } from './config/seedProposalStatusTypes';
+import { runDatabaseSeeds } from './config/runDatabaseSeeds';
 
 dotenv.config();
 
@@ -19,12 +17,8 @@ if (!PORT) {
     console.log('Database authenticated successfully');
     await sequelize.sync({ alter: false });
     console.log('Database synchronized successfully');
-    await seedCargoTypes();
-    console.log('Cargo types seeded successfully');
-    await seedFreightStatusTypes();
-    console.log('Freight status types seeded successfully');
-    await seedProposalStatusTypes();
-    console.log('Proposal status types seeded successfully');
+    await runDatabaseSeeds();
+    console.log('Database seeds completed successfully (catalogs + test freights/proposals)');
 
     app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
   } catch (err) {
