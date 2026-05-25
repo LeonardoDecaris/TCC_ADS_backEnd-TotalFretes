@@ -2,6 +2,18 @@ import { z } from "zod";
 import validator from "validator";
 import { isValidCnpjInRfb2229, normalizeCnpj } from "../utils/cnpjInRfb2229";
 
+const normalizePhoneNumber = (value: string) => value.replace(/\D/g, "");
+
+const isValidInternationalPhoneNumber = (value: string) => {
+	const digits = normalizePhoneNumber(value);
+
+	if (!/^\d{8,15}$/.test(digits)) {
+		return false;
+	}
+
+	return true;
+};
+
 const nameSchema = z
 	.string()
 	.min(1, "VALIDATION.NAME_REQUIRED")
@@ -19,8 +31,9 @@ const birthFundationSchema = z
 const phoneNumberSchema = z
 	.string()
 	.min(1, "VALIDATION.PHONE_REQUIRED")
+	.transform((v) => normalizePhoneNumber(v))
 	.refine(
-		(v) => validator.isMobilePhone(v, "pt-BR"),
+		(v) => isValidInternationalPhoneNumber(v),
 		"VALIDATION.PHONE_INVALID"
 	);
 
