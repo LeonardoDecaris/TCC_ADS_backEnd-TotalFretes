@@ -1,3 +1,4 @@
+import https from 'node:https';
 import axios from 'axios';
 
 const GEO_CACHE_TTL_MS = 30 * 60 * 1000;
@@ -53,6 +54,20 @@ type RouteInput = {
 
 const geocodeCache = new Map<string, CacheEntry<Coordinate>>();
 const routeCache = new Map<string, CacheEntry<MapboxDirectionsResponse>>();
+const allowSelfSignedTls = process.env.MAPBOX_ALLOW_SELF_SIGNED_TLS === 'true';
+const mapboxHttp = axios.create(
+	allowSelfSignedTls
+		? {
+				httpsAgent: new https.Agent({ rejectUnauthorized: false }),
+			}
+		: undefined,
+);
+
+if (allowSelfSignedTls) {
+	console.warn(
+		'[mapbox] TLS certificate validation disabled for local development (MAPBOX_ALLOW_SELF_SIGNED_TLS=true).',
+	);
+}
 
 function setCacheEntry<T>(
 	store: Map<string, CacheEntry<T>>,
@@ -108,7 +123,7 @@ async function getCoordinates(address: string): Promise<Coordinate> {
 	const token = getMapboxToken();
 	const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json`;
 
-	const response = await axios.get<{ features?: MapboxGeocodeFeature[] }>(url, {
+	const response = await mapboxHttp.get<{ features?: MapboxGeocodeFeature[] }>(url, {
 		params: {
 			access_token: token,
 			limit: 1,
@@ -135,7 +150,7 @@ async function getRoute(coordinates: Coordinate[]): Promise<MapboxDirectionsResp
 		.map((coord) => coord.join(','))
 		.join(';')}`;
 
-	const response = await axios.get<MapboxDirectionsResponse>(url, {
+	const response = await mapboxHttp.get<MapboxDirectionsResponse>(url, {
 		params: {
 			access_token: token,
 			geometries: 'geojson',
@@ -309,7 +324,7 @@ export async function forwardGeocode(q: string): Promise<{ features: MapboxGeoco
 	const token = getMapboxToken();
 	const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json`;
 
-	let response = await axios.get<{ features?: MapboxGeocodeFeature[] }>(url, {
+	let response = await mapboxHttp.get<{ features?: MapboxGeocodeFeature[] }>(url, {
 		params: {
 			access_token: token,
 			limit: 8,
@@ -319,7 +334,7 @@ export async function forwardGeocode(q: string): Promise<{ features: MapboxGeoco
 
 	let features = response.data?.features ?? [];
 	if (features.length === 0) {
-		response = await axios.get<{ features?: MapboxGeocodeFeature[] }>(url, {
+		response = await mapboxHttp.get<{ features?: MapboxGeocodeFeature[] }>(url, {
 			params: {
 				access_token: token,
 				limit: 8,
@@ -344,7 +359,7 @@ export async function reverseGeocode(lng: number, lat: number): Promise<{
 	const token = getMapboxToken();
 	const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json`;
 
-	const response = await axios.get<{ features?: MapboxGeocodeFeature[] }>(url, {
+	const response = await mapboxHttp.get<{ features?: MapboxGeocodeFeature[] }>(url, {
 		params: {
 			access_token: token,
 			limit: 1,
