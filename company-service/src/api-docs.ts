@@ -34,6 +34,22 @@ export const apiDocs = {
         responses: { 200: { description: 'Lista de empresas' }, 500: { description: 'Erro ao buscar' } },
       },
     },
+    '/company/me': {
+      delete: {
+        summary: 'Excluir a própria conta da empresa',
+        description:
+          'Deriva a empresa do token autenticado, bloqueia a ação quando existem fretes ativos e remove conta, imagem, endereço e empresa.',
+        tags: ['Company'],
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: { description: 'Conta da empresa removida com sucesso' },
+          401: { description: 'Não autenticado' },
+          404: { description: 'Empresa não encontrada' },
+          409: { description: 'Exclusão bloqueada por fretes ativos' },
+          500: { description: 'Erro ao excluir conta da empresa' },
+        },
+      },
+    },
     '/company/{id}': {
       get: {
         summary: 'Buscar empresa por ID',

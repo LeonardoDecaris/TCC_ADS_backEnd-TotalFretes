@@ -17,10 +17,14 @@
     "GENERAL_ERROR": "Erro na validação dos dados."
   },
   "AUTH": {
+    "CURRENT_AND_NEW_PASSWORD_REQUIRED": "A senha atual e a nova senha são obrigatórias.",
+    "CHANGE_PASSWORD_FAILED": "Erro ao alterar a senha.",
     "EMAIL_AND_PASSWORD_REQUIRED": "Email e senha são obrigatórios.",
     "INVALID_PASSWORD": "Senha inválida.",
     "LOGIN_SUCCESSFUL": "Login realizado com sucesso.",
     "LOGIN_FAILED": "Erro ao realizar login.",
+    "NEW_PASSWORD_MUST_DIFFER": "A nova senha deve ser diferente da atual.",
+    "PASSWORD_CHANGED_SUCCESSFULLY": "Senha alterada com sucesso.",
     "TOKEN_INVALID_OR_MISSING": "Token inválido ou ausente.",
     "TOKEN_INVALID_OR_EXPIRED": "Token inválido ou expirado."
   },

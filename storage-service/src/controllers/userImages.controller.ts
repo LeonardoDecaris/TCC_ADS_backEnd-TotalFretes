@@ -4,15 +4,24 @@ import UserImage from '../models/userImages.model';
 import { copyToBackup, getStoredFullPath, getStoredRelativePath, removeFromBackup } from '../utils/upload';
 import { translation } from '../utils/i18n';
 import { getLocaleFromRequest } from '../utils/locale';
-import { getUserImageJsonByPk } from '../services/userImage.service';
+import { getUserImageJsonByPk, serializeUserImage } from '../services/userImage.service';
 
 type RequestWithFile = Request & {
   file?: { originalname: string; filename: string; mimetype: string; size: number };
+  body: {
+    ownerType?: unknown;
+    ownerId?: unknown;
+  };
 };
 
 const parseId = (value: unknown): number | null => {
   const n = Number(value);
   return Number.isInteger(n) && n > 0 ? n : null;
+};
+
+const parseOwnerType = (value: unknown): 'USER' | 'COMPANY' | null => {
+  if (value === 'USER' || value === 'COMPANY') return value;
+  return null;
 };
 
 export const saveUserImage = async (req: RequestWithFile, res: Response) => {
@@ -24,12 +33,23 @@ export const saveUserImage = async (req: RequestWithFile, res: Response) => {
       });
     }
 
+    const ownerType = parseOwnerType(req.body.ownerType);
+    const ownerId = parseId(req.body.ownerId);
+
+    if (!ownerType || ownerId === null) {
+      return res.status(400).json({
+        message: await translation('USER_IMAGE.INVALID_OWNER', locale),
+      });
+    }
+
     const savedImage = await UserImage.create({
       originalName: req.file.originalname,
       fileName: req.file.filename,
       path: getStoredRelativePath(req.file.filename),
       mimeType: req.file.mimetype,
       sizeBytes: req.file.size,
+      ownerType,
+      ownerId,
     });
 
     // Cópia para pasta local (host) para não perder imagens ao recriar o container
@@ -37,7 +57,7 @@ export const saveUserImage = async (req: RequestWithFile, res: Response) => {
 
     return res.status(201).json({
       message: await translation('USER_IMAGE.SAVED_SUCCESSFULLY', locale),
-      userImage: savedImage,
+      userImage: serializeUserImage(savedImage),
     });
   } catch (error) {
     return res.status(500).json({
@@ -51,7 +71,7 @@ export const getAllUserImages = async (req: Request, res: Response) => {
   const locale = getLocaleFromRequest(req);
   try {
     const images = await UserImage.findAll({ order: [['id', 'ASC']] });
-    return res.status(200).json(images);
+    return res.status(200).json(images.map((image) => serializeUserImage(image)));
   } catch (error) {
     return res.status(500).json({
       message: await translation('USER_IMAGE.GET_ALL_FAILED', locale),
@@ -128,7 +148,7 @@ export const updateUserImage = async (req: RequestWithFile, res: Response) => {
     const updated = await UserImage.findByPk(id);
     return res.status(200).json({
       message: await translation('USER_IMAGE.UPDATED_SUCCESSFULLY', locale),
-      userImage: updated,
+      userImage: updated ? serializeUserImage(updated) : null,
     });
   } catch (error) {
     return res.status(500).json({

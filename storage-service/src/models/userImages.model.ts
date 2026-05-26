@@ -8,6 +8,8 @@ class UserImage extends Model {
   path?: string;
   mimeType?: string;
   sizeBytes?: number;
+  ownerType?: 'USER' | 'COMPANY';
+  ownerId?: number | null;
 }
 
 UserImage.init(
@@ -36,6 +38,15 @@ UserImage.init(
     sizeBytes: {
       type: DataTypes.BIGINT,
       allowNull: false,
+    },
+    ownerType: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: 'USER',
+    },
+    ownerId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
     },
   },
   {
