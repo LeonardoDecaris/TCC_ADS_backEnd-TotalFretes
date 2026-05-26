@@ -1,16 +1,20 @@
 import axios from "axios";
 import { Request, Response } from "express";
 import { Op } from "sequelize";
+import sequelize from "../config/database";
 import Company from "../models/company.model";
 import CompanyAddress from "../models/address.model";
 import {
 	createAccountHttp,
+	deleteOwnAccountBySubjectHttp,
 	deleteUserImageHttp,
+	getAuthenticatedCompanyFreightsHttp,
 	getUserImageHttp,
 	type StorageImageData,
 	uploadCompanyImageHttp,
 	updateCompanyImageHttp,
 } from "../services/service";
+import { FreightStatusSlug } from "../config/freightStatus.constants";
 import { translation } from "../utils/i18n";
 import { getLocaleFromRequest } from "../utils/locale";
 import { sendError, sendConflictError } from "../services/httpResponse";
@@ -73,6 +77,25 @@ async function companyOwnsImage(companyId: number, imageId: number) {
 	if (!image) return false;
 
 	return image.ownerType === "COMPANY" && Number(image.ownerId) === companyId;
+}
+
+function isTerminalFreightStatus(statusName?: string | null) {
+	const terminalStatuses = new Set<string>([
+		FreightStatusSlug.CANCELADO,
+		FreightStatusSlug.ENTREGUE,
+		FreightStatusSlug.CONCLUIDO,
+	]);
+
+	return statusName != null && terminalStatuses.has(statusName);
+}
+
+async function countActiveCompanyFreights(req: Request) {
+	const freights = await getAuthenticatedCompanyFreightsHttp({
+		authorization: req.headers.authorization,
+		locale: getLocaleFromRequest(req),
+	});
+
+	return freights.filter((freight) => !isTerminalFreightStatus(freight.status?.name ?? null)).length;
 }
 
 export const createCompany = async (req: Request, res: Response) => {
@@ -181,6 +204,61 @@ export const deleteCompany = async (req: Request, res: Response) => {
 			message: await translation("COMPANY.DELETED_SUCCESSFULLY", locale),
 		});
 	} catch (error) {
+		return sendError(res, 500, "COMPANY.DELETE_FAILED", locale);
+	}
+};
+
+export const deleteOwnCompany = async (req: Request, res: Response) => {
+	const locale = getLocaleFromRequest(req);
+	const companyId = req.user?.id;
+
+	try {
+		if (!companyId) {
+			return sendError(res, 401, "AUTH.TOKEN_INVALID_OR_MISSING", locale);
+		}
+
+		const company = await Company.findByPk(companyId);
+		if (!company) {
+			return sendError(res, 404, "COMPANY.NOT_FOUND", locale);
+		}
+
+		const activeFreightsCount = await countActiveCompanyFreights(req);
+		if (activeFreightsCount > 0) {
+			return sendError(res, 409, "COMPANY.ACTIVE_FREIGHTS_BLOCK_DELETE", locale);
+		}
+
+		if (company.company_image_id) {
+			await deleteUserImageHttp({ id: company.company_image_id });
+		}
+
+		await deleteOwnAccountBySubjectHttp({
+			subjectId: Number(company.id),
+			authorization: req.headers.authorization,
+			locale,
+		});
+
+		const transaction = await sequelize.transaction();
+
+		try {
+			if (company.companyAddress_id) {
+				await CompanyAddress.destroy({
+					where: { id: company.companyAddress_id },
+					transaction,
+				});
+			}
+
+			await company.destroy({ transaction });
+			await transaction.commit();
+		} catch (error) {
+			await transaction.rollback();
+			throw error;
+		}
+
+		return res.status(200).json({
+			message: await translation("COMPANY.DELETED_SUCCESSFULLY", locale),
+		});
+	} catch (error) {
+		console.error("deleteOwnCompany failed:", error);
 		return sendError(res, 500, "COMPANY.DELETE_FAILED", locale);
 	}
 };

@@ -10,12 +10,16 @@
         "UPDATE_FAILED": "Erro ao atualizar empresa.",
         "DELETED_SUCCESSFULLY": "Empresa deletada com sucesso.",
         "DELETE_FAILED": "Erro ao deletar empresa.",
+        "ACTIVE_FREIGHTS_BLOCK_DELETE": "Não é possível excluir a conta enquanto existirem fretes ativos vinculados à empresa.",
         "CREATED_WITH_ACCOUNT_SUCCESSFULLY": "Empresa e conta criadas com sucesso.",
         "ACCOUNT_CREATE_FAILED": "Falha ao criar a conta de acesso. Os dados de cadastro foram desfeitos.",
         "ALREADY_EXISTS": "Já existe empresa com um ou mais dados informados.",
         "EMAIL_ALREADY_EXISTS": "Já existe uma empresa com este e-mail.",
         "CNPJ_ALREADY_EXISTS": "Já existe uma empresa com este CNPJ.",
         "PHONE_NUMBER_ALREADY_EXISTS": "Já existe uma empresa com este telefone."
+    },
+    "AUTH": {
+        "TOKEN_INVALID_OR_MISSING": "Token inválido ou ausente."
     },
     "USER": {
         "EMAIL_ALREADY_EXISTS": "Já existe um cadastro com este e-mail.",

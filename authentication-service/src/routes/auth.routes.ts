@@ -1,4 +1,5 @@
 import express from 'express';
+import { changePassword } from '../controllers/changePassword.controller';
 import { login, validateToken, verifyTokenHandler } from '../controllers/login.controller';
 import { forgotPassword, validateResetCode, resetPassword, resendCode } from '../controllers/forgotPassword.controller';
 import { authMiddleware } from '../middleware/authMiddleware';
@@ -10,6 +11,7 @@ const router = express.Router();
 router.post('/login', login);
 router.post('/validate', validateToken);
 router.get('/verify-token', authMiddleware, verifyTokenHandler);
+router.patch('/change-password', authMiddleware, changePassword);
 router.post('/resend-code', resendCode);
 
 router.post('/forgot-password', forgotPassword);

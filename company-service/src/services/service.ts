@@ -6,6 +6,11 @@ const storageServiceBaseUrl =
 	process.env.STORAGE_SERVICE_URL.trim() !== ''
 		? process.env.STORAGE_SERVICE_URL.trim()
 		: 'http://storage-service:3007';
+const freightServiceBaseUrl =
+	typeof process.env.FREIGHT_SERVICE_URL === 'string' &&
+	process.env.FREIGHT_SERVICE_URL.trim() !== ''
+		? process.env.FREIGHT_SERVICE_URL.trim()
+		: 'http://freight-service:3008';
 
 const authClient = createHttpClient({
 	baseURL: process.env.AUTH_SERVICE_URL ?? '',
@@ -13,6 +18,10 @@ const authClient = createHttpClient({
 
 const storageClient = createHttpClient({
 	baseURL: storageServiceBaseUrl,
+});
+
+const freightClient = createHttpClient({
+	baseURL: freightServiceBaseUrl,
 });
 
 const i18nClient = createHttpClient({
@@ -43,6 +52,32 @@ export type CreateAccountData = {
 	account_type_id: number;
 };
 
+type ForwardHeaders = {
+	authorization?: string;
+	locale?: string;
+};
+
+export type FreightListItem = {
+	id?: number;
+	status?: {
+		name?: string | null;
+	} | null;
+};
+
+function buildForwardHeaders({ authorization, locale }: ForwardHeaders) {
+	const headers: Record<string, string> = {};
+
+	if (authorization) {
+		headers.Authorization = authorization;
+	}
+
+	if (locale) {
+		headers['accept-language'] = locale;
+	}
+
+	return headers;
+}
+
 export async function createAccountHttp(data: CreateAccountData) {
 	const result = await authClient.post<{ ok: boolean }>('/account', data, {
 		fallback: { ok: false },
@@ -50,6 +85,33 @@ export async function createAccountHttp(data: CreateAccountData) {
 	});
 	return result.ok === 
 	true;
+}
+
+export async function deleteOwnAccountBySubjectHttp({
+	subjectId,
+	authorization,
+	locale,
+}: {
+	subjectId: number;
+	authorization?: string;
+	locale?: string;
+}) {
+	return authClient.delete<{ message?: string; ok?: boolean }>(`/account/subject/${subjectId}`, {
+		headers: buildForwardHeaders({ authorization, locale }),
+		fallback: { ok: false },
+		silentStatuses: [404],
+	});
+}
+
+export async function getAuthenticatedCompanyFreightsHttp({
+	authorization,
+	locale,
+}: ForwardHeaders) {
+	return freightClient.get<FreightListItem[]>('/freight', {
+		headers: buildForwardHeaders({ authorization, locale }),
+		fallback: [],
+		silentStatuses: [404],
+	});
 }
 
 function appendFileToFormData(formData: FormData, file: Express.Multer.File) {

@@ -48,6 +48,35 @@ export const apiDocs = {
         responses: { 200: { description: 'Dados do usuário' }, 401: { description: 'Não autenticado' } },
       },
     },
+    '/auth/change-password': {
+      patch: {
+        summary: 'Trocar senha autenticado',
+        tags: ['Auth'],
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['currentPassword', 'newPassword'],
+                properties: {
+                  currentPassword: { type: 'string', format: 'password' },
+                  newPassword: { type: 'string', format: 'password', minLength: 8 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: 'Senha alterada com sucesso' },
+          400: { description: 'Campos inválidos, senha curta ou senha repetida' },
+          401: { description: 'Senha atual inválida ou token ausente' },
+          404: { description: 'Conta não encontrada' },
+          500: { description: 'Erro ao trocar senha' },
+        },
+      },
+    },
     '/auth/health': {
       get: {
         summary: 'Health check',
@@ -208,7 +237,7 @@ export const apiDocs = {
     '/account/subject/{id}': {
       delete: {
         summary: 'Remover conta pelo subject_id',
-        description: 'Busca conta onde `subject_id` corresponde ao parâmetro. Papéis USER ou ADMIN.',
+        description: 'Busca conta onde `subject_id` corresponde ao parâmetro. Permitido para o próprio dono do subject ou ADMIN.',
         tags: ['Account'],
         security: [{ bearerAuth: [] }],
         parameters: [

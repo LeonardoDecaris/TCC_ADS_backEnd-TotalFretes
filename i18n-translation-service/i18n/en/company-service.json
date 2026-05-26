@@ -10,12 +10,16 @@
         "UPDATE_FAILED": "Error updating company.",
         "DELETED_SUCCESSFULLY": "Company deleted successfully.",
         "DELETE_FAILED": "Error deleting company.",
+        "ACTIVE_FREIGHTS_BLOCK_DELETE": "The account cannot be deleted while there are active freights linked to the company.",
         "CREATED_WITH_ACCOUNT_SUCCESSFULLY": "Company and account created successfully.",
         "ACCOUNT_CREATE_FAILED": "Failed to create access account. Registration was rolled back.",
         "ALREADY_EXISTS": "A company with one or more of the provided details already exists.",
         "EMAIL_ALREADY_EXISTS": "A company with this email already exists.",
         "CNPJ_ALREADY_EXISTS": "A company with this CNPJ already exists.",
         "PHONE_NUMBER_ALREADY_EXISTS": "A company with this phone number already exists."
+    },
+    "AUTH": {
+        "TOKEN_INVALID_OR_MISSING": "Invalid or missing token."
     },
     "USER": {
         "EMAIL_ALREADY_EXISTS": "An account with this email already exists.",
