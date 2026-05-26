@@ -1,12 +1,13 @@
 import { Request, Response } from 'express';
-import type { Order } from 'sequelize';
+import type { Order, Transaction } from 'sequelize';
 import sequelize from '../config/database';
 import CargoType from '../models/cargoTypes.model';
 import Freight from '../models/freight.model';
 import FreightStatusHistory from '../models/freightStatusHistory.model';
 import FreightStatusType from '../models/freightStatusTypes.model';
 import Proposal from '../models/proposals.model';
-import { FreightStatusSlug } from '../config/statusTypes.constants';
+import ProposalStatusType from '../models/proposalsStatusTypes.model';
+import { FreightStatusSlug, ProposalStatusSlug } from '../config/statusTypes.constants';
 import { createFreightSchema, freightListPaginatedQuerySchema, updateFreightSchema } from '../schemas/freight.schemas';
 import { recordFreightStatusHistory } from '../services/freightStatusHistory.service';
 import { translation } from '../utils/i18n';
@@ -42,6 +43,34 @@ const getFreightDetailInclude = () => [
 		],
 	},
 ];
+
+const getProposalStatusByName = async (name: string, transaction?: Transaction) => {
+	return ProposalStatusType.findOne({
+		where: { name },
+		transaction,
+	});
+};
+
+const markFreightProposalsAsNotSelected = async (freightId: number, transaction?: Transaction) => {
+	const notSelectedStatus = await getProposalStatusByName(
+		ProposalStatusSlug.NAO_SELECIONADA,
+		transaction
+	);
+
+	if (!notSelectedStatus?.id) {
+		throw new Error(`Proposal status not found: ${ProposalStatusSlug.NAO_SELECIONADA}`);
+	}
+
+	await Proposal.update(
+		{
+			status_id: notSelectedStatus.id,
+		},
+		{
+			where: { freight_id: freightId },
+			transaction,
+		}
+	);
+};
 
 export const createFreight = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
@@ -207,34 +236,56 @@ export const updateFreight = async (req: Request, res: Response) => {
 	const body = await validateBody(req, res, updateFreightSchema);
 	if (!body) return;
 
+	const transaction = await sequelize.transaction();
+	let transactionCommitted = false;
+
 	try {
-		const freight = await Freight.findByPk(params.id);
+		const freight = await Freight.findByPk(params.id, { transaction });
 
 		if (!freight) {
+			await transaction.rollback();
 			return res.status(404).json({
 				message: await translation('FREIGHT.NOT_FOUND', locale),
 			});
 		}
 
 		if (req.user?.role !== 'ADMIN' && req.user?.id !== Number(freight.company_id)) {
+			await transaction.rollback();
 			return res.status(403).json({
 				message: await translation('AUTH.FORBIDDEN', locale),
 			});
 		}
 
 		const previousStatusId = freight.status_id ?? null;
-		await freight.update(body);
+		await freight.update(body, { transaction });
 
 		if (body.status_id !== undefined && freight.id != null) {
-			await recordFreightStatusHistory(freight.id, body.status_id, previousStatusId);
+			const canceladoStatus = await FreightStatusType.findOne({
+				where: { name: FreightStatusSlug.CANCELADO },
+				transaction,
+			});
+			const canceladoStatusId = canceladoStatus?.id ?? 2;
+
+			if (body.status_id === canceladoStatusId) {
+				await markFreightProposalsAsNotSelected(freight.id, transaction);
+			}
+
+			await recordFreightStatusHistory(freight.id, body.status_id, previousStatusId, {
+				transaction,
+			});
 		}
 
+		await transaction.commit();
+		transactionCommitted = true;
 		await freight.reload({ include: getFreightDetailInclude() });
 		return res.status(200).json({
 			message: await translation('FREIGHT.UPDATED_SUCCESSFULLY', locale),
 			freight,
 		});
 	} catch (error) {
+		if (!transactionCommitted) {
+			await transaction.rollback();
+		}
 		console.error(error);
 		return res.status(500).json({
 			message: await translation('FREIGHT.UPDATE_FAILED', locale),
@@ -298,16 +349,26 @@ export const cancelFreight = async (req: Request, res: Response) => {
 	const params = await validateParams(req, res, idParamSchema);
 	if (!params) return;
 
+	const transaction = await sequelize.transaction();
+	let transactionCommitted = false;
+
 	try {
-		const freight = await Freight.findByPk(params.id);
+		const freight = await Freight.findByPk(params.id, { transaction });
 
 		if (!freight) {
+			await transaction.rollback();
 			return res.status(404).json({
 				message: await translation('FREIGHT.NOT_FOUND', locale),
 			});
 		}
 
-		if (req.user?.role !== 'ADMIN' && req.user?.id !== Number(freight.assignedDriver_id)) {
+		const canCancelFreight =
+			req.user?.role === 'ADMIN' ||
+			(req.user?.role === 'COMPANY' && req.user.id === Number(freight.company_id)) ||
+			(req.user?.role === 'USER' && req.user.id === Number(freight.assignedDriver_id));
+
+		if (!canCancelFreight) {
+			await transaction.rollback();
 			return res.status(403).json({
 				message: await translation('AUTH.FORBIDDEN', locale),
 			});
@@ -315,6 +376,7 @@ export const cancelFreight = async (req: Request, res: Response) => {
 
 		const canceladoStatus = await FreightStatusType.findOne({
 			where: { name: FreightStatusSlug.CANCELADO },
+			transaction,
 		});
 
 		const statusId = canceladoStatus?.id ?? 2;
@@ -323,12 +385,17 @@ export const cancelFreight = async (req: Request, res: Response) => {
 		await freight.update({
 			assignedDriver_id: null,
 			status_id: statusId,
-		});
+		}, { transaction });
 
 		if (freight.id != null) {
-			await recordFreightStatusHistory(freight.id, statusId, previousStatusId);
+			await markFreightProposalsAsNotSelected(freight.id, transaction);
+			await recordFreightStatusHistory(freight.id, statusId, previousStatusId, {
+				transaction,
+			});
 		}
 
+		await transaction.commit();
+		transactionCommitted = true;
 		await freight.reload({ include: getFreightDetailInclude() });
 
 		return res.status(200).json({
@@ -336,6 +403,9 @@ export const cancelFreight = async (req: Request, res: Response) => {
 			freight,
 		});
 	} catch (error) {
+		if (!transactionCommitted) {
+			await transaction.rollback();
+		}
 		console.error(error);
 		return res.status(500).json({
 			message: await translation('FREIGHT.CANCEL_FAILED', locale),
