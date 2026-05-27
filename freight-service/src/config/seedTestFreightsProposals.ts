@@ -1,6 +1,7 @@
 import { FreightStatusSlug, ProposalStatusSlug } from './statusTypes.constants';
 import CargoType from '../models/cargoTypes.model';
 import Freight from '../models/freight.model';
+import FreightStatusHistory from '../models/freightStatusHistory.model';
 import FreightStatusType from '../models/freightStatusTypes.model';
 import Proposal from '../models/proposals.model';
 import ProposalStatusType from '../models/proposalsStatusTypes.model';
@@ -31,6 +32,7 @@ type TestFreightSpec = {
 	weight: number;
 	daysLimit?: number;
 	assignedDriverIndex?: number;
+	historyPath: ((typeof FreightStatusSlug)[keyof typeof FreightStatusSlug])[];
 	proposals: TestProposalSpec[];
 };
 
@@ -48,6 +50,7 @@ const TEST_FREIGHTS: TestFreightSpec[] = [
 		originalValue: 6200,
 		weight: 18000,
 		daysLimit: 5,
+		historyPath: [FreightStatusSlug.DISPONIVEL],
 		proposals: [
 			{ driverIndex: 0, status: ProposalStatusSlug.ENVIADA, value: 5500 },
 			{ driverIndex: 1, status: ProposalStatusSlug.ENVIADA, value: 5800 },
@@ -67,6 +70,7 @@ const TEST_FREIGHTS: TestFreightSpec[] = [
 		originalValue: 4800,
 		weight: 12000,
 		daysLimit: 3,
+		historyPath: [FreightStatusSlug.DISPONIVEL],
 		proposals: [
 			{ driverIndex: 0, status: ProposalStatusSlug.ENVIADA, value: 4200 },
 			{ driverIndex: 1, status: ProposalStatusSlug.ENVIADA, value: 4500 },
@@ -82,12 +86,19 @@ const TEST_FREIGHTS: TestFreightSpec[] = [
 		destination_label: 'São Paulo, SP',
 		destination_lat: -23.5505,
 		destination_lng: -46.6333,
-		freightStatus: FreightStatusSlug.VINCULADO,
+		freightStatus: FreightStatusSlug.CONCLUIDO,
 		originalValue: 3500,
 		finalValue: 3200,
 		weight: 8000,
 		daysLimit: 4,
 		assignedDriverIndex: 0,
+		historyPath: [
+			FreightStatusSlug.DISPONIVEL,
+			FreightStatusSlug.VINCULADO,
+			FreightStatusSlug.EM_TRANSITO,
+			FreightStatusSlug.ENTREGUE,
+			FreightStatusSlug.CONCLUIDO,
+		],
 		proposals: [
 			{ driverIndex: 0, status: ProposalStatusSlug.ACEITA, value: 3200 },
 			{ driverIndex: 1, status: ProposalStatusSlug.NAO_SELECIONADA, value: 3400 },
@@ -109,6 +120,11 @@ const TEST_FREIGHTS: TestFreightSpec[] = [
 		weight: 5000,
 		daysLimit: 2,
 		assignedDriverIndex: 1,
+		historyPath: [
+			FreightStatusSlug.DISPONIVEL,
+			FreightStatusSlug.VINCULADO,
+			FreightStatusSlug.EM_TRANSITO,
+		],
 		proposals: [{ driverIndex: 3, status: ProposalStatusSlug.ENVIADA, value: 2650 }],
 	},
 	{
@@ -124,11 +140,40 @@ const TEST_FREIGHTS: TestFreightSpec[] = [
 		originalValue: 4100,
 		weight: 15000,
 		daysLimit: 6,
+		historyPath: [FreightStatusSlug.DISPONIVEL],
 		proposals: [
 			{ driverIndex: 0, status: ProposalStatusSlug.ENVIADA, value: 3800 },
 			{ driverIndex: 1, status: ProposalStatusSlug.ENVIADA, value: 3950 },
 			{ driverIndex: 2, status: ProposalStatusSlug.ENVIADA, value: 3700 },
 			{ driverIndex: 3, status: ProposalStatusSlug.ENVIADA, value: 3850 },
+		],
+	},
+	{
+		name: 'TF-TEST-0146',
+		cargoName: 'Grãos',
+		origin_label: 'Ribeirão Preto, SP',
+		origin_lat: -21.1775,
+		origin_lng: -47.8103,
+		destination_label: 'Sorocaba, SP',
+		destination_lat: -23.5015,
+		destination_lng: -47.4526,
+		freightStatus: FreightStatusSlug.CONCLUIDO,
+		originalValue: 5600,
+		finalValue: 5350,
+		weight: 14000,
+		daysLimit: 4,
+		assignedDriverIndex: 2,
+		historyPath: [
+			FreightStatusSlug.DISPONIVEL,
+			FreightStatusSlug.VINCULADO,
+			FreightStatusSlug.EM_TRANSITO,
+			FreightStatusSlug.EM_ROTA_ENTREGA,
+			FreightStatusSlug.ENTREGUE,
+			FreightStatusSlug.CONCLUIDO,
+		],
+		proposals: [
+			{ driverIndex: 2, status: ProposalStatusSlug.ACEITA, value: 5350 },
+			{ driverIndex: 1, status: ProposalStatusSlug.NAO_SELECIONADA, value: 5500 },
 		],
 	},
 	{
@@ -144,6 +189,11 @@ const TEST_FREIGHTS: TestFreightSpec[] = [
 		originalValue: 2000,
 		weight: 3000,
 		daysLimit: 1,
+		historyPath: [
+			FreightStatusSlug.DISPONIVEL,
+			FreightStatusSlug.VINCULADO,
+			FreightStatusSlug.CANCELADO,
+		],
 		proposals: [{ driverIndex: 0, status: ProposalStatusSlug.ENVIADA, value: 1800 }],
 	},
 ];
@@ -167,6 +217,18 @@ const resolveDriverId = (driverIds: number[], index: number): number => {
 		);
 	}
 	return id;
+};
+
+const buildHistoryDates = (length: number): Date[] => {
+	const now = new Date();
+	const oldest = new Date(now);
+	oldest.setDate(oldest.getDate() - Math.max(length, 2));
+
+	return Array.from({ length }, (_, index) => {
+		const occurredAt = new Date(oldest);
+		occurredAt.setHours(oldest.getHours() + index * 12);
+		return occurredAt;
+	});
 };
 
 /**
@@ -247,6 +309,22 @@ export const seedTestFreightsProposals = async (
 				originalValue: spec.originalValue,
 				finalValue: spec.finalValue ?? null,
 				weight: spec.weight,
+			});
+		}
+
+		await FreightStatusHistory.destroy({ where: { freight_id: freight.id! } });
+
+		const historyStatusIds = spec.historyPath
+			.map((statusName) => freightStatusIds.get(statusName))
+			.filter((statusId): statusId is number => statusId != null);
+
+		const historyDates = buildHistoryDates(historyStatusIds.length);
+
+		for (let index = 0; index < historyStatusIds.length; index += 1) {
+			await FreightStatusHistory.create({
+				freight_id: freight.id!,
+				status_id: historyStatusIds[index],
+				occurred_at: historyDates[index],
 			});
 		}
 
