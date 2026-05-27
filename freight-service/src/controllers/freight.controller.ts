@@ -14,6 +14,20 @@ import { translation } from '../utils/i18n';
 import { getLocaleFromRequest } from '../utils/locale';
 import { idParamSchema, validateBody, validateParams, validateQuery } from '../utils/validate';
 
+const getFreightStatusHistoryInclude = () => ({
+	model: FreightStatusHistory,
+	as: 'FreightStatusHistories',
+	required: false,
+	separate: true,
+	order: [['occurred_at', 'ASC']] as Order,
+	include: [
+		{
+			model: FreightStatusType,
+			required: false,
+		},
+	],
+});
+
 const getFreightListInclude = () => [
 	{
 		model: CargoType,
@@ -24,24 +38,12 @@ const getFreightListInclude = () => [
 		model: FreightStatusType,
 		as: 'status',
 		required: false,
-	}
+	},
+	getFreightStatusHistoryInclude(),
 ];
 
 const getFreightDetailInclude = () => [
 	...getFreightListInclude(),
-	{
-		model: FreightStatusHistory,
-		as: 'FreightStatusHistories',
-		required: false,
-		separate: true,
-		order: [['occurred_at', 'ASC']] as Order,
-		include: [
-			{
-				model: FreightStatusType,
-				required: false,
-			},
-		],
-	},
 ];
 
 const getProposalStatusByName = async (name: string, transaction?: Transaction) => {

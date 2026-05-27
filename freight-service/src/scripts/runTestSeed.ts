@@ -1,9 +1,10 @@
 import dotenv from 'dotenv';
-import sequelize from '../config/database';
-import '../models/associations';
-import { runDatabaseSeeds } from '../config/runDatabaseSeeds';
 
 dotenv.config();
+
+const sequelize = require('../config/database').default;
+require('../models/associations');
+const { runDatabaseSeeds } = require('../config/runDatabaseSeeds');
 
 (async () => {
 	try {
