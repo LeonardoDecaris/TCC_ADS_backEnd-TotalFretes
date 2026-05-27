@@ -46,7 +46,9 @@
     "UPDATED_SUCCESSFULLY": "Freight updated successfully.",
     "UPDATE_FAILED": "Error updating freight.",
     "DELETED_SUCCESSFULLY": "Freight deleted successfully.",
-    "DELETE_FAILED": "Error deleting freight."
+    "DELETE_FAILED": "Error deleting freight.",
+    "INVALID_STATUS_TRANSITION": "Cannot change the freight to this status from the current one.",
+    "STATUS_REQUIRED": "Provide the new freight status."
   },
   "PROPOSAL": {
     "CREATED_SUCCESSFULLY": "Proposal created successfully.",
@@ -58,8 +60,11 @@
     "UPDATE_FAILED": "Error updating proposal.",
     "DELETED_SUCCESSFULLY": "Proposal deleted successfully.",
     "DELETE_FAILED": "Error deleting proposal.",
-    "ACCEPTED_SUCCESSFULLY": "Proposal accepted successfully.",
-    "ACCEPT_FAILED": "Error accepting proposal."
+    "ACCEPTED_SUCCESSFULLY": "Proposal accepted successfully. Awaiting driver confirmation.",
+    "ACCEPT_FAILED": "Error accepting proposal.",
+    "CONFIRMED_BY_DRIVER": "Proposal confirmed. Freight linked to driver.",
+    "DECLINED_BY_DRIVER": "Proposal declined by driver.",
+    "DRIVER_ALREADY_ACTIVE": "You already have an ongoing freight. Complete it before accepting another."
   },
   "VALIDATION": {
     "ERROR": "Validation error.",

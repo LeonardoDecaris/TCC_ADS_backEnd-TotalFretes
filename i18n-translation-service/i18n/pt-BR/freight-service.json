@@ -46,7 +46,9 @@
     "UPDATED_SUCCESSFULLY": "Frete atualizado com sucesso.",
     "UPDATE_FAILED": "Erro ao atualizar frete.",
     "DELETED_SUCCESSFULLY": "Frete excluído com sucesso.",
-    "DELETE_FAILED": "Erro ao excluir frete."
+    "DELETE_FAILED": "Erro ao excluir frete.",
+    "INVALID_STATUS_TRANSITION": "Não é possível alterar o frete para este status a partir do status atual.",
+    "STATUS_REQUIRED": "Informe o novo status do frete."
   },
   "PROPOSAL": {
     "CREATED_SUCCESSFULLY": "Proposta criada com sucesso.",
@@ -58,8 +60,11 @@
     "UPDATE_FAILED": "Erro ao atualizar proposta.",
     "DELETED_SUCCESSFULLY": "Proposta excluída com sucesso.",
     "DELETE_FAILED": "Erro ao excluir proposta.",
-    "ACCEPTED_SUCCESSFULLY": "Proposta aceita com sucesso.",
-    "ACCEPT_FAILED": "Erro ao aceitar proposta."
+    "ACCEPTED_SUCCESSFULLY": "Proposta aceita com sucesso. Aguardando confirmação do motorista.",
+    "ACCEPT_FAILED": "Erro ao aceitar proposta.",
+    "CONFIRMED_BY_DRIVER": "Proposta confirmada. Frete vinculado ao motorista.",
+    "DECLINED_BY_DRIVER": "Proposta recusada pelo motorista.",
+    "DRIVER_ALREADY_ACTIVE": "Você já possui um frete em andamento. Conclua-o antes de aceitar outro."
   },
   "VALIDATION": {
     "ERROR": "Erro de validação.",

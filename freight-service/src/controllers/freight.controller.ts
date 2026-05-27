@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import type { Order, Transaction } from 'sequelize';
+import { Op } from 'sequelize';
+import type { Order } from 'sequelize';
 import sequelize from '../config/database';
 import CargoType from '../models/cargoTypes.model';
 import Freight from '../models/freight.model';
@@ -73,6 +75,34 @@ const markFreightProposalsAsNotSelected = async (freightId: number, transaction?
 		}
 	);
 };
+	{
+		model: FreightStatusHistory,
+		as: 'FreightStatusHistories',
+		required: false,
+		separate: true,
+		order: [['occurred_at', 'ASC']] as Order,
+		include: [
+			{
+				model: FreightStatusType,
+				required: false,
+			},
+		],
+	},
+];
+
+const buildFreightListWhere = async (user?: { role?: string; id?: number }) => {
+	if (user?.role === 'ADMIN') return undefined;
+	if (user?.role === 'COMPANY') return { company_id: user.id };
+	if (user?.role === 'USER') {
+		const disponivelStatus = await FreightStatusType.findOne({
+			where: { name: FreightStatusSlug.DISPONIVEL },
+		});
+		if (disponivelStatus?.id != null) {
+			return { status_id: disponivelStatus.id };
+		}
+	}
+	return undefined;
+};
 
 export const createFreight = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
@@ -119,12 +149,7 @@ export const createFreight = async (req: Request, res: Response) => {
 export const getAllFreights = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
 
-	const where =
-		req.user?.role === 'ADMIN'
-			? undefined
-			: req.user?.role === 'COMPANY'
-				? { company_id: req.user.id }
-				: undefined;
+	const where = await buildFreightListWhere(req.user);
 
 	const listInclude = getFreightListInclude();
 	const listOrder: Order = [
@@ -208,25 +233,55 @@ export const getFreightById = async (req: Request, res: Response) => {
 	}
 };
 
+/**
+ * Status que indicam que o frete N\u00c3O est\u00e1 mais em andamento para o motorista
+ * - portanto n\u00e3o devem aparecer na tela "Em andamento" do app mobile.
+ */
+const NON_ONGOING_DRIVER_STATUSES: readonly string[] = [
+	FreightStatusSlug.CONCLUIDO,
+	FreightStatusSlug.CANCELADO,
+];
+
 export const getFreightByUserId = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
 
 	try {
-		const freight = await Freight.findOne({
-			where: { assignedDriver_id: req.params.id },
-			include: getFreightListInclude(),
+		const excludedStatuses = await FreightStatusType.findAll({
+			where: { name: { [Op.in]: [...NON_ONGOING_DRIVER_STATUSES] } },
+			attributes: ['id'],
 		});
+		const excludedIds = excludedStatuses.map((s) => s.id).filter((id): id is number => id != null);
 
-		console.log("freight", freight);
+		const freight = await Freight.findOne({
+			where: {
+				assignedDriver_id: req.params.id,
+				...(excludedIds.length > 0 ? { status_id: { [Op.notIn]: excludedIds } } : {}),
+			},
+			include: getFreightListInclude(),
+			order: [['updatedAt', 'DESC']],
+		});
 
 		return res.status(200).json(freight);
 	} catch (error) {
 		console.error(error);
-		console.log("erro", error);
 		return res.status(500).json({
 			message: await translation('FREIGHT.GET_BY_ID_FAILED', locale),
 		});
 	}
+};
+
+/**
+ * Transi\u00e7\u00f5es de status permitidas para o motorista (USER).
+ * Cada chave \u00e9 o status atual e o valor \u00e9 a lista de pr\u00f3ximos status v\u00e1lidos.
+ *
+ * `Concluido` n\u00e3o entra aqui porque \u00e9 responsabilidade da empresa via
+ * `completeFreight`. `Vinculado` continua suportado para compatibilidade com
+ * fretes legados criados antes da introdu\u00e7\u00e3o de `Esperando Caminhoneiro`.
+ */
+const DRIVER_VALID_TRANSITIONS: Record<string, readonly string[]> = {
+	[FreightStatusSlug.VINCULADO]: [FreightStatusSlug.EM_TRANSITO],
+	[FreightStatusSlug.EM_TRANSITO]: [FreightStatusSlug.EM_ROTA_ENTREGA],
+	[FreightStatusSlug.EM_ROTA_ENTREGA]: [FreightStatusSlug.ENTREGUE],
 };
 
 export const updateFreight = async (req: Request, res: Response) => {
@@ -251,6 +306,12 @@ export const updateFreight = async (req: Request, res: Response) => {
 			});
 		}
 
+		const role = req.user?.role;
+		const isAdmin = role === 'ADMIN';
+		const isOwnerCompany = role === 'COMPANY' && req.user?.id === Number(freight.company_id);
+		const isAssignedDriver = role === 'USER' && req.user?.id === Number(freight.assignedDriver_id);
+
+		if (!isAdmin && !isOwnerCompany && !isAssignedDriver) {
 		if (req.user?.role !== 'ADMIN' && req.user?.id !== Number(freight.company_id)) {
 			await transaction.rollback();
 			return res.status(403).json({
@@ -260,6 +321,37 @@ export const updateFreight = async (req: Request, res: Response) => {
 
 		const previousStatusId = freight.status_id ?? null;
 		await freight.update(body, { transaction });
+
+		if (isAssignedDriver && !isAdmin) {
+			if (body.status_id == null) {
+				return res.status(400).json({
+					message: await translation('FREIGHT.STATUS_REQUIRED', locale),
+				});
+			}
+
+			const [currentStatus, targetStatus] = await Promise.all([
+				previousStatusId != null ? FreightStatusType.findByPk(previousStatusId) : Promise.resolve(null),
+				FreightStatusType.findByPk(body.status_id),
+			]);
+
+			const allowedNextNames = currentStatus?.name
+				? DRIVER_VALID_TRANSITIONS[currentStatus.name] ?? []
+				: [];
+			const targetName = targetStatus?.name ?? null;
+
+			if (!targetName || !allowedNextNames.includes(targetName)) {
+				return res.status(400).json({
+					message: await translation('FREIGHT.INVALID_STATUS_TRANSITION', locale),
+				});
+			}
+
+			await freight.update({ status_id: body.status_id });
+
+			if (freight.id != null) {
+				await recordFreightStatusHistory(freight.id, body.status_id, previousStatusId);
+			}
+		} else {
+			await freight.update(body);
 
 		if (body.status_id !== undefined && freight.id != null) {
 			const canceladoStatus = await FreightStatusType.findOne({

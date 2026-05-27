@@ -6,6 +6,7 @@ const DEFAULT_PROPOSAL_STATUS_TYPES: readonly string[] = [
 	ProposalStatusSlug.RECUSADA,
 	ProposalStatusSlug.ACEITA,
 	ProposalStatusSlug.NAO_SELECIONADA,
+	ProposalStatusSlug.ESPERANDO_CAMINHONEIRO,
 ];
 
 export const seedProposalStatusTypes = async (): Promise<void> => {

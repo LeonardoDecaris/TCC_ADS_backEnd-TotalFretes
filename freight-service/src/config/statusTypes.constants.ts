@@ -17,6 +17,7 @@ export const ProposalStatusSlug = {
 	RECUSADA: 'Recusada',
 	ACEITA: 'Aceita',
 	NAO_SELECIONADA: 'Nao Selecionada',
+	ESPERANDO_CAMINHONEIRO: 'Esperando Caminhoneiro',
 } as const;
 
 /** Nomes aceitos pelo controller ao marcar proposta como aceita (compatível com seeds e dados antigos). */

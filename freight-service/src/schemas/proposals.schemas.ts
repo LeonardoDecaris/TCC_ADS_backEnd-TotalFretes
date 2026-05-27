@@ -9,15 +9,23 @@ export const updateProposalSchema = z.object({
 	value: z.coerce.number().nonnegative('VALIDATION.PROPOSAL_VALUE_INVALID').optional(),
 });
 
-export const acceptProposalSchema = z.object({});
+/** PATCH sem body: Express deixa req.body undefined; normaliza para {}. */
+const emptyBodySchema = z.preprocess(
+	(val) => (val === undefined || val === null ? {} : val),
+	z.object({}),
+);
 
-export const rejectProposalSchema = z.object({});
+export const acceptProposalSchema = emptyBodySchema;
+
+export const rejectProposalSchema = emptyBodySchema;
 
 export const proposalListQuerySchema = z.object({
 	freight_id: z.coerce.number().int().positive('VALIDATION.FREIGHT_ID_INVALID').optional(),
 	page: z.coerce.number().int().min(1, 'VALIDATION.PAGE_INVALID').optional(),
 	limit: z.coerce.number().int().min(1, 'VALIDATION.LIMIT_INVALID').max(50, 'VALIDATION.LIMIT_MAX').optional(),
-	proposal_status: z.enum(['enviada', 'aceita', 'recusada', 'nao_selecionada', 'todas']).optional(),
+	proposal_status: z
+		.enum(['enviada', 'esperando_caminhoneiro', 'aceita', 'recusada', 'nao_selecionada', 'todas'])
+		.optional(),
 	search: z
 		.string()
 		.optional()

@@ -368,6 +368,17 @@ export const deleteProposal = async (req: Request, res: Response) => {
 			});
 		}
 
+		const enviadaStatus = await getProposalStatusByName(ProposalStatusSlug.ENVIADA);
+		if (
+			enviadaStatus?.id != null &&
+			proposal.status_id != null &&
+			Number(proposal.status_id) !== Number(enviadaStatus.id)
+		) {
+			return res.status(400).json({
+				message: await translation('PROPOSAL.UPDATE_FAILED', locale),
+			});
+		}
+
 		await proposal.destroy();
 		return res.status(200).json({
 			message: await translation('PROPOSAL.DELETED_SUCCESSFULLY', locale),
@@ -421,22 +432,28 @@ export const acceptProposal = async (req: Request, res: Response) => {
 			});
 		}
 
-		const [acceptedStatus, rejectedStatus, notSelectedStatus] = await Promise.all([
-			getAcceptedProposalStatus(),
-			getProposalStatusByName(ProposalStatusSlug.RECUSADA, transaction),
-			getProposalStatusByName(ProposalStatusSlug.NAO_SELECIONADA, transaction),
-		]);
+		const [awaitingDriverStatus, acceptedStatus, rejectedStatus, notSelectedStatus, enviadaStatus] =
+			await Promise.all([
+				getProposalStatusByName(ProposalStatusSlug.ESPERANDO_CAMINHONEIRO, transaction),
+				getAcceptedProposalStatus(),
+				getProposalStatusByName(ProposalStatusSlug.RECUSADA, transaction),
+				getProposalStatusByName(ProposalStatusSlug.NAO_SELECIONADA, transaction),
+				getProposalStatusByName(ProposalStatusSlug.ENVIADA, transaction),
+			]);
 
-		if (!acceptedStatus) {
+		if (!awaitingDriverStatus) {
 			await transaction.rollback();
 			return res.status(400).json({
-				message: await translation('PROPOSAL_STATUS_TYPE.ACCEPTED_NOT_FOUND', locale),
+				message: await translation('PROPOSAL.UPDATE_FAILED', locale),
 			});
 		}
 
-		const blockedStatuses = [rejectedStatus?.id, notSelectedStatus?.id].filter(
-			(statusId): statusId is number => statusId != null
-		);
+		const blockedStatuses = [
+			rejectedStatus?.id,
+			notSelectedStatus?.id,
+			awaitingDriverStatus.id,
+			acceptedStatus?.id,
+		].filter((statusId): statusId is number => statusId != null);
 
 		if (proposal.status_id != null && blockedStatuses.includes(Number(proposal.status_id))) {
 			await transaction.rollback();
@@ -445,23 +462,23 @@ export const acceptProposal = async (req: Request, res: Response) => {
 			});
 		}
 
-		if (!notSelectedStatus) {
+		if (!notSelectedStatus || !enviadaStatus) {
 			await transaction.rollback();
 			return res.status(400).json({
 				message: await translation('PROPOSAL.UPDATE_FAILED', locale),
 			});
 		}
 
-		const vinculadoStatus = await FreightStatusType.findOne({
-			where: { name: FreightStatusSlug.VINCULADO },
-			transaction,
-		});
-
-		const previousFreightStatusId = freight.status_id ?? null;
+		if (freight.assignedDriver_id != null) {
+			await transaction.rollback();
+			return res.status(400).json({
+				message: await translation('PROPOSAL.ACCEPT_FAILED', locale),
+			});
+		}
 
 		await proposal.update(
 			{
-				status_id: acceptedStatus.id,
+				status_id: awaitingDriverStatus.id,
 			},
 			{ transaction }
 		);
@@ -476,25 +493,11 @@ export const acceptProposal = async (req: Request, res: Response) => {
 					id: {
 						[Op.ne]: proposal.id,
 					},
+					status_id: enviadaStatus.id,
 				},
 				transaction,
 			}
 		);
-
-		await freight.update(
-			{
-				assignedDriver_id: proposal.driver_id,
-				finalValue: proposal.value,
-				...(vinculadoStatus?.id != null ? { status_id: vinculadoStatus.id } : {}),
-			},
-			{ transaction }
-		);
-
-		if (vinculadoStatus?.id != null && freight.id != null) {
-			await recordFreightStatusHistory(freight.id, vinculadoStatus.id, previousFreightStatusId, {
-				transaction,
-			});
-		}
 
 		await transaction.commit();
 
@@ -507,6 +510,219 @@ export const acceptProposal = async (req: Request, res: Response) => {
 		console.error(error);
 		return res.status(500).json({
 			message: await translation('PROPOSAL.ACCEPT_FAILED', locale),
+		});
+	}
+};
+
+/**
+ * Motorista confirma v\u00ednculo ap\u00f3s a empresa ter aceito a proposta.
+ * Proposta \u2192 Aceita; frete \u2192 Vinculado com motorista e valor final.
+ */
+export const confirmProposalByDriver = async (req: Request, res: Response) => {
+	const locale = getLocaleFromRequest(req);
+
+	const params = await validateParams(req, res, idParamSchema);
+	if (!params) return;
+
+	const body = await validateBody(req, res, acceptProposalSchema);
+	if (!body) return;
+
+	const transaction = await sequelize.transaction();
+
+	try {
+		const proposal = await Proposal.findByPk(params.id, { transaction });
+
+		if (!proposal) {
+			await transaction.rollback();
+			return res.status(404).json({
+				message: await translation('PROPOSAL.NOT_FOUND', locale),
+			});
+		}
+
+		if (req.user?.role !== 'ADMIN' && req.user?.id !== Number(proposal.driver_id)) {
+			await transaction.rollback();
+			return res.status(403).json({
+				message: await translation('AUTH.FORBIDDEN', locale),
+			});
+		}
+
+		const driverId = proposal.driver_id;
+		const freightId = proposal.freight_id;
+
+		if (driverId == null || freightId == null) {
+			await transaction.rollback();
+			return res.status(400).json({
+				message: await translation('PROPOSAL.UPDATE_FAILED', locale),
+			});
+		}
+
+		const freight = await Freight.findByPk(freightId, { transaction });
+
+		if (!freight) {
+			await transaction.rollback();
+			return res.status(404).json({
+				message: await translation('FREIGHT.NOT_FOUND', locale),
+			});
+		}
+
+		const [awaitingDriverStatus, acceptedStatus, vinculadoStatus] = await Promise.all([
+			getProposalStatusByName(ProposalStatusSlug.ESPERANDO_CAMINHONEIRO, transaction),
+			getAcceptedProposalStatus(),
+			FreightStatusType.findOne({
+				where: { name: FreightStatusSlug.VINCULADO },
+				transaction,
+			}),
+		]);
+
+		if (!awaitingDriverStatus?.id || !acceptedStatus?.id) {
+			await transaction.rollback();
+			return res.status(400).json({
+				message: await translation('PROPOSAL.UPDATE_FAILED', locale),
+			});
+		}
+
+		if (Number(proposal.status_id) !== Number(awaitingDriverStatus.id)) {
+			await transaction.rollback();
+			return res.status(400).json({
+				message: await translation('PROPOSAL.UPDATE_FAILED', locale),
+			});
+		}
+
+		if (freight.assignedDriver_id != null && freight.assignedDriver_id !== driverId) {
+			await transaction.rollback();
+			return res.status(400).json({
+				message: await translation('PROPOSAL.UPDATE_FAILED', locale),
+			});
+		}
+
+		const enviadaStatus = await getProposalStatusByName(ProposalStatusSlug.ENVIADA, transaction);
+
+		await proposal.update({ status_id: acceptedStatus.id }, { transaction });
+
+		if (enviadaStatus?.id) {
+			await Proposal.update(
+				{ status_id: enviadaStatus.id },
+				{
+					where: {
+						driver_id: driverId,
+						status_id: awaitingDriverStatus.id,
+						id: { [Op.ne]: proposal.id },
+					},
+					transaction,
+				}
+			);
+		}
+
+		const previousFreightStatusId = freight.status_id ?? null;
+		await freight.update(
+			{
+				assignedDriver_id: driverId,
+				finalValue: proposal.value,
+				...(vinculadoStatus?.id != null ? { status_id: vinculadoStatus.id } : {}),
+			},
+			{ transaction }
+		);
+
+		if (vinculadoStatus?.id != null) {
+			await recordFreightStatusHistory(freightId, vinculadoStatus.id, previousFreightStatusId, {
+				transaction,
+			});
+		}
+
+		await transaction.commit();
+
+		return res.status(200).json({
+			message: await translation('PROPOSAL.CONFIRMED_BY_DRIVER', locale),
+			proposal,
+		});
+	} catch (error) {
+		await transaction.rollback();
+		console.error(error);
+		return res.status(500).json({
+			message: await translation('PROPOSAL.UPDATE_FAILED', locale),
+		});
+	}
+};
+
+/**
+ * Motorista recusa o v\u00ednculo ap\u00f3s a empresa ter aceito a proposta.
+ */
+export const declineProposalByDriver = async (req: Request, res: Response) => {
+	const locale = getLocaleFromRequest(req);
+
+	const params = await validateParams(req, res, idParamSchema);
+	if (!params) return;
+
+	const body = await validateBody(req, res, acceptProposalSchema);
+	if (!body) return;
+
+	const transaction = await sequelize.transaction();
+
+	try {
+		const proposal = await Proposal.findByPk(params.id, { transaction });
+
+		if (!proposal) {
+			await transaction.rollback();
+			return res.status(404).json({
+				message: await translation('PROPOSAL.NOT_FOUND', locale),
+			});
+		}
+
+		if (req.user?.role !== 'ADMIN' && req.user?.id !== Number(proposal.driver_id)) {
+			await transaction.rollback();
+			return res.status(403).json({
+				message: await translation('AUTH.FORBIDDEN', locale),
+			});
+		}
+
+		const [awaitingDriverStatus, rejectedStatus, notSelectedStatus, enviadaStatus] =
+			await Promise.all([
+				getProposalStatusByName(ProposalStatusSlug.ESPERANDO_CAMINHONEIRO, transaction),
+				getProposalStatusByName(ProposalStatusSlug.RECUSADA, transaction),
+				getProposalStatusByName(ProposalStatusSlug.NAO_SELECIONADA, transaction),
+				getProposalStatusByName(ProposalStatusSlug.ENVIADA, transaction),
+			]);
+
+		if (!awaitingDriverStatus?.id || !rejectedStatus?.id) {
+			await transaction.rollback();
+			return res.status(400).json({
+				message: await translation('PROPOSAL.UPDATE_FAILED', locale),
+			});
+		}
+
+		if (Number(proposal.status_id) !== Number(awaitingDriverStatus.id)) {
+			await transaction.rollback();
+			return res.status(400).json({
+				message: await translation('PROPOSAL.UPDATE_FAILED', locale),
+			});
+		}
+
+		await proposal.update({ status_id: rejectedStatus.id }, { transaction });
+
+		if (notSelectedStatus?.id && enviadaStatus?.id) {
+			await Proposal.update(
+				{ status_id: enviadaStatus.id },
+				{
+					where: {
+						freight_id: proposal.freight_id,
+						status_id: notSelectedStatus.id,
+					},
+					transaction,
+				}
+			);
+		}
+
+		await transaction.commit();
+
+		return res.status(200).json({
+			message: await translation('PROPOSAL.DECLINED_BY_DRIVER', locale),
+			proposal,
+		});
+	} catch (error) {
+		await transaction.rollback();
+		console.error(error);
+		return res.status(500).json({
+			message: await translation('PROPOSAL.UPDATE_FAILED', locale),
 		});
 	}
 };

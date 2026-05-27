@@ -8,6 +8,7 @@ import FreightStatusType from '../models/freightStatusTypes.model';
 
 export type ProposalStatusFilterSlug =
 	| 'enviada'
+	| 'esperando_caminhoneiro'
 	| 'aceita'
 	| 'recusada'
 	| 'nao_selecionada'
@@ -28,6 +29,7 @@ const TERMINAL_FREIGHT_STATUS_NAMES: readonly string[] = [
 
 const LISTABLE_PROPOSAL_STATUS_NAMES: readonly string[] = [
 	ProposalStatusSlug.ENVIADA,
+	ProposalStatusSlug.ESPERANDO_CAMINHONEIRO,
 	ProposalStatusSlug.ACEITA,
 	ProposalStatusSlug.RECUSADA,
 	ProposalStatusSlug.NAO_SELECIONADA,
@@ -43,6 +45,8 @@ export const mapProposalStatusFilterToDomainNames = (
 	switch (value) {
 		case 'aceita':
 			return [ProposalStatusSlug.ACEITA];
+		case 'esperando_caminhoneiro':
+			return [ProposalStatusSlug.ESPERANDO_CAMINHONEIRO];
 		case 'recusada':
 			return [ProposalStatusSlug.RECUSADA];
 		case 'nao_selecionada':
