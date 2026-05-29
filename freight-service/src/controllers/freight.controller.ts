@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import type { Order, Transaction } from 'sequelize';
 import { Op } from 'sequelize';
-import type { Order } from 'sequelize';
 import sequelize from '../config/database';
 import CargoType from '../models/cargoTypes.model';
 import Freight from '../models/freight.model';
@@ -75,20 +74,6 @@ const markFreightProposalsAsNotSelected = async (freightId: number, transaction?
 		}
 	);
 };
-	{
-		model: FreightStatusHistory,
-		as: 'FreightStatusHistories',
-		required: false,
-		separate: true,
-		order: [['occurred_at', 'ASC']] as Order,
-		include: [
-			{
-				model: FreightStatusType,
-				required: false,
-			},
-		],
-	},
-];
 
 const buildFreightListWhere = async (user?: { role?: string; id?: number }) => {
 	if (user?.role === 'ADMIN') return undefined;
@@ -312,7 +297,6 @@ export const updateFreight = async (req: Request, res: Response) => {
 		const isAssignedDriver = role === 'USER' && req.user?.id === Number(freight.assignedDriver_id);
 
 		if (!isAdmin && !isOwnerCompany && !isAssignedDriver) {
-		if (req.user?.role !== 'ADMIN' && req.user?.id !== Number(freight.company_id)) {
 			await transaction.rollback();
 			return res.status(403).json({
 				message: await translation('AUTH.FORBIDDEN', locale),
@@ -320,18 +304,20 @@ export const updateFreight = async (req: Request, res: Response) => {
 		}
 
 		const previousStatusId = freight.status_id ?? null;
-		await freight.update(body, { transaction });
 
 		if (isAssignedDriver && !isAdmin) {
 			if (body.status_id == null) {
+				await transaction.rollback();
 				return res.status(400).json({
 					message: await translation('FREIGHT.STATUS_REQUIRED', locale),
 				});
 			}
 
 			const [currentStatus, targetStatus] = await Promise.all([
-				previousStatusId != null ? FreightStatusType.findByPk(previousStatusId) : Promise.resolve(null),
-				FreightStatusType.findByPk(body.status_id),
+				previousStatusId != null
+					? FreightStatusType.findByPk(previousStatusId, { transaction })
+					: Promise.resolve(null),
+				FreightStatusType.findByPk(body.status_id, { transaction }),
 			]);
 
 			const allowedNextNames = currentStatus?.name
@@ -340,33 +326,37 @@ export const updateFreight = async (req: Request, res: Response) => {
 			const targetName = targetStatus?.name ?? null;
 
 			if (!targetName || !allowedNextNames.includes(targetName)) {
+				await transaction.rollback();
 				return res.status(400).json({
 					message: await translation('FREIGHT.INVALID_STATUS_TRANSITION', locale),
 				});
 			}
 
-			await freight.update({ status_id: body.status_id });
+			await freight.update({ status_id: body.status_id }, { transaction });
 
 			if (freight.id != null) {
-				await recordFreightStatusHistory(freight.id, body.status_id, previousStatusId);
+				await recordFreightStatusHistory(freight.id, body.status_id, previousStatusId, {
+					transaction,
+				});
 			}
 		} else {
-			await freight.update(body);
+			await freight.update(body, { transaction });
 
-		if (body.status_id !== undefined && freight.id != null) {
-			const canceladoStatus = await FreightStatusType.findOne({
-				where: { name: FreightStatusSlug.CANCELADO },
-				transaction,
-			});
-			const canceladoStatusId = canceladoStatus?.id ?? 2;
+			if (body.status_id !== undefined && freight.id != null) {
+				const canceladoStatus = await FreightStatusType.findOne({
+					where: { name: FreightStatusSlug.CANCELADO },
+					transaction,
+				});
+				const canceladoStatusId = canceladoStatus?.id ?? 2;
 
-			if (body.status_id === canceladoStatusId) {
-				await markFreightProposalsAsNotSelected(freight.id, transaction);
+				if (body.status_id === canceladoStatusId) {
+					await markFreightProposalsAsNotSelected(freight.id, transaction);
+				}
+
+				await recordFreightStatusHistory(freight.id, body.status_id, previousStatusId, {
+					transaction,
+				});
 			}
-
-			await recordFreightStatusHistory(freight.id, body.status_id, previousStatusId, {
-				transaction,
-			});
 		}
 
 		await transaction.commit();
