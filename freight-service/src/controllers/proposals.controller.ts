@@ -1,5 +1,4 @@
-import { Op } from 'sequelize';
-import type { Transaction } from 'sequelize';
+import { Op, type Transaction, type WhereOptions } from 'sequelize';
 import { Request, Response } from 'express';
 import sequelize from '../config/database';
 import Freight from '../models/freight.model';
@@ -18,6 +17,7 @@ import { fetchProposalFreightSummary } from '../services/proposalsFreightSummary
 import {
 	fetchProposalListSummary,
 	mapProposalStatusFilterToDomainNames,
+	buildFreightWhere,
 } from '../services/proposalsList.service';
 import {
 	ACCEPTED_PROPOSAL_STATUS_NAMES,
@@ -197,28 +197,41 @@ export const getAllProposals = async (req: Request, res: Response) => {
 		const include = getProposalInclude(statusNames, usePagination);
 		const searchTerm = normalizeSearchTerm(query.search);
 
+		const companyId = req.user?.role === 'COMPANY' ? req.user.id : undefined;
+
 		if (req.user?.role === 'COMPANY') {
 			const freightInclude = include.find((entry) => entry.model === Freight);
 			if (freightInclude) {
 				freightInclude.required = true;
-				(freightInclude as { where?: { company_id: number } }).where = {
-					company_id: req.user.id,
-				};
+				(freightInclude as { where?: WhereOptions }).where = buildFreightWhere(
+					companyId,
+					[],
+					undefined
+				);
 			}
 		}
+
 		if (searchTerm) {
 			const freightInclude = include.find((entry) => entry.model === Freight);
-			if (freightInclude) {
-				const searchLike = `%${searchTerm}%`;
-				(freightInclude as { where?: Record<string, unknown> }).where = {
-					...((freightInclude as { where?: Record<string, unknown> }).where ?? {}),
-					[Op.or]: [
-						{ name: { [Op.like]: searchLike } },
-						{ origin_label: { [Op.like]: searchLike } },
-						{ destination_label: { [Op.like]: searchLike } },
-					],
-				};
+			if (freightInclude && req.user?.role !== 'COMPANY') {
+				freightInclude.required = true;
 			}
+
+			const searchLike = `%${searchTerm}%`;
+			const numericTerm = /^\d+$/.test(searchTerm) ? Number(searchTerm) : undefined;
+			const proposalSearch: Record<string, unknown>[] = [
+				{ '$Freight.name$': { [Op.like]: searchLike } },
+				{ '$Freight.origin_label$': { [Op.like]: searchLike } },
+				{ '$Freight.destination_label$': { [Op.like]: searchLike } },
+				{ '$Freight.cargo.name$': { [Op.like]: searchLike } },
+			];
+			if (numericTerm != null) {
+				proposalSearch.push({ id: numericTerm }, { driver_id: numericTerm });
+			}
+
+			Object.assign(where, {
+				[Op.or]: proposalSearch,
+			});
 		}
 
 		if (usePagination) {
@@ -227,6 +240,9 @@ export const getAllProposals = async (req: Request, res: Response) => {
 			const { rows, count } = await Proposal.findAndCountAll({
 				where: Object.keys(where).length > 0 ? where : undefined,
 				include,
+				distinct: true,
+				col: 'id',
+				subQuery: false,
 				limit,
 				offset: (page - 1) * limit,
 				order: [

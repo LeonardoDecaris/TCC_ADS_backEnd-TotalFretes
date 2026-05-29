@@ -44,7 +44,7 @@ export const mapProposalStatusFilterToDomainNames = (
 
 	switch (value) {
 		case 'aceita':
-			return [ProposalStatusSlug.ACEITA];
+			return [ProposalStatusSlug.ACEITA, ProposalStatusSlug.ESPERANDO_CAMINHONEIRO];
 		case 'esperando_caminhoneiro':
 			return [ProposalStatusSlug.ESPERANDO_CAMINHONEIRO];
 		case 'recusada':
@@ -65,7 +65,7 @@ const getTerminalFreightStatusIds = async (): Promise<number[]> => {
 	return rows.map((row) => row.id).filter((id): id is number => id != null);
 };
 
-const buildFreightWhere = (
+export const buildFreightWhere = (
 	companyId: number | undefined,
 	terminalIds: number[],
 	search?: string
@@ -118,6 +118,23 @@ const buildFreightInclude = (freightWhere: WhereOptions, withCargo: boolean): In
 		: {}),
 });
 
+function normalizeProposalStatusKey(name: string): string {
+	return name
+		.normalize('NFD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.trim()
+		.toLowerCase()
+		.replace(/\s+/g, '_');
+}
+
+function resolveStatusId(statusIdByKey: Map<string, number>, ...aliases: string[]): number | undefined {
+	for (const alias of aliases) {
+		const id = statusIdByKey.get(normalizeProposalStatusKey(alias));
+		if (id != null) return id;
+	}
+	return undefined;
+}
+
 export async function fetchProposalListSummary(params: {
 	companyId?: number;
 	search?: string;
@@ -129,13 +146,12 @@ export async function fetchProposalListSummary(params: {
 		acceptedProposals: 0,
 	};
 
-	const terminalIds = await getTerminalFreightStatusIds();
+	// Alinha com a listagem paginada: conta propostas de todos os fretes da empresa (sem excluir finalizados).
 	const withCargo = Boolean(params.search);
-	const freightWhere = buildFreightWhere(params.companyId, terminalIds, params.search);
+	const freightWhere = buildFreightWhere(params.companyId, [], params.search);
 	const freightInclude = buildFreightInclude(freightWhere, withCargo);
 
 	const statusRows = await ProposalStatusType.findAll({
-		where: { name: { [Op.in]: [...LISTABLE_PROPOSAL_STATUS_NAMES] } },
 		attributes: ['id', 'name'],
 	});
 
@@ -143,15 +159,31 @@ export async function fetchProposalListSummary(params: {
 		return emptySummary;
 	}
 
-	const statusIdByName = new Map(
-		statusRows
-			.filter((row) => row.id != null && row.name != null)
-			.map((row) => [row.name as string, row.id as number])
-	);
+	const statusIdByKey = new Map<string, number>();
+	for (const row of statusRows) {
+		if (row.id != null && row.name) {
+			statusIdByKey.set(normalizeProposalStatusKey(row.name), row.id);
+		}
+	}
 
-	const listableStatusIds = [...statusIdByName.values()];
-	const enviadaStatusId = statusIdByName.get(ProposalStatusSlug.ENVIADA);
-	const aceitaStatusId = statusIdByName.get(ProposalStatusSlug.ACEITA);
+	const listableStatusIds = LISTABLE_PROPOSAL_STATUS_NAMES.map((name) =>
+		resolveStatusId(statusIdByKey, name)
+	).filter((id): id is number => id != null);
+
+	if (listableStatusIds.length === 0) {
+		return emptySummary;
+	}
+
+	const enviadaStatusId = resolveStatusId(statusIdByKey, ProposalStatusSlug.ENVIADA, 'enviada');
+	const acceptedStatusIds = [
+		resolveStatusId(statusIdByKey, ProposalStatusSlug.ACEITA, 'aceita', 'accepted', 'aceito'),
+		resolveStatusId(
+			statusIdByKey,
+			ProposalStatusSlug.ESPERANDO_CAMINHONEIRO,
+			'esperando_caminhoneiro'
+		),
+	].filter((id): id is number => id != null);
+	const uniqueAcceptedStatusIds = [...new Set(acceptedStatusIds)];
 
 	const [uniqueFreights, totalProposals, pendingProposals, acceptedProposals] = await Promise.all([
 		Proposal.count({
@@ -170,9 +202,9 @@ export async function fetchProposalListSummary(params: {
 					include: [freightInclude],
 				})
 			: Promise.resolve(0),
-		aceitaStatusId != null
+		uniqueAcceptedStatusIds.length > 0
 			? Proposal.count({
-					where: { status_id: aceitaStatusId },
+					where: { status_id: { [Op.in]: uniqueAcceptedStatusIds } },
 					include: [freightInclude],
 				})
 			: Promise.resolve(0),
