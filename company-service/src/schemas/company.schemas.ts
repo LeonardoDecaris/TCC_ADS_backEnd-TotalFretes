@@ -38,10 +38,16 @@ const phoneNumberSchema = z
 	);
 
 const websiteSchema = z
-	.string()
-	.url("VALIDATION.WEBSITE_INVALID")
+	.union([
+		z.string().url("VALIDATION.WEBSITE_INVALID"),
+		z.literal(""),
+		z.null(),
+	])
 	.optional()
-	.or(z.literal("").transform(() => undefined));
+	.transform((value) => {
+		if (value === undefined) return undefined;
+		return value && value.length > 0 ? value : null;
+	});
 
 const cnpjSchema = z
 	.string()
