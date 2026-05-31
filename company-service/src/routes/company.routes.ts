@@ -18,7 +18,7 @@ const router = express.Router();
 router.post('/end-account', createCompanyEndAccount);
 router.post('/', createCompany);
 router.delete('/me', authMiddleware, authorizeRoles('COMPANY'), deleteOwnCompany);
-router.get('/:id', authMiddleware, allowOwnerOrRoles(), getCompanyById); 
+router.get('/:id', authMiddleware, allowOwnerOrRoles('COMPANY', 'USER'), getCompanyById); 
 router.get('/', authMiddleware, authorizeRoles('ADMIN'), getAllCompanies);
 router.post('/:id/image', authMiddleware, allowOwnerOrRoles(), uploadCompanyImage.single('image'), upsertCompanyImage);
 router.delete('/:id/image', authMiddleware, allowOwnerOrRoles(), deleteCompanyImage);
