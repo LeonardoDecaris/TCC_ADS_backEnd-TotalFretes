@@ -8,10 +8,6 @@ const storageClient = createHttpClient({
   baseURL: process.env.STORAGE_SERVICE_URL ?? '',
 });
 
-const i18nClient = createHttpClient({
-  baseURL: process.env.I18N_SERVICE_URL ?? '',
-});
-
 export type CreateAccountData = {
   email: string;
   password: string;
@@ -39,14 +35,6 @@ export async function getUserImageHttp({ id }: { id: number }) {
   const result = await storageClient.get(`/user-images/${id}`, {
     fallback: '',
     silentStatuses: [404],  
-  });
-  return result;
-}
-
-export async function getI18nHttp({ locale }: { locale: string }) {
-  const result = await i18nClient.get<{ [key: string]: string }>(`/i18n/${locale}/user-service.json`, {
-    fallback: {},
-    silentStatuses: [404],
   });
   return result;
 }

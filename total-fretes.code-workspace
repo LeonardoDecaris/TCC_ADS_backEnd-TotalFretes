@@ -21,10 +21,6 @@
             "path": "./freight-service"
         },
         {
-            "name": "i18n-translation-service",
-            "path": "./i18n-translation-service"
-        },
-        {
             "name": "mapbox-service",
             "path": "./mapbox-service"
         },

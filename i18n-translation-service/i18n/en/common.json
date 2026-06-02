@@ -1,6 +1,0 @@
-{
-    "welcome": "Bem-vindo ao serviço de tradução i18n!",
-    "description": "Este serviço fornece traduções para diferentes idiomas usando arquivos JSON localizados no diretório i18n.",
-    "usage": "Para obter uma tradução, envie uma solicitação GET para /translate com os parâmetros 'key' e 'lang'.",
-    "example": "Exemplo: /translate?key=welcome&lang=pt-BR retornará 'Bem-vindo ao serviço de tradução i18n!'"
-}

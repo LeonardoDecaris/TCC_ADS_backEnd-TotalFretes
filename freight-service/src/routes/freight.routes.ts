@@ -15,8 +15,8 @@ const router = express.Router();
 
 router.post('/', authMiddleware, authorizeRoles('COMPANY'), createFreight);
 router.get('/', authMiddleware, getAllFreights);
-router.get('/:id', authMiddleware, getFreightById);
 router.get('/user/:id', authMiddleware, getFreightByUserId);
+router.get('/:id', authMiddleware, getFreightById);
 router.put('/:id', authMiddleware, authorizeRoles('COMPANY', 'USER'), updateFreight);
 router.patch('/:id/cancel', authMiddleware, authorizeRoles('COMPANY' ,'USER'), cancelFreight);
 router.patch('/:id/complete', authMiddleware, authorizeRoles('COMPANY'), completeFreight);
