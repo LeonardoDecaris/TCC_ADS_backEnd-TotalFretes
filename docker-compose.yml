@@ -1,4 +1,52 @@
 services:
+  # ===== OBSERVABILITY =====
+  loki:
+    image: grafana/loki
+    container_name: loki
+    restart: on-failure
+    user: "0"
+    command: ["-config.file=/etc/loki/loki.yml"]
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./docker/loki/loki.yml:/etc/loki/loki.yml:ro
+      - loki-data:/var/loki
+    networks:
+      - app-network
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    restart: on-failure
+    depends_on:
+      - loki
+    ports:
+      - "3101:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - app-network
+
+  promtail:
+    image: grafana/promtail
+    container_name: promtail
+    restart: on-failure
+    depends_on:
+      - loki
+    ports:
+      - "3102:9080"
+    volumes:
+      - ./docker/promtail/promtail.yml:/etc/promtail/config.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - app-network
+
   # ===== AUTHENTICATION SERVICE =====
   authentication-service:
     build:
@@ -222,7 +270,9 @@ services:
       start_period: 60s
 
   mapbox-service:
-    build: ./mapbox-service
+    build:
+      context: .
+      dockerfile: mapbox-service/Dockerfile
     container_name: mapbox-service
     restart: always
     env_file:
@@ -323,6 +373,8 @@ services:
       - app-network
 
 volumes:
+  loki-data:
+  grafana-data:
   authentication-service-database-data:
   user-service-database-data:
   company-service-database-data:

@@ -1,4 +1,7 @@
 {
+  "COMMON": {
+    "INTERNAL_ERROR": "Internal server error."
+  },
   "VALIDATION.GENERAL_ERROR": "Data validation error.",
   "COMPANY": {
     "CREATED_SUCCESSFULLY": "Company created successfully.",

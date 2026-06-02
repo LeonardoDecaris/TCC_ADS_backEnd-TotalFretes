@@ -7,6 +7,8 @@ import { publishPasswordResetEmail } from '../messaging/email.publisher';
 import { translation } from '../utils/i18n';
 import { getLocaleFromRequest } from '../utils/locale';
 import { sendError } from '../utils/httpResponse';
+import { logger } from '../config/logger';
+import { logError } from '@total-fretes/observability';
 
 const dispatchResetEmail = (email: string, codigo: string) =>
   publishPasswordResetEmail({ email, codigo });
@@ -32,7 +34,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
     const code = await setResetCode(normalizedEmail);
 
     void dispatchResetEmail(normalizedEmail, code).catch((error) => {
-      console.error('Erro ao publicar e-mail de recuperação na fila:', error);
+      logError(logger, 'Erro ao publicar e-mail de recuperação na fila', error);
     });
 
     return res.status(200).json({
@@ -40,8 +42,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
     });
 
   } catch (error) {
-    console.error('forgotPassword error:', error);
-    return sendError(res, 500, await translation('PASSWORD_RESET.PROCESS_REQUEST_FAILED', locale));
+    return sendError(res, 500, await translation('PASSWORD_RESET.PROCESS_REQUEST_FAILED', locale), error);
   }
 };
 
@@ -49,7 +50,6 @@ export const validateResetCode = async (req: Request, res: Response) => {
   const locale = getLocaleFromRequest(req);
   try {
     const { email, code } = req.body;
-    console.log('dados enviados do api:', { email, code });
     if (!email || !code) {
       return sendError(res, 400, await translation('PASSWORD_RESET.EMAIL_AND_CODE_REQUIRED', locale));
     }
@@ -68,8 +68,7 @@ export const validateResetCode = async (req: Request, res: Response) => {
       resetToken,
     });
   } catch (error) {
-    console.error('validateResetCode error:', error);
-    return sendError(res, 500, await translation('PASSWORD_RESET.VALIDATION_FAILED', locale));
+    return sendError(res, 500, await translation('PASSWORD_RESET.VALIDATION_FAILED', locale), error);
   }
 };
 
@@ -104,8 +103,7 @@ export const resetPassword = async (req: Request, res: Response) => {
       message: await translation('PASSWORD_RESET.PASSWORD_CHANGED_SUCCESSFULLY', locale),
     });
   } catch (error) {
-    console.error('resetPassword error:', error);
-    return sendError(res, 500, await translation('PASSWORD_RESET.RESET_FAILED', locale));
+    return sendError(res, 500, await translation('PASSWORD_RESET.RESET_FAILED', locale), error);
   }
 };
 
@@ -126,14 +124,13 @@ export const resendCode = async (req: Request, res: Response) => {
 
     const code = await setResetCode(normalizedEmail);
     void dispatchResetEmail(normalizedEmail, code).catch((error) => {
-      console.error('Erro ao publicar e-mail de recuperação na fila:', error);
+      logError(logger, 'Erro ao publicar e-mail de recuperação na fila', error);
     });
     return res.status(200).json({
       message: await translation('PASSWORD_RESET.REQUEST_ACCEPTED_GENERIC', locale),
     });
   }
   catch (error) {
-    console.error('resendCode error:', error);
-    return sendError(res, 500, await translation('PASSWORD_RESET.PROCESS_REQUEST_FAILED', locale));
+    return sendError(res, 500, await translation('PASSWORD_RESET.PROCESS_REQUEST_FAILED', locale), error);
   }
 };

@@ -1,4 +1,7 @@
 {
+  "COMMON": {
+    "INTERNAL_ERROR": "Erro interno do servidor."
+  },
   "AUTH": {
     "UNAUTHORIZED": "Não autenticado.",
     "FORBIDDEN": "Acesso negado."
@@ -67,6 +70,7 @@
     "DRIVER_ALREADY_ACTIVE": "Você já possui um frete em andamento. Conclua-o antes de aceitar outro."
   },
   "VALIDATION": {
+    "GENERAL_ERROR": "Erro de validação.",
     "ERROR": "Erro de validação.",
     "PARAMS_INVALID": "Parâmetros da URL inválidos.",
     "ID_INVALID": "Identificador inválido.",

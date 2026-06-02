@@ -20,7 +20,7 @@ export const createGroupVehicleType = async (req: Request, res: Response) => {
 	} catch (error) {
 		const zodError = await handleZodError(error, locale, res);
 		if (zodError) return;
-		return sendError(res, 500, 'GROUP_VEHICLE_TYPE.CREATE_FAILED', locale);
+		return sendError(res, 500, 'GROUP_VEHICLE_TYPE.CREATE_FAILED', locale, error);
 	}
 };
 
@@ -32,7 +32,7 @@ export const getAllGroupVehicleTypes = async (req: Request, res: Response) => {
 		});
 		return res.status(200).json(groupVehicleTypes);
 	} catch (error) {
-		return sendError(res, 500, 'GROUP_VEHICLE_TYPE.GET_ALL_FAILED', locale);
+		return sendError(res, 500, 'GROUP_VEHICLE_TYPE.GET_ALL_FAILED', locale, error);
 	}
 };
 
@@ -49,7 +49,7 @@ export const getGroupVehicleTypeById = async (req: Request, res: Response) => {
 
 		return res.status(200).json(groupVehicleType);
 	} catch (error) {
-		return sendError(res, 500, 'GROUP_VEHICLE_TYPE.GET_BY_ID_FAILED', locale);
+		return sendError(res, 500, 'GROUP_VEHICLE_TYPE.GET_BY_ID_FAILED', locale, error);
 	}
 };
 
@@ -72,7 +72,7 @@ export const updateGroupVehicleType = async (req: Request, res: Response) => {
 	} catch (error) {
 		const zodError = await handleZodError(error, locale, res);
 		if (zodError) return;
-		return sendError(res, 500, 'GROUP_VEHICLE_TYPE.UPDATE_FAILED', locale);
+		return sendError(res, 500, 'GROUP_VEHICLE_TYPE.UPDATE_FAILED', locale, error);
 	}
 };
 
@@ -90,6 +90,6 @@ export const deleteGroupVehicleType = async (req: Request, res: Response) => {
 			message: await translation("GROUP_VEHICLE_TYPE.DELETED_SUCCESSFULLY", locale),
 		});
 	} catch (error) {
-		return sendError(res, 500, 'GROUP_VEHICLE_TYPE.DELETE_FAILED', locale);
+		return sendError(res, 500, 'GROUP_VEHICLE_TYPE.DELETE_FAILED', locale, error);
 	}
 };

@@ -36,8 +36,14 @@ export const createFreight = async (req: Request, res: Response) => {
       freight: enriched,
     });
   } catch (error) {
+    if (error instanceof FreightForbiddenError) {
+      return sendError(res, 403, 'AUTH.FORBIDDEN', locale, error);
+    }
+    if (error instanceof FreightValidationError) {
+      return sendError(res, 400, error.code, locale, error);
+    }
     if (await handleZodError(error, locale, res)) return;
-    return sendError(res, 500, 'FREIGHT.CREATE_FAILED', locale);
+    return sendError(res, 500, 'FREIGHT.CREATE_FAILED', locale, error);
   }
 };
 
@@ -72,7 +78,7 @@ export const getAllFreights = async (req: Request, res: Response) => {
     return res.status(200).json(freights);
   } catch (error) {
     if (await handleZodError(error, locale, res)) return;
-    return sendError(res, 500, 'FREIGHT.GET_ALL_FAILED', locale);
+    return sendError(res, 500, 'FREIGHT.GET_ALL_FAILED', locale, error);
   }
 };
 
@@ -92,10 +98,10 @@ export const getFreightById = async (req: Request, res: Response) => {
     return res.status(200).json(enriched);
   } catch (error) {
     if (error instanceof FreightForbiddenError) {
-      return sendError(res, 403, 'AUTH.FORBIDDEN', locale);
+      return sendError(res, 403, 'AUTH.FORBIDDEN', locale, error);
     }
     if (await handleZodError(error, locale, res)) return;
-    return sendError(res, 500, 'FREIGHT.GET_BY_ID_FAILED', locale);
+    return sendError(res, 500, 'FREIGHT.GET_BY_ID_FAILED', locale, error);
   }
 };
 
@@ -110,7 +116,8 @@ export const getFreightByUserId = async (req: Request, res: Response) => {
     const enriched = await enrichFreightWithCompany(freight, getEnrichmentContext(req));
     return res.status(200).json(enriched);
   } catch (error) {
-    return sendError(res, 500, 'FREIGHT.GET_BY_ID_FAILED', locale);
+    if (await handleZodError(error, locale, res)) return;
+    return sendError(res, 500, 'FREIGHT.GET_BY_ID_FAILED', locale, error);
   }
 };
 
@@ -127,16 +134,16 @@ export const updateFreight = async (req: Request, res: Response) => {
     });
   } catch (error) {
     if (error instanceof FreightNotFoundError) {
-      return sendError(res, 404, 'FREIGHT.NOT_FOUND', locale);
+      return sendError(res, 404, 'FREIGHT.NOT_FOUND', locale, error);
     }
     if (error instanceof FreightForbiddenError) {
-      return sendError(res, 403, 'AUTH.FORBIDDEN', locale);
+      return sendError(res, 403, 'AUTH.FORBIDDEN', locale, error);
     }
     if (error instanceof FreightValidationError) {
-      return sendError(res, 400, error.code, locale);
+      return sendError(res, 400, error.code, locale, error);
     }
     if (await handleZodError(error, locale, res)) return;
-    return sendError(res, 500, 'FREIGHT.UPDATE_FAILED', locale);
+    return sendError(res, 500, 'FREIGHT.UPDATE_FAILED', locale, error);
   }
 };
 
@@ -150,13 +157,13 @@ export const deleteFreight = async (req: Request, res: Response) => {
     });
   } catch (error) {
     if (error instanceof FreightNotFoundError) {
-      return sendError(res, 404, 'FREIGHT.NOT_FOUND', locale);
+      return sendError(res, 404, 'FREIGHT.NOT_FOUND', locale, error);
     }
     if (error instanceof FreightForbiddenError) {
-      return sendError(res, 403, 'AUTH.FORBIDDEN', locale);
+      return sendError(res, 403, 'AUTH.FORBIDDEN', locale, error);
     }
     if (await handleZodError(error, locale, res)) return;
-    return sendError(res, 500, 'FREIGHT.DELETE_FAILED', locale);
+    return sendError(res, 500, 'FREIGHT.DELETE_FAILED', locale, error);
   }
 };
 
@@ -172,13 +179,16 @@ export const cancelFreight = async (req: Request, res: Response) => {
     });
   } catch (error) {
     if (error instanceof FreightNotFoundError) {
-      return sendError(res, 404, 'FREIGHT.NOT_FOUND', locale);
+      return sendError(res, 404, 'FREIGHT.NOT_FOUND', locale, error);
     }
     if (error instanceof FreightForbiddenError) {
-      return sendError(res, 403, 'AUTH.FORBIDDEN', locale);
+      return sendError(res, 403, 'AUTH.FORBIDDEN', locale, error);
+    }
+    if (error instanceof FreightValidationError) {
+      return sendError(res, 400, error.code, locale, error);
     }
     if (await handleZodError(error, locale, res)) return;
-    return sendError(res, 500, 'FREIGHT.CANCEL_FAILED', locale);
+    return sendError(res, 500, 'FREIGHT.CANCEL_FAILED', locale, error);
   }
 };
 
@@ -194,15 +204,15 @@ export const completeFreight = async (req: Request, res: Response) => {
     });
   } catch (error) {
     if (error instanceof FreightNotFoundError) {
-      return sendError(res, 404, 'FREIGHT.NOT_FOUND', locale);
+      return sendError(res, 404, 'FREIGHT.NOT_FOUND', locale, error);
     }
     if (error instanceof FreightForbiddenError) {
-      return sendError(res, 403, 'AUTH.FORBIDDEN', locale);
+      return sendError(res, 403, 'AUTH.FORBIDDEN', locale, error);
     }
     if (error instanceof FreightValidationError) {
-      return sendError(res, 400, error.code, locale);
+      return sendError(res, 400, error.code, locale, error);
     }
     if (await handleZodError(error, locale, res)) return;
-    return sendError(res, 500, 'FREIGHT.UPDATE_FAILED', locale);
+    return sendError(res, 500, 'FREIGHT.UPDATE_FAILED', locale, error);
   }
 };

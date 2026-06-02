@@ -38,10 +38,9 @@ export const login = async (req: Request, res: Response) => {
       token,
     });
   } catch (error) {
-    console.error(error);
     const zodError = await handleZodError(error, locale);
     if (zodError) return res.status(zodError.status).json(zodError.body);
-    return sendError(res, 500, await translation('AUTH.LOGIN_FAILED', locale), { error });
+    return sendError(res, 500, await translation('AUTH.LOGIN_FAILED', locale), error);
   }
 };
 
@@ -72,9 +71,8 @@ export const validateToken = async (req: Request, res: Response) => {
       ok: true,
     });
   } catch (error) {
-    return sendError(res, 401, await translation('AUTH.TOKEN_INVALID_OR_EXPIRED', locale), {
+    return sendError(res, 401, await translation('AUTH.TOKEN_INVALID_OR_EXPIRED', locale), error, {
       valid: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 };

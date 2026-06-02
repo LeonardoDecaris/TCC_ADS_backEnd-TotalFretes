@@ -5,6 +5,9 @@ import { copyToBackup, getStoredFullPath, getStoredRelativePath, removeFromBacku
 import { translation } from '../utils/i18n';
 import { getLocaleFromRequest } from '../utils/locale';
 import { getUserImageJsonByPk, serializeUserImage } from '../services/userImage.service';
+import { sendStorageError } from '../utils/httpResponse';
+import { logError } from '@total-fretes/observability';
+import { logger } from '../config/logger';
 
 type RequestWithFile = Request & {
   file?: { originalname: string; filename: string; mimetype: string; size: number };
@@ -60,10 +63,13 @@ export const saveUserImage = async (req: RequestWithFile, res: Response) => {
       userImage: serializeUserImage(savedImage),
     });
   } catch (error) {
-    return res.status(500).json({
-      message: await translation('USER_IMAGE.SAVE_FAILED', locale),
-      error: error instanceof Error ? error.message : 'Unknown error',
-    });
+    logError(logger, 'saveUserImage failed', error);
+    return sendStorageError(
+      res,
+      500,
+      await translation('USER_IMAGE.SAVE_FAILED', locale),
+      error,
+    );
   }
 };
 
@@ -73,10 +79,12 @@ export const getAllUserImages = async (req: Request, res: Response) => {
     const images = await UserImage.findAll({ order: [['id', 'ASC']] });
     return res.status(200).json(images.map((image) => serializeUserImage(image)));
   } catch (error) {
-    return res.status(500).json({
-      message: await translation('USER_IMAGE.GET_ALL_FAILED', locale),
-      error: error instanceof Error ? error.message : 'Unknown error',
-    });
+    return sendStorageError(
+      res,
+      500,
+      await translation('USER_IMAGE.GET_ALL_FAILED', locale),
+      error,
+    );
   }
 };
 
@@ -97,10 +105,12 @@ export const getUserImageById = async (req: Request, res: Response) => {
     }
     return res.status(200).json(userImage);
   } catch (error) {
-    return res.status(500).json({
-      message: await translation('USER_IMAGE.GET_BY_ID_FAILED', locale),
-      error: error instanceof Error ? error.message : 'Unknown error',
-    });
+    return sendStorageError(
+      res,
+      500,
+      await translation('USER_IMAGE.GET_BY_ID_FAILED', locale),
+      error,
+    );
   }
 };
 
@@ -151,10 +161,12 @@ export const updateUserImage = async (req: RequestWithFile, res: Response) => {
       userImage: updated ? serializeUserImage(updated) : null,
     });
   } catch (error) {
-    return res.status(500).json({
-      message: await translation('USER_IMAGE.UPDATE_FAILED', locale),
-      error: error instanceof Error ? error.message : 'Unknown error',
-    });
+    return sendStorageError(
+      res,
+      500,
+      await translation('USER_IMAGE.UPDATE_FAILED', locale),
+      error,
+    );
   }
 };
 
@@ -184,10 +196,12 @@ export const deleteUserImage = async (req: Request, res: Response) => {
       message: await translation('USER_IMAGE.DELETED_SUCCESSFULLY', locale),
     });
   } catch (error) {
-    return res.status(500).json({
-      message: await translation('USER_IMAGE.DELETE_FAILED', locale),
-      error: error instanceof Error ? error.message : 'Unknown error',
-    });
+    return sendStorageError(
+      res,
+      500,
+      await translation('USER_IMAGE.DELETE_FAILED', locale),
+      error,
+    );
   }
 };
 
@@ -195,27 +209,33 @@ export const handleUploadError = async (
   err: Error,
   req: Request,
   res: Response,
-  next: (err?: unknown) => void
+  _next: (err?: unknown) => void,
 ) => {
-  try {
-    const locale = getLocaleFromRequest(req);
-    if (err.message.includes('Arquivo inválido')) {
-      return res.status(400).json({
-        message: await translation('USER_IMAGE.INVALID_FILE', locale),
-      });
-    }
+  const locale = getLocaleFromRequest(req);
+  logError(logger, 'handleUploadError', err);
 
-    if (err.message.toLowerCase().includes('file too large')) {
-      return res.status(400).json({
-        message: await translation('USER_IMAGE.FILE_TOO_LARGE', locale),
-      });
-    }
-
-    return res.status(500).json({
-      message: await translation('USER_IMAGE.UPLOAD_PROCESS_FAILED', locale),
-      error: err.message,
-    });
-  } catch (e) {
-    next(e);
+  if (err.message.includes('Arquivo inválido')) {
+    return sendStorageError(
+      res,
+      400,
+      await translation('USER_IMAGE.INVALID_FILE', locale),
+      err,
+    );
   }
+
+  if (err.message.toLowerCase().includes('file too large')) {
+    return sendStorageError(
+      res,
+      400,
+      await translation('USER_IMAGE.FILE_TOO_LARGE', locale),
+      err,
+    );
+  }
+
+  return sendStorageError(
+    res,
+    500,
+    await translation('USER_IMAGE.UPLOAD_PROCESS_FAILED', locale),
+    err,
+  );
 };

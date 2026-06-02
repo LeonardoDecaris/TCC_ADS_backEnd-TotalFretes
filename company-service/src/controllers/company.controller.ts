@@ -19,6 +19,8 @@ import { translation } from "../utils/i18n";
 import { getLocaleFromRequest } from "../utils/locale";
 import { sendError, sendConflictError } from "../services/httpResponse";
 import { handleZodError } from "../utils/zodError";
+import { logger } from "../config/logger";
+import { logError } from "@total-fretes/observability";
 
 import {
 	createCompanySchema,
@@ -132,7 +134,7 @@ export const createCompany = async (req: Request, res: Response) => {
 		});
 	} catch (error) {
 		if (await handleZodError(error, locale, res)) return;
-		return sendError(res, 500, "COMPANY.CREATE_FAILED", locale);
+		return sendError(res, 500, "COMPANY.CREATE_FAILED", locale, error);
 	}
 };
 
@@ -145,7 +147,7 @@ export const getCompanyById = async (req: Request, res: Response) => {
 		}
 		return res.status(200).json(await buildCompanyResponse(company));
 	} catch (error) {
-		return sendError(res, 500, "COMPANY.GET_BY_ID_FAILED", locale);
+		return sendError(res, 500, "COMPANY.GET_BY_ID_FAILED", locale, error);
 	}
 };
 
@@ -155,7 +157,7 @@ export const getAllCompanies = async (req: Request, res: Response) => {
 		const company = await Company.findAll();
 		return res.status(200).json(company);
 	} catch (error) {
-		return sendError(res, 500, "COMPANY.GET_ALL_FAILED", locale);
+		return sendError(res, 500, "COMPANY.GET_ALL_FAILED", locale, error);
 	}
 };
 
@@ -183,7 +185,7 @@ export const updateCompany = async (req: Request, res: Response) => {
 		});
 	} catch (error) {
 		if (await handleZodError(error, locale, res)) return;
-		return sendError(res, 500, "COMPANY.UPDATE_FAILED", locale);
+		return sendError(res, 500, "COMPANY.UPDATE_FAILED", locale, error);
 	}
 };
 
@@ -204,7 +206,7 @@ export const deleteCompany = async (req: Request, res: Response) => {
 			message: await translation("COMPANY.DELETED_SUCCESSFULLY", locale),
 		});
 	} catch (error) {
-		return sendError(res, 500, "COMPANY.DELETE_FAILED", locale);
+		return sendError(res, 500, "COMPANY.DELETE_FAILED", locale, error);
 	}
 };
 
@@ -258,8 +260,8 @@ export const deleteOwnCompany = async (req: Request, res: Response) => {
 			message: await translation("COMPANY.DELETED_SUCCESSFULLY", locale),
 		});
 	} catch (error) {
-		console.error("deleteOwnCompany failed:", error);
-		return sendError(res, 500, "COMPANY.DELETE_FAILED", locale);
+		logError(logger, 'deleteOwnCompany failed', error);
+		return sendError(res, 500, "COMPANY.DELETE_FAILED", locale, error);
 	}
 };
 
@@ -328,7 +330,7 @@ export const createCompanyEndAccount = async (req: Request, res: Response) => {
 
 	} catch (error) {
 		if (await handleZodError(error, locale, res)) return;
-		return sendError(res, 500, "COMPANY.CREATE_FAILED", locale);
+		return sendError(res, 500, "COMPANY.CREATE_FAILED", locale, error);
 	}
 };
 
@@ -397,8 +399,8 @@ export const upsertCompanyImage = async (req: RequestWithFile, res: Response) =>
 			});
 		}
 
-		console.error("upsertCompanyImage failed:", error);
-		return sendError(res, 500, "COMPANY_IMAGE.UPDATE_FAILED", locale);
+		logError(logger, 'upsertCompanyImage failed', error);
+		return sendError(res, 500, "COMPANY_IMAGE.UPDATE_FAILED", locale, error);
 	}
 };
 
@@ -423,7 +425,7 @@ export const deleteCompanyImage = async (req: Request, res: Response) => {
 			company: await buildCompanyResponse(company),
 		});
 	} catch (error) {
-		console.error("deleteCompanyImage failed:", error);
-		return sendError(res, 500, "COMPANY_IMAGE.DELETE_FAILED", locale);
+		logError(logger, 'deleteCompanyImage failed', error);
+		return sendError(res, 500, "COMPANY_IMAGE.DELETE_FAILED", locale, error);
 	}
 };

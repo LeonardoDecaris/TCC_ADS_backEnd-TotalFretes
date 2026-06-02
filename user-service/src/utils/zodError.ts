@@ -7,6 +7,7 @@ export const handleZodError = async (
   error: unknown,
   locale: string,
   res: Response,
+  sourceError?: unknown,
 ): Promise<boolean> => {
   if (!(error instanceof ZodError)) return false;
 
@@ -17,6 +18,6 @@ export const handleZodError = async (
     })),
   );
 
-  await sendValidationError(res, 'VALIDATION.GENERAL_ERROR', locale, issues);
+  await sendValidationError(res, 'VALIDATION.GENERAL_ERROR', locale, issues, sourceError ?? error);
   return true;
 };
