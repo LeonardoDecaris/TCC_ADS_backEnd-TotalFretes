@@ -6,9 +6,9 @@ const DEFAULT_CARGO_TYPES: Array<{
 	imageCargo_id: number;
 }> = [
 	{ name: 'Minerais', vehicleType: '4', imageCargo_id: 1 },
-	{ name: 'Grãos', vehicleType: '4', imageCargo_id: 1 },
-	{ name: 'Adubo', vehicleType: '4', imageCargo_id: 1 },
-	{ name: 'Líquido', vehicleType: '4', imageCargo_id: 1 },
+	{ name: 'Grãos', vehicleType: '5', imageCargo_id: 2 },
+	{ name: 'Adubo', vehicleType: '4', imageCargo_id: 3 },
+	{ name: 'Líquido', vehicleType: '5', imageCargo_id: 4 },
 ];
 
 export const seedCargoTypes = async (): Promise<void> => {
