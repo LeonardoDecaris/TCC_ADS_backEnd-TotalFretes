@@ -104,3 +104,7 @@ export const createCompanyEndAccountSchema = createCompanySchema
 			.number()
 			.positive("VALIDATION.ACCOUNT_TYPE_INVALID"),
 	});
+
+export const paymentTokenRequestSchema = z.object({
+	email: emailSchema,
+});

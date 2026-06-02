@@ -26,7 +26,8 @@
     "NEW_PASSWORD_MUST_DIFFER": "A nova senha deve ser diferente da atual.",
     "PASSWORD_CHANGED_SUCCESSFULLY": "Senha alterada com sucesso.",
     "TOKEN_INVALID_OR_MISSING": "Token inválido ou ausente.",
-    "TOKEN_INVALID_OR_EXPIRED": "Token inválido ou expirado."
+    "TOKEN_INVALID_OR_EXPIRED": "Token inválido ou expirado.",
+    "PAYMENT_PENDING": "Conclua o pagamento para acessar a plataforma."
   },
   "PASSWORD_RESET": {
     "EMAIL_REQUIRED": "Email é obrigatório.",
