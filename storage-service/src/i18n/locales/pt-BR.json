@@ -1,0 +1,18 @@
+{
+  "USER_IMAGE": {
+    "NO_IMAGE_SENT": "Nenhuma imagem foi enviada.",
+    "SAVED_SUCCESSFULLY": "Imagem salva com sucesso.",
+    "SAVE_FAILED": "Erro ao salvar imagem.",
+    "GET_ALL_FAILED": "Erro ao listar imagens.",
+    "INVALID_ID": "ID inválido.",
+    "NOT_FOUND": "Imagem não encontrada.",
+    "GET_BY_ID_FAILED": "Erro ao buscar imagem.",
+    "UPDATED_SUCCESSFULLY": "Imagem atualizada com sucesso.",
+    "UPDATE_FAILED": "Erro ao atualizar imagem.",
+    "DELETED_SUCCESSFULLY": "Imagem removida com sucesso.",
+    "DELETE_FAILED": "Erro ao remover imagem.",
+    "INVALID_FILE": "Arquivo inválido. Envie apenas imagens.",
+    "FILE_TOO_LARGE": "Arquivo excede o limite de 5MB.",
+    "UPLOAD_PROCESS_FAILED": "Erro ao processar upload."
+  }
+}

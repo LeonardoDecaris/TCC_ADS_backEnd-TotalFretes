@@ -236,25 +236,6 @@ services:
       retries: 10
       start_period: 60s
 
-  i18n-translation-service:
-    build:
-      context: .
-      dockerfile: i18n-translation-service/Dockerfile
-    container_name: i18n-translation-service
-    restart: always
-    env_file:
-      - ./i18n-translation-service/.env
-    ports:
-      - "3006:3006"
-    networks:
-      - app-network
-    healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3006/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 60s
-
   freight-service:
     build:
       context: .
@@ -328,8 +309,6 @@ services:
       mapbox-service:
         condition: service_started
       swagger-service:
-        condition: service_started
-      i18n-translation-service:
         condition: service_started
       storage-service:
         condition: service_started

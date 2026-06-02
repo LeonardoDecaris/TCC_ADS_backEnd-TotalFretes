@@ -24,10 +24,6 @@ const freightClient = createHttpClient({
 	baseURL: freightServiceBaseUrl,
 });
 
-const i18nClient = createHttpClient({
-	baseURL: process.env.I18N_SERVICE_URL ?? '',
-});
-
 export type StorageImageData = {
 	id: number;
 	originalName?: string;
@@ -181,13 +177,5 @@ export async function deleteUserImageHttp({ id }: { id: number }) {
 		},
 	);
 
-	return result;
-}
-
-export async function getI18nHttp({ locale }: { locale: string }) {
-	const result = await i18nClient.get<{ [key: string]: string }>(`/i18n/${locale}/company-service.json`, {
-		fallback: {},
-		silentStatuses: [404],
-	});
 	return result;
 }
