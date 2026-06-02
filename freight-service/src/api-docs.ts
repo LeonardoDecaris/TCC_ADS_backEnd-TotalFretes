@@ -628,8 +628,8 @@ export const apiDocs = {
 			patch: {
 				summary: 'Recusar proposta',
 				description:
-					'Empresa dona do frete ou ADMIN. Body vazio `{}`. ' +
-					'Atualiza status da proposta para recusada.',
+					'Empresa dona do frete ou ADMIN. Body opcional com `rejection_comment` (até 500 caracteres). ' +
+					'Atualiza status da proposta para recusada e persiste o comentário quando informado.',
 				tags: ['Proposal'],
 				security: [{ bearerAuth: [] }],
 				parameters: [{ $ref: '#/components/parameters/IdPath' }],
@@ -637,7 +637,16 @@ export const apiDocs = {
 					required: false,
 					content: {
 						'application/json': {
-							schema: { type: 'object', additionalProperties: false, description: 'Sem campos obrigatórios' },
+							schema: {
+								type: 'object',
+								properties: {
+									rejection_comment: {
+										type: 'string',
+										maxLength: 500,
+										description: 'Comentário opcional da empresa ao recusar',
+									},
+								},
+							},
 						},
 					},
 				},
@@ -898,6 +907,12 @@ export const apiDocs = {
 					driver_id: { type: 'integer' },
 					status_id: { type: 'integer', nullable: true },
 					value: { type: 'number' },
+					rejection_comment: {
+						type: 'string',
+						maxLength: 500,
+						nullable: true,
+						description: 'Comentário da empresa ao recusar (opcional)',
+					},
 					createdAt: { type: 'string', format: 'date-time' },
 					updatedAt: { type: 'string', format: 'date-time' },
 					Freight: { $ref: '#/components/schemas/Freight', nullable: true },

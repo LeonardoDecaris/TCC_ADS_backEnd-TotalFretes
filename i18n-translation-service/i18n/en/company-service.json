@@ -16,7 +16,16 @@
         "ALREADY_EXISTS": "A company with one or more of the provided details already exists.",
         "EMAIL_ALREADY_EXISTS": "A company with this email already exists.",
         "CNPJ_ALREADY_EXISTS": "A company with this CNPJ already exists.",
-        "PHONE_NUMBER_ALREADY_EXISTS": "A company with this phone number already exists."
+        "PHONE_NUMBER_ALREADY_EXISTS": "A company with this phone number already exists.",
+        "PAYMENT_TOKEN_INVALID": "Invalid or expired payment token.",
+        "PAYMENT_ALREADY_COMPLETED": "Payment has already been completed.",
+        "PAYMENT_COMPLETED_SUCCESSFULLY": "Payment completed successfully.",
+        "PAYMENT_COMPLETE_FAILED": "Error completing payment.",
+        "PAYMENT_TOKEN_REQUEST_ACCEPTED": "If the email is registered with pending payment, you may continue shortly.",
+        "PAYMENT_TOKEN_ISSUED": "Payment token issued successfully.",
+        "PAYMENT_TOKEN_REQUEST_FAILED": "Error requesting payment token.",
+        "GET_PAYMENT_STATUS_FAILED": "Error fetching payment status.",
+        "INTERNAL_UNAUTHORIZED": "Unauthorized internal access."
     },
     "AUTH": {
         "TOKEN_INVALID_OR_MISSING": "Invalid or missing token."

@@ -787,6 +787,7 @@ export const rejectProposal = async (req: Request, res: Response) => {
 
 		await proposal.update({
 			status_id: rejectedStatus.id,
+			rejection_comment: body.rejection_comment ?? null,
 		});
 
 		return res.status(200).json({

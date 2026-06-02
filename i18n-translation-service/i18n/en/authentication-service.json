@@ -26,7 +26,8 @@
     "NEW_PASSWORD_MUST_DIFFER": "The new password must be different from the current one.",
     "PASSWORD_CHANGED_SUCCESSFULLY": "Password changed successfully.",
     "TOKEN_INVALID_OR_MISSING": "Invalid or missing token.",
-    "TOKEN_INVALID_OR_EXPIRED": "Invalid or expired token."
+    "TOKEN_INVALID_OR_EXPIRED": "Invalid or expired token.",
+    "PAYMENT_PENDING": "Complete payment to access the platform."
   },
   "PASSWORD_RESET": {
     "EMAIL_REQUIRED": "Email is required.",

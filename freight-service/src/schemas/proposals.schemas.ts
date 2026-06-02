@@ -17,7 +17,17 @@ const emptyBodySchema = z.preprocess(
 
 export const acceptProposalSchema = emptyBodySchema;
 
-export const rejectProposalSchema = emptyBodySchema;
+export const rejectProposalSchema = z.preprocess(
+	(val) => (val === undefined || val === null ? {} : val),
+	z.object({
+		rejection_comment: z
+			.string()
+			.trim()
+			.max(500, 'VALIDATION.PROPOSAL_REJECTION_COMMENT_MAX')
+			.optional()
+			.transform((value) => (value && value.length > 0 ? value : undefined)),
+	}),
+);
 
 export const proposalListQuerySchema = z.object({
 	freight_id: z.coerce.number().int().positive('VALIDATION.FREIGHT_ID_INVALID').optional(),
