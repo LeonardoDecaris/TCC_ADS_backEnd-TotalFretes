@@ -45,7 +45,7 @@ export const getProposalFreightSummary = async (req: Request, res: Response) => 
     return res.status(200).json(result);
   } catch (error) {
     if (await handleZodError(error, locale, res)) return;
-    return sendError(res, 500, 'PROPOSAL.GET_ALL_FAILED', locale);
+    return sendError(res, 500, 'PROPOSAL.GET_ALL_FAILED', locale, error);
   }
 };
 
@@ -63,7 +63,7 @@ export const createProposal = async (req: Request, res: Response) => {
       return sendError(res, 404, 'FREIGHT.NOT_FOUND', locale);
     }
     if (await handleZodError(error, locale, res)) return;
-    return sendError(res, 500, 'PROPOSAL.CREATE_FAILED', locale);
+    return sendError(res, 500, 'PROPOSAL.CREATE_FAILED', locale, error);
   }
 };
 
@@ -91,7 +91,7 @@ export const getAllProposals = async (req: Request, res: Response) => {
     return res.status(200).json(proposals);
   } catch (error) {
     if (await handleZodError(error, locale, res)) return;
-    return sendError(res, 500, 'PROPOSAL.GET_ALL_FAILED', locale);
+    return sendError(res, 500, 'PROPOSAL.GET_ALL_FAILED', locale, error);
   }
 };
 
@@ -111,10 +111,10 @@ export const getProposalById = async (req: Request, res: Response) => {
     return res.status(200).json(enriched);
   } catch (error) {
     if (error instanceof ProposalForbiddenError) {
-      return sendError(res, 403, 'AUTH.FORBIDDEN', locale);
+      return sendError(res, 403, 'AUTH.FORBIDDEN', locale, error);
     }
     if (await handleZodError(error, locale, res)) return;
-    return sendError(res, 500, 'PROPOSAL.GET_BY_ID_FAILED', locale);
+    return sendError(res, 500, 'PROPOSAL.GET_BY_ID_FAILED', locale, error);
   }
 };
 
@@ -130,13 +130,13 @@ export const updateProposal = async (req: Request, res: Response) => {
     });
   } catch (error) {
     if (error instanceof ProposalNotFoundError) {
-      return sendError(res, 404, 'PROPOSAL.NOT_FOUND', locale);
+      return sendError(res, 404, 'PROPOSAL.NOT_FOUND', locale, error);
     }
     if (error instanceof ProposalForbiddenError) {
-      return sendError(res, 403, 'AUTH.FORBIDDEN', locale);
+      return sendError(res, 403, 'AUTH.FORBIDDEN', locale, error);
     }
     if (await handleZodError(error, locale, res)) return;
-    return sendError(res, 500, 'PROPOSAL.UPDATE_FAILED', locale);
+    return sendError(res, 500, 'PROPOSAL.UPDATE_FAILED', locale, error);
   }
 };
 
@@ -150,16 +150,16 @@ export const deleteProposal = async (req: Request, res: Response) => {
     });
   } catch (error) {
     if (error instanceof ProposalNotFoundError) {
-      return sendError(res, 404, 'PROPOSAL.NOT_FOUND', locale);
+      return sendError(res, 404, 'PROPOSAL.NOT_FOUND', locale, error);
     }
     if (error instanceof ProposalForbiddenError) {
-      return sendError(res, 403, 'AUTH.FORBIDDEN', locale);
+      return sendError(res, 403, 'AUTH.FORBIDDEN', locale, error);
     }
     if (error instanceof ProposalValidationError) {
-      return sendError(res, 400, error.code, locale);
+      return sendError(res, 400, error.code, locale, error);
     }
     if (await handleZodError(error, locale, res)) return;
-    return sendError(res, 500, 'PROPOSAL.DELETE_FAILED', locale);
+    return sendError(res, 500, 'PROPOSAL.DELETE_FAILED', locale, error);
   }
 };
 
@@ -175,16 +175,16 @@ export const acceptProposal = async (req: Request, res: Response) => {
     });
   } catch (error) {
     if (error instanceof ProposalNotFoundError) {
-      return sendError(res, 404, 'PROPOSAL.NOT_FOUND', locale);
+      return sendError(res, 404, 'PROPOSAL.NOT_FOUND', locale, error);
     }
     if (error instanceof ProposalForbiddenError) {
-      return sendError(res, 403, 'AUTH.FORBIDDEN', locale);
+      return sendError(res, 403, 'AUTH.FORBIDDEN', locale, error);
     }
     if (error instanceof ProposalValidationError) {
-      return sendError(res, 400, error.code, locale);
+      return sendError(res, 400, error.code, locale, error);
     }
     if (await handleZodError(error, locale, res)) return;
-    return sendError(res, 500, 'PROPOSAL.ACCEPT_FAILED', locale);
+    return sendError(res, 500, 'PROPOSAL.ACCEPT_FAILED', locale, error);
   }
 };
 
@@ -200,16 +200,16 @@ export const confirmProposalByDriver = async (req: Request, res: Response) => {
     });
   } catch (error) {
     if (error instanceof ProposalNotFoundError) {
-      return sendError(res, 404, 'PROPOSAL.NOT_FOUND', locale);
+      return sendError(res, 404, 'PROPOSAL.NOT_FOUND', locale, error);
     }
     if (error instanceof ProposalForbiddenError) {
-      return sendError(res, 403, 'AUTH.FORBIDDEN', locale);
+      return sendError(res, 403, 'AUTH.FORBIDDEN', locale, error);
     }
     if (error instanceof ProposalValidationError) {
-      return sendError(res, 400, error.code, locale);
+      return sendError(res, 400, error.code, locale, error);
     }
     if (await handleZodError(error, locale, res)) return;
-    return sendError(res, 500, 'PROPOSAL.UPDATE_FAILED', locale);
+    return sendError(res, 500, 'PROPOSAL.UPDATE_FAILED', locale, error);
   }
 };
 
@@ -225,16 +225,16 @@ export const declineProposalByDriver = async (req: Request, res: Response) => {
     });
   } catch (error) {
     if (error instanceof ProposalNotFoundError) {
-      return sendError(res, 404, 'PROPOSAL.NOT_FOUND', locale);
+      return sendError(res, 404, 'PROPOSAL.NOT_FOUND', locale, error);
     }
     if (error instanceof ProposalForbiddenError) {
-      return sendError(res, 403, 'AUTH.FORBIDDEN', locale);
+      return sendError(res, 403, 'AUTH.FORBIDDEN', locale, error);
     }
     if (error instanceof ProposalValidationError) {
-      return sendError(res, 400, error.code, locale);
+      return sendError(res, 400, error.code, locale, error);
     }
     if (await handleZodError(error, locale, res)) return;
-    return sendError(res, 500, 'PROPOSAL.UPDATE_FAILED', locale);
+    return sendError(res, 500, 'PROPOSAL.UPDATE_FAILED', locale, error);
   }
 };
 
@@ -250,15 +250,15 @@ export const rejectProposal = async (req: Request, res: Response) => {
     });
   } catch (error) {
     if (error instanceof ProposalNotFoundError) {
-      return sendError(res, 404, 'PROPOSAL.NOT_FOUND', locale);
+      return sendError(res, 404, 'PROPOSAL.NOT_FOUND', locale, error);
     }
     if (error instanceof ProposalForbiddenError) {
-      return sendError(res, 403, 'AUTH.FORBIDDEN', locale);
+      return sendError(res, 403, 'AUTH.FORBIDDEN', locale, error);
     }
     if (error instanceof ProposalValidationError) {
-      return sendError(res, 400, error.code, locale);
+      return sendError(res, 400, error.code, locale, error);
     }
     if (await handleZodError(error, locale, res)) return;
-    return sendError(res, 500, 'PROPOSAL.UPDATE_FAILED', locale);
+    return sendError(res, 500, 'PROPOSAL.UPDATE_FAILED', locale, error);
   }
 };

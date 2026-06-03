@@ -21,7 +21,7 @@ export const createCompanyAddress = async (req: Request, res: Response) => {
 		});
 	} catch (error) {
 		if (await handleZodError(error, locale, res)) return;
-		return sendError(res, 500, "COMPANY_ADDRESS.CREATE_FAILED", locale);
+		return sendError(res, 500, "COMPANY_ADDRESS.CREATE_FAILED", locale, error);
 	}
 };
 
@@ -31,7 +31,7 @@ export const getAllCompanyAddresses = async (req: Request, res: Response) => {
 		const companyAddresses = await CompanyAddress.findAll();
 		return res.status(200).json(companyAddresses);
 	} catch (error) {
-		return sendError(res, 500, "COMPANY_ADDRESS.GET_ALL_FAILED", locale);
+		return sendError(res, 500, "COMPANY_ADDRESS.GET_ALL_FAILED", locale, error);
 	}
 };
 
@@ -44,7 +44,7 @@ export const getCompanyAddressById = async (req: Request, res: Response) => {
 		}
 		return res.status(200).json(companyAddress);
 	} catch (error) {
-		return sendError(res, 500, "COMPANY_ADDRESS.GET_BY_ID_FAILED", locale);
+		return sendError(res, 500, "COMPANY_ADDRESS.GET_BY_ID_FAILED", locale, error);
 	}
 };
 
@@ -64,7 +64,7 @@ export const updateCompanyAddress = async (req: Request, res: Response) => {
 		});
 	} catch (error) {
 		if (await handleZodError(error, locale, res)) return;
-		return sendError(res, 500, "COMPANY_ADDRESS.UPDATE_FAILED", locale);
+		return sendError(res, 500, "COMPANY_ADDRESS.UPDATE_FAILED", locale, error);
 	}
 };
 
@@ -80,6 +80,6 @@ export const deleteCompanyAddress = async (req: Request, res: Response) => {
 			message: await translation("COMPANY_ADDRESS.DELETED_SUCCESSFULLY", locale),
 		});
 	} catch (error) {
-		return sendError(res, 500, "COMPANY_ADDRESS.DELETE_FAILED", locale);
+		return sendError(res, 500, "COMPANY_ADDRESS.DELETE_FAILED", locale, error);
 	}
 };

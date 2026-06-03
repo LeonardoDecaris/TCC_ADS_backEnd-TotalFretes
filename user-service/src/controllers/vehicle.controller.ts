@@ -22,7 +22,7 @@ export const createVehicle = async (req: Request, res: Response) => {
 	} catch (error) {
 		const zodError = await handleZodError(error, locale, res);
 		if (zodError) return;
-		return sendError(res, 500, 'VEHICLE.CREATE_FAILED', locale);
+		return sendError(res, 500, 'VEHICLE.CREATE_FAILED', locale, error);
 	}
 };
 
@@ -32,7 +32,6 @@ export const createVehicleAndAttachToUser = async (req: Request, res: Response) 
 	try {
 
 		const body = createVehicleSchema.parse(req.body);
-		console.log();
 		const vehicle = await Vehicle.create(body, { transaction });
 
 		const user = await User.findByPk(req.user?.id, { transaction });
@@ -53,7 +52,7 @@ export const createVehicleAndAttachToUser = async (req: Request, res: Response) 
 		if (zodError) return;
 		await transaction.rollback();
 
-		return sendError(res, 500, 'VEHICLE.CREATE_FAILED', locale);
+		return sendError(res, 500, 'VEHICLE.CREATE_FAILED', locale, error);
 	}
 };
 
@@ -65,7 +64,7 @@ export const getAllVehicles = async (req: Request, res: Response) => {
 		});
 		return res.status(200).json(vehicles);
 	} catch (error) {
-		return sendError(res, 500, 'VEHICLE.GET_ALL_FAILED', locale);
+		return sendError(res, 500, 'VEHICLE.GET_ALL_FAILED', locale, error);
 	}
 };
 
@@ -82,7 +81,7 @@ export const getVehicleById = async (req: Request, res: Response) => {
 
 		return res.status(200).json(vehicle);
 	} catch (error) {
-		return sendError(res, 500, 'VEHICLE.GET_BY_ID_FAILED', locale);
+		return sendError(res, 500, 'VEHICLE.GET_BY_ID_FAILED', locale, error);
 	}
 };
 
@@ -104,7 +103,7 @@ export const updateVehicle = async (req: Request, res: Response) => {
 		const zodError = await handleZodError(error, locale, res);
 		if (zodError) return;
 
-		return sendError(res, 500, 'VEHICLE.UPDATE_FAILED', locale);
+		return sendError(res, 500, 'VEHICLE.UPDATE_FAILED', locale, error);
 	}
 };
 
@@ -122,6 +121,6 @@ export const deleteVehicle = async (req: Request, res: Response) => {
 			message: await translation("VEHICLE.DELETED_SUCCESSFULLY", locale),
 		});
 	} catch (error) {
-		return sendError(res, 500, 'VEHICLE.DELETE_FAILED', locale);
+		return sendError(res, 500, 'VEHICLE.DELETE_FAILED', locale, error);
 	}
 };

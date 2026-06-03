@@ -3,8 +3,11 @@ import swaggerUi from 'swagger-ui-express';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import axios from 'axios';
 import dotenv from 'dotenv';
+import { createLogger } from '@total-fretes/observability';
 
 dotenv.config();
+
+const logger = createLogger(process.env.SERVICE_NAME ?? 'swagger-service');
 
 const app = express();
 const PORT = process.env.PORT ?? 3005;
@@ -41,13 +44,13 @@ const fetchSwaggerSpecs = async (): Promise<{ name: string; spec: Record<string,
       const spec = response.data as Record<string, unknown>;
       if (spec && (spec.paths || spec.openapi || spec.swagger)) {
         specs.push({ name: service.name, spec });
-        console.log(`OK: ${service.name} (${service.url})`);
+        logger.info(`OK: ${service.name} (${service.url})`);
       } else {
-        console.warn(`Invalid spec from ${service.name}: response is not OpenAPI/Swagger JSON`);
+        logger.warn(`Invalid spec from ${service.name}: response is not OpenAPI/Swagger JSON`);
       }
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      console.error(`Failed to fetch ${service.name} (${service.url}): ${msg}`);
+      logger.error(`Failed to fetch ${service.name} (${service.url}): ${msg}`);
     }
   }
   return specs;
@@ -239,7 +242,7 @@ if (STORAGE_SERVICE_URL) {
 }
 
 app.listen(PORT, () => {
-  console.log(`Swagger service running at http://localhost:${PORT}`);
-  console.log('  Swagger UI: http://localhost:' + PORT + '/swagger-ui');
-  console.log('  Docs (JSON): http://localhost:' + PORT + '/docs');
+  logger.info(`Swagger service running at http://localhost:${PORT}`);
+  logger.info(`Swagger UI: http://localhost:${PORT}/swagger-ui`);
+  logger.info(`Docs (JSON): http://localhost:${PORT}/docs`);
 });

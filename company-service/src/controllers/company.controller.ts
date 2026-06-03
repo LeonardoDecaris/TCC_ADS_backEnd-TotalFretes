@@ -19,11 +19,14 @@ import { translation } from "../utils/i18n";
 import { getLocaleFromRequest } from "../utils/locale";
 import { sendError, sendConflictError } from "../services/httpResponse";
 import { handleZodError } from "../utils/zodError";
+import { logger } from "../config/logger";
+import { logError } from "@total-fretes/observability";
 
 import {
 	createCompanySchema,
 	createCompanyEndAccountSchema,
 	updateCompanySchema,
+	paymentTokenRequestSchema,
 } from "../schemas/company.schemas";
 
 type RequestWithFile = Request & {
@@ -132,7 +135,7 @@ export const createCompany = async (req: Request, res: Response) => {
 		});
 	} catch (error) {
 		if (await handleZodError(error, locale, res)) return;
-		return sendError(res, 500, "COMPANY.CREATE_FAILED", locale);
+		return sendError(res, 500, "COMPANY.CREATE_FAILED", locale, error);
 	}
 };
 
@@ -145,7 +148,7 @@ export const getCompanyById = async (req: Request, res: Response) => {
 		}
 		return res.status(200).json(await buildCompanyResponse(company));
 	} catch (error) {
-		return sendError(res, 500, "COMPANY.GET_BY_ID_FAILED", locale);
+		return sendError(res, 500, "COMPANY.GET_BY_ID_FAILED", locale, error);
 	}
 };
 
@@ -155,7 +158,7 @@ export const getAllCompanies = async (req: Request, res: Response) => {
 		const company = await Company.findAll();
 		return res.status(200).json(company);
 	} catch (error) {
-		return sendError(res, 500, "COMPANY.GET_ALL_FAILED", locale);
+		return sendError(res, 500, "COMPANY.GET_ALL_FAILED", locale, error);
 	}
 };
 
@@ -183,7 +186,7 @@ export const updateCompany = async (req: Request, res: Response) => {
 		});
 	} catch (error) {
 		if (await handleZodError(error, locale, res)) return;
-		return sendError(res, 500, "COMPANY.UPDATE_FAILED", locale);
+		return sendError(res, 500, "COMPANY.UPDATE_FAILED", locale, error);
 	}
 };
 
@@ -204,7 +207,7 @@ export const deleteCompany = async (req: Request, res: Response) => {
 			message: await translation("COMPANY.DELETED_SUCCESSFULLY", locale),
 		});
 	} catch (error) {
-		return sendError(res, 500, "COMPANY.DELETE_FAILED", locale);
+		return sendError(res, 500, "COMPANY.DELETE_FAILED", locale, error);
 	}
 };
 
@@ -258,8 +261,8 @@ export const deleteOwnCompany = async (req: Request, res: Response) => {
 			message: await translation("COMPANY.DELETED_SUCCESSFULLY", locale),
 		});
 	} catch (error) {
-		console.error("deleteOwnCompany failed:", error);
-		return sendError(res, 500, "COMPANY.DELETE_FAILED", locale);
+		logError(logger, 'deleteOwnCompany failed', error);
+		return sendError(res, 500, "COMPANY.DELETE_FAILED", locale, error);
 	}
 };
 
@@ -320,15 +323,18 @@ export const createCompanyEndAccount = async (req: Request, res: Response) => {
 			return sendError(res, 500, "COMPANY.CREATE_FAILED", locale);
 		}
 
+		const paymentToken = await company.issuePaymentToken();
+
 		return res.status(201).json({
 			message: await translation("COMPANY.CREATED_WITH_ACCOUNT_SUCCESSFULLY", locale),
 			company,
 			address,
+			paymentToken,
 		});
 
 	} catch (error) {
 		if (await handleZodError(error, locale, res)) return;
-		return sendError(res, 500, "COMPANY.CREATE_FAILED", locale);
+		return sendError(res, 500, "COMPANY.CREATE_FAILED", locale, error);
 	}
 };
 
@@ -397,8 +403,8 @@ export const upsertCompanyImage = async (req: RequestWithFile, res: Response) =>
 			});
 		}
 
-		console.error("upsertCompanyImage failed:", error);
-		return sendError(res, 500, "COMPANY_IMAGE.UPDATE_FAILED", locale);
+		logError(logger, 'upsertCompanyImage failed', error);
+		return sendError(res, 500, "COMPANY_IMAGE.UPDATE_FAILED", locale, error);
 	}
 };
 
@@ -423,7 +429,87 @@ export const deleteCompanyImage = async (req: Request, res: Response) => {
 			company: await buildCompanyResponse(company),
 		});
 	} catch (error) {
-		console.error("deleteCompanyImage failed:", error);
-		return sendError(res, 500, "COMPANY_IMAGE.DELETE_FAILED", locale);
+		logError(logger, 'deleteCompanyImage failed', error);
+		return sendError(res, 500, "COMPANY_IMAGE.DELETE_FAILED", locale, error);
+	}
+};
+
+export const completeCompanyPayment = async (req: Request, res: Response) => {
+	const locale = getLocaleFromRequest(req);
+
+	try {
+		const company = req.paymentCompany;
+
+		if (!company) {
+			return sendError(res, 401, "COMPANY.PAYMENT_TOKEN_INVALID", locale);
+		}
+
+		if (company.isPaid) {
+			return res.status(200).json({
+				message: await translation("COMPANY.PAYMENT_ALREADY_COMPLETED", locale),
+			});
+		}
+
+		await company.markAsPaid();
+
+		return res.status(200).json({
+			message: await translation("COMPANY.PAYMENT_COMPLETED_SUCCESSFULLY", locale),
+		});
+	} catch (error) {
+		console.error("completeCompanyPayment failed:", error);
+		return sendError(res, 500, "COMPANY.PAYMENT_COMPLETE_FAILED", locale);
+	}
+};
+
+export const requestCompanyPaymentToken = async (req: Request, res: Response) => {
+	const locale = getLocaleFromRequest(req);
+
+	try {
+		const body = paymentTokenRequestSchema.parse(req.body);
+		const normalizedEmail = body.email.trim().toLowerCase();
+
+		const company = await Company.findOne({ where: { email: normalizedEmail } });
+
+		if (!company || company.isPaid) {
+			return res.status(200).json({
+				message: await translation("COMPANY.PAYMENT_TOKEN_REQUEST_ACCEPTED", locale),
+			});
+		}
+
+		const paymentToken = await company.issuePaymentToken();
+
+		return res.status(200).json({
+			message: await translation("COMPANY.PAYMENT_TOKEN_ISSUED", locale),
+			paymentToken,
+		});
+	} catch (error) {
+		if (await handleZodError(error, locale, res)) return;
+		console.error("requestCompanyPaymentToken failed:", error);
+		return sendError(res, 500, "COMPANY.PAYMENT_TOKEN_REQUEST_FAILED", locale);
+	}
+};
+
+export const getCompanyPaymentStatusBySubject = async (req: Request, res: Response) => {
+	const locale = getLocaleFromRequest(req);
+
+	try {
+		const subjectId = Number(req.params.subjectId);
+
+		if (!Number.isInteger(subjectId) || subjectId <= 0) {
+			return sendError(res, 400, "VALIDATION.GENERAL_ERROR", locale);
+		}
+
+		const company = await Company.findByPk(subjectId);
+
+		if (!company) {
+			return sendError(res, 404, "COMPANY.NOT_FOUND", locale);
+		}
+
+		return res.status(200).json({
+			isPaid: Boolean(company.isPaid),
+		});
+	} catch (error) {
+		console.error("getCompanyPaymentStatusBySubject failed:", error);
+		return sendError(res, 500, "COMPANY.GET_PAYMENT_STATUS_FAILED", locale);
 	}
 };

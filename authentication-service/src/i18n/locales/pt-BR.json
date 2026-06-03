@@ -26,7 +26,17 @@
     "NEW_PASSWORD_MUST_DIFFER": "A nova senha deve ser diferente da atual.",
     "PASSWORD_CHANGED_SUCCESSFULLY": "Senha alterada com sucesso.",
     "TOKEN_INVALID_OR_MISSING": "Token inválido ou ausente.",
-    "TOKEN_INVALID_OR_EXPIRED": "Token inválido ou expirado."
+    "TOKEN_INVALID_OR_EXPIRED": "Token inválido ou expirado.",
+    "PAYMENT_PENDING": "Conclua o pagamento para acessar a plataforma.",
+    "TOKEN_INVALID_OR_EXPIRED": "Token inválido ou expirado.",
+    "INTERNAL_ERROR": "Erro interno do servidor.",
+    "TOKEN_NOT_PROVIDED": "Token não informado.",
+    "TOKEN_NOT_FORMATTED": "Token mal formatado.",
+    "TOKEN_INVALID": "Token inválido.",
+    "ROLE_DENIED": "Acesso negado. Usuário não autenticado.",
+    "NOT_AUTHENTICATED": "Não autenticado.",
+    "PERMISSION_INSUFFICIENT": "Permissão insuficiente.",
+    "RESOURCE_ACCESS_DENIED": "Acesso negado ao recurso solicitado."
   },
   "PASSWORD_RESET": {
     "EMAIL_REQUIRED": "Email é obrigatório.",

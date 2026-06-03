@@ -2,6 +2,9 @@ import 'dotenv/config';
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { startEmailConsumer, stopEmailConsumer } from './messaging/email.consumer';
+import { createLogger, logError } from '@total-fretes/observability';
+
+const logger = createLogger(process.env.SERVICE_NAME ?? 'email-management-service');
 
 const app = express();
 
@@ -15,11 +18,11 @@ app.get('/health', (_req: Request, res: Response) => {
 const PORT = process.env.PORT || 3000;
 
 async function shutdown(signal: string) {
-  console.info(`${signal} received, shutting down`);
+  logger.info(`${signal} received, shutting down`);
   try {
     await stopEmailConsumer();
   } catch (e) {
-    console.error('Erro ao encerrar RabbitMQ:', e);
+    logError(logger, 'Erro ao encerrar RabbitMQ', e);
   }
   process.exit(0);
 }
@@ -27,7 +30,7 @@ async function shutdown(signal: string) {
 (async () => {
   await startEmailConsumer();
   app.listen(PORT, () => {
-    console.log(`Microsserviço de e-mail na porta ${PORT} (consumidor RabbitMQ ativo)`);
+    logger.info(`Microsserviço de e-mail na porta ${PORT} (consumidor RabbitMQ ativo)`);
   });
   process.once('SIGTERM', () => {
     void shutdown('SIGTERM');
@@ -36,6 +39,6 @@ async function shutdown(signal: string) {
     void shutdown('SIGINT');
   });
 })().catch((err) => {
-  console.error(err);
+  logError(logger, 'Falha ao iniciar email-management-service', err);
   process.exit(1);
 });

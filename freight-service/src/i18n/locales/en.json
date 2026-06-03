@@ -1,4 +1,7 @@
 {
+  "COMMON": {
+    "INTERNAL_ERROR": "Internal server error."
+  },
   "AUTH": {
     "UNAUTHORIZED": "Not authenticated.",
     "FORBIDDEN": "Access denied."
@@ -67,6 +70,7 @@
     "DRIVER_ALREADY_ACTIVE": "You already have an ongoing freight. Complete it before accepting another."
   },
   "VALIDATION": {
+    "GENERAL_ERROR": "Validation error.",
     "ERROR": "Validation error.",
     "PARAMS_INVALID": "Invalid URL parameters.",
     "ID_INVALID": "Invalid identifier.",
@@ -87,6 +91,7 @@
     "WEIGHT_INVALID": "Invalid weight (enter a value greater than zero, in kg).",
     "PAGE_INVALID": "Invalid page number (use an integer greater than or equal to 1).",
     "LIMIT_INVALID": "Invalid per-page limit (use an integer between 1 and 50).",
-    "LIMIT_MAX": "Per-page limit cannot be greater than 50."
+    "LIMIT_MAX": "Per-page limit cannot be greater than 50.",
+    "PROPOSAL_REJECTION_COMMENT_MAX": "Rejection comment cannot exceed 500 characters."
   }
 }

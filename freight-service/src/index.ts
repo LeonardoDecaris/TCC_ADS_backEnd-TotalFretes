@@ -3,6 +3,8 @@ import dotenv from 'dotenv';
 import sequelize from './config/database';
 import './models/associations';
 import { runDatabaseSeeds } from './config/runDatabaseSeeds';
+import { logger } from './config/logger';
+import { logError } from '@total-fretes/observability';
 
 dotenv.config();
 
@@ -14,15 +16,15 @@ if (!PORT) {
 (async () => {
   try {
     await sequelize.authenticate();
-    console.log('Database authenticated successfully');
+    logger.info('Database authenticated successfully');
     await sequelize.sync({ alter: false });
-    console.log('Database synchronized successfully');
+    logger.info('Database synchronized successfully');
     await runDatabaseSeeds();
-    console.log('Database seeds completed successfully (catalogs + test freights/proposals)');
+    logger.info('Database seeds completed successfully (catalogs + test freights/proposals)');
 
-    app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+    app.listen(PORT, () => logger.info(`Server is running on port ${PORT}`));
   } catch (err) {
-    console.error('error to start the server:', err);
+    logError(logger, 'error to start the server', err);
     process.exit(1);
   }
 })();

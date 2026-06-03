@@ -57,7 +57,6 @@ export const changePassword = async (req: Request, res: Response) => {
       message: await translation('AUTH.PASSWORD_CHANGED_SUCCESSFULLY', locale),
     });
   } catch (error) {
-    console.error('changePassword error:', error);
-    return sendError(res, 500, await translation('AUTH.CHANGE_PASSWORD_FAILED', locale));
+    return sendError(res, 500, await translation('AUTH.CHANGE_PASSWORD_FAILED', locale), error);
   }
 };

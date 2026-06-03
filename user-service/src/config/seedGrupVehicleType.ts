@@ -2,8 +2,9 @@ import GroupVehicleType from "../models/groupVehicleType.model";
 
 const DEFAULT_GROUP_VEHICLE_TYPES = [
   { nome: 'Caminhão', cnhType_id: 4 },
-  { nome: 'Carreta', cnhType_id: 4 },
-  { nome: 'Bitrem', cnhType_id: 4 },
+  { nome: 'Carreta', cnhType_id: 5 },
+  { nome: 'Bitrem', cnhType_id: 5 },
+  { nome: 'Para carga de líquidos', cnhType_id: 5 },
 ];
 
 export const seedGroupVehicleType = async (): Promise<void> => {
@@ -14,4 +15,3 @@ export const seedGroupVehicleType = async (): Promise<void> => {
     });
   }
 };
-  
