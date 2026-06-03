@@ -26,6 +26,7 @@ import {
 	createCompanySchema,
 	createCompanyEndAccountSchema,
 	updateCompanySchema,
+	paymentTokenRequestSchema,
 } from "../schemas/company.schemas";
 
 type RequestWithFile = Request & {
@@ -322,10 +323,13 @@ export const createCompanyEndAccount = async (req: Request, res: Response) => {
 			return sendError(res, 500, "COMPANY.CREATE_FAILED", locale);
 		}
 
+		const paymentToken = await company.issuePaymentToken();
+
 		return res.status(201).json({
 			message: await translation("COMPANY.CREATED_WITH_ACCOUNT_SUCCESSFULLY", locale),
 			company,
 			address,
+			paymentToken,
 		});
 
 	} catch (error) {
@@ -427,5 +431,85 @@ export const deleteCompanyImage = async (req: Request, res: Response) => {
 	} catch (error) {
 		logError(logger, 'deleteCompanyImage failed', error);
 		return sendError(res, 500, "COMPANY_IMAGE.DELETE_FAILED", locale, error);
+	}
+};
+
+export const completeCompanyPayment = async (req: Request, res: Response) => {
+	const locale = getLocaleFromRequest(req);
+
+	try {
+		const company = req.paymentCompany;
+
+		if (!company) {
+			return sendError(res, 401, "COMPANY.PAYMENT_TOKEN_INVALID", locale);
+		}
+
+		if (company.isPaid) {
+			return res.status(200).json({
+				message: await translation("COMPANY.PAYMENT_ALREADY_COMPLETED", locale),
+			});
+		}
+
+		await company.markAsPaid();
+
+		return res.status(200).json({
+			message: await translation("COMPANY.PAYMENT_COMPLETED_SUCCESSFULLY", locale),
+		});
+	} catch (error) {
+		console.error("completeCompanyPayment failed:", error);
+		return sendError(res, 500, "COMPANY.PAYMENT_COMPLETE_FAILED", locale);
+	}
+};
+
+export const requestCompanyPaymentToken = async (req: Request, res: Response) => {
+	const locale = getLocaleFromRequest(req);
+
+	try {
+		const body = paymentTokenRequestSchema.parse(req.body);
+		const normalizedEmail = body.email.trim().toLowerCase();
+
+		const company = await Company.findOne({ where: { email: normalizedEmail } });
+
+		if (!company || company.isPaid) {
+			return res.status(200).json({
+				message: await translation("COMPANY.PAYMENT_TOKEN_REQUEST_ACCEPTED", locale),
+			});
+		}
+
+		const paymentToken = await company.issuePaymentToken();
+
+		return res.status(200).json({
+			message: await translation("COMPANY.PAYMENT_TOKEN_ISSUED", locale),
+			paymentToken,
+		});
+	} catch (error) {
+		if (await handleZodError(error, locale, res)) return;
+		console.error("requestCompanyPaymentToken failed:", error);
+		return sendError(res, 500, "COMPANY.PAYMENT_TOKEN_REQUEST_FAILED", locale);
+	}
+};
+
+export const getCompanyPaymentStatusBySubject = async (req: Request, res: Response) => {
+	const locale = getLocaleFromRequest(req);
+
+	try {
+		const subjectId = Number(req.params.subjectId);
+
+		if (!Number.isInteger(subjectId) || subjectId <= 0) {
+			return sendError(res, 400, "VALIDATION.GENERAL_ERROR", locale);
+		}
+
+		const company = await Company.findByPk(subjectId);
+
+		if (!company) {
+			return sendError(res, 404, "COMPANY.NOT_FOUND", locale);
+		}
+
+		return res.status(200).json({
+			isPaid: Boolean(company.isPaid),
+		});
+	} catch (error) {
+		console.error("getCompanyPaymentStatusBySubject failed:", error);
+		return sendError(res, 500, "COMPANY.GET_PAYMENT_STATUS_FAILED", locale);
 	}
 };

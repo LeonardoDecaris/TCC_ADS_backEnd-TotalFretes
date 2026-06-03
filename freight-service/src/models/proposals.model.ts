@@ -9,6 +9,7 @@ export class Proposal extends Model {
     driver_id: number | undefined;
     status_id: number | undefined;
     value: number | undefined;
+    rejection_comment: string | null | undefined;
 }
 
 Proposal.init({
@@ -32,6 +33,10 @@ Proposal.init({
     value: {
         type: DataTypes.FLOAT,
         allowNull: false,
+    },
+    rejection_comment: {
+        type: DataTypes.STRING(500),
+        allowNull: true,
     },
 }, {
     sequelize,
