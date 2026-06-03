@@ -40,10 +40,29 @@ async function handleMessage(msg: ConsumeMessage, ch: Channel): Promise<void> {
   }
 }
 
+async function connectWithRetry(maxAttempts = 30, delayMs = 2000): Promise<ChannelModel> {
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await amqp.connect(buildEmailAmqpUri(), {
+        clientProperties: { connection_name: 'email-management-service-consumer' },
+      });
+    } catch (err) {
+      lastError = err;
+      if (attempt === maxAttempts) break;
+      console.warn(
+        `[email consumer] RabbitMQ indisponível (tentativa ${attempt}/${maxAttempts}), nova tentativa em ${delayMs}ms...`,
+      );
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
+
+  throw lastError;
+}
+
 export async function startEmailConsumer(): Promise<void> {
-  connection = await amqp.connect(buildEmailAmqpUri(), {
-    clientProperties: { connection_name: 'email-management-service-consumer' },
-  });
+  connection = await connectWithRetry();
   attachEvents(connection, 'connection');
 
   const ch = await connection.createChannel();

@@ -62,7 +62,7 @@ services:
       redis:
         condition: service_started
       rabbitmq:
-        condition: service_started
+        condition: service_healthy
     networks:
       - app-network
     healthcheck:
@@ -259,7 +259,7 @@ services:
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
     depends_on:
       rabbitmq:
-        condition: service_started
+        condition: service_healthy
     networks:
       - app-network
     healthcheck:
