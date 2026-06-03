@@ -1,7 +1,8 @@
 import { isAxiosError } from 'axios';
 import { Response } from 'express';
 import { z } from 'zod';
-
+import { logError, originFields } from '@total-fretes/observability';
+import { logger } from '../config/logger';
 import { isCoordinateError } from '../services/mapBox.service';
 
 export function axiosErrorMessage(error: unknown): string {
@@ -18,23 +19,33 @@ export function axiosErrorMessage(error: unknown): string {
 	return error.message;
 }
 
+function errorJson(message: string, error: unknown, extra: Record<string, unknown> = {}) {
+	return {
+		message,
+		error: message,
+		...originFields(error),
+		...extra,
+	};
+}
+
 export function handleControllerError(error: unknown, res: Response) {
-	console.error(error);
+	logError(logger, 'Mapbox controller error', error);
 
 	if (error instanceof z.ZodError) {
-		return res.status(400).json({ error: error.message, issues: error.issues });
+		const message = error.message;
+		return res.status(400).json(errorJson(message, error, { issues: error.issues }));
 	}
 
 	if (error instanceof Error && error.message === 'NOT_FOUND_REVERSE_GEOCODE') {
-		return res
-			.status(404)
-			.json({ error: 'Endereço não encontrado para as coordenadas informadas' });
+		const message = 'Endereço não encontrado para as coordenadas informadas';
+		return res.status(404).json(errorJson(message, error));
 	}
 
 	if (isCoordinateError(error)) {
-		return res.status(400).json({ error: (error as Error).message });
+		const message = (error as Error).message;
+		return res.status(400).json(errorJson(message, error));
 	}
 
 	const message = axiosErrorMessage(error);
-	return res.status(500).json({ error: message });
+	return res.status(500).json(errorJson(message, error));
 }

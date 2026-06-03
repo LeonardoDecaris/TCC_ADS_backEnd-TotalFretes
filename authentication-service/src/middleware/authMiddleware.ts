@@ -1,5 +1,8 @@
-import { NextFunction, Request, Response } from "express";
-import { verifyToken, type JwtRole } from "../utils/jwt";
+import { NextFunction, Request, Response } from 'express';
+import { originFields } from '@total-fretes/observability';
+import { verifyToken, type JwtRole } from '../utils/jwt';
+import { translation } from '../utils/i18n';
+import { getLocaleFromRequest } from '../utils/locale';
 
 declare global {
   namespace Express {
@@ -12,30 +15,41 @@ declare global {
   }
 }
 
-export const authMiddleware = (
+async function authMessage(req: Request, key: string): Promise<string> {
+  const locale = getLocaleFromRequest(req);
+  return translation(key, locale);
+}
+
+export const authMiddleware = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const authHeader = req.headers.authorization?.trim();
   if (!authHeader) {
-    return res.status(401).json({ message: "Token not provided" });
+    return res.status(401).json({
+      message: await authMessage(req, 'AUTH.TOKEN_NOT_PROVIDED'),
+    });
   }
 
-  const token = authHeader.split(" ")[1];
+  const token = authHeader.split(' ')[1];
   if (!token) {
-    return res.status(401).json({ message: "Token not formatted" });
+    return res.status(401).json({
+      message: await authMessage(req, 'AUTH.TOKEN_NOT_FORMATTED'),
+    });
   }
 
   try {
     const decoded = verifyToken(token) as {
       id?: number;
       role?: JwtRole;
-      [key: string]: any;
+      [key: string]: unknown;
     };
 
     if (!decoded.id || !decoded.role) {
-      return res.status(403).json({ message: "role denied. User not authenticated." });
+      return res.status(403).json({
+        message: await authMessage(req, 'AUTH.ROLE_DENIED'),
+      });
     }
 
     req.user = {
@@ -46,8 +60,8 @@ export const authMiddleware = (
     next();
   } catch (error) {
     return res.status(401).json({
-      message: "Token inválido",
-      error: error instanceof Error ? error.message : "Unknown error",
+      message: await authMessage(req, 'AUTH.TOKEN_INVALID'),
+      ...originFields(error),
     });
   }
 };
@@ -55,9 +69,11 @@ export const authMiddleware = (
 type Role = JwtRole;
 
 export const authorizeRoles = (...allowedRoles: Role[]) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
-      return res.status(401).json({ message: "Not authenticated" });
+      return res.status(401).json({
+        message: await authMessage(req, 'AUTH.NOT_AUTHENTICATED'),
+      });
     }
 
     const { role } = req.user;
@@ -67,7 +83,9 @@ export const authorizeRoles = (...allowedRoles: Role[]) => {
     }
 
     if (!allowedRoles.includes(role)) {
-      return res.status(403).json({ message: "role denied. Permission insufficient." });
+      return res.status(403).json({
+        message: await authMessage(req, 'AUTH.PERMISSION_INSUFFICIENT'),
+      });
     }
 
     next();
@@ -75,9 +93,11 @@ export const authorizeRoles = (...allowedRoles: Role[]) => {
 };
 
 export const allowOwnerOrRoles = (...allowedRoles: Role[]) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
-      return res.status(401).json({ message: "Not authenticated" });
+      return res.status(401).json({
+        message: await authMessage(req, 'AUTH.NOT_AUTHENTICATED'),
+      });
     }
 
     const { id, role } = req.user;
@@ -92,6 +112,8 @@ export const allowOwnerOrRoles = (...allowedRoles: Role[]) => {
       return next();
     }
 
-    return res.status(403).json({ message: "role denied to the requested resource." });
+    return res.status(403).json({
+      message: await authMessage(req, 'AUTH.RESOURCE_ACCESS_DENIED'),
+    });
   };
 };

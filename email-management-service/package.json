@@ -16,6 +16,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@total-fretes/observability": "file:../packages/observability",
     "@total-fretes/rpc-contracts": "file:../packages/rpc-contracts",
     "amqplib": "^1.0.3",
     "cors": "^2.8.6",

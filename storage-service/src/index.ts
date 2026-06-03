@@ -3,6 +3,8 @@ import app from './app';
 import sequelize from './config/database';
 import './models/userImages.model';
 import { ensureUserImageOwnershipColumns } from './database/ensureUserImageOwnershipColumns';
+import { logger } from './config/logger';
+import { logError } from '@total-fretes/observability';
 
 dotenv.config();
 
@@ -14,14 +16,14 @@ if (!PORT) {
 (async () => {
   try {
     await sequelize.authenticate();
-    console.log('Database authenticated successfully');
+    logger.info('Database authenticated successfully');
     await sequelize.sync({ alter: false });
-    console.log('Database synchronized successfully');
+    logger.info('Database synchronized successfully');
     await ensureUserImageOwnershipColumns();
-    console.log('User image ownership columns ensured successfully');
-    app.listen(PORT, () => console.log(`Storage service is running on port ${PORT}`));
+    logger.info('User image ownership columns ensured successfully');
+    app.listen(PORT, () => logger.info(`Storage service is running on port ${PORT}`));
   } catch (err) {
-    console.error('error to start the server:', err);
+    logError(logger, 'error to start the server', err);
     process.exit(1);
   }
 })();

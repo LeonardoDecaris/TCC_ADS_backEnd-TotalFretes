@@ -45,7 +45,7 @@ export const createUser = async (req: Request, res: Response) => {
 		return res.status(201).json({ message: await translation('USER.CREATED_SUCCESSFULLY', locale) });
 	} catch (error) {
 		if (await handleZodError(error, locale, res)) return;
-		return sendError(res, 500, 'USER.CREATE_FAILED', locale);
+		return sendError(res, 500, 'USER.CREATE_FAILED', locale, error);
 	}
 };
 
@@ -70,7 +70,7 @@ export const getUserById = async (req: Request, res: Response) => {
 
 		return res.status(200).json({ ...user.toJSON(), UserImage: userImage });
 	} catch (error) {
-		return sendError(res, 500, 'USER.GET_BY_ID_FAILED', locale);
+		return sendError(res, 500, 'USER.GET_BY_ID_FAILED', locale, error);
 	}
 };
 
@@ -82,7 +82,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
 		});
 		return res.status(200).json(users);
 	} catch (error) {
-		return sendError(res, 500, 'USER.GET_ALL_FAILED', locale);
+		return sendError(res, 500, 'USER.GET_ALL_FAILED', locale, error);
 	}
 };
 
@@ -116,7 +116,7 @@ export const patchUser = async (req: Request, res: Response) => {
 		return res.status(200).json({ message: await translation('USER.UPDATED_SUCCESSFULLY', locale) });
 	} catch (error) {
 		if (await handleZodError(error, locale, res)) return;
-		return sendError(res, 500, 'USER.UPDATE_FAILED', locale);
+		return sendError(res, 500, 'USER.UPDATE_FAILED', locale, error);
 	}
 };
 
@@ -133,7 +133,7 @@ export const deleteUser = async (req: Request, res: Response) => {
 
 		return res.status(200).json({ message: await translation('USER.DELETED_SUCCESSFULLY', locale) });
 	} catch (error) {
-		return sendError(res, 500, 'USER.DELETE_FAILED', locale);
+		return sendError(res, 500, 'USER.DELETE_FAILED', locale, error);
 	}
 };
 
@@ -188,6 +188,6 @@ export const createUserEndAccount = async (req: Request, res: Response) => {
 		return res.status(201).json({ message: await translation('USER.CREATED_WITH_ACCOUNT_SUCCESSFULLY', locale) });
 	} catch (error) {
 		if (await handleZodError(error, locale, res)) return;
-		return sendError(res, 500, 'USER.CREATE_FAILED', locale);
+		return sendError(res, 500, 'USER.CREATE_FAILED', locale, error);
 	}
 };
