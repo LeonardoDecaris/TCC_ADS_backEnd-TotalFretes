@@ -1,7 +1,42 @@
 services:
-  # ===== OBSERVABILITY =====
+
+  # ===== CAMADA 1 — INFRA BASE (sem dependências, sobem em paralelo) =====
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: redis
+    restart: always
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  rabbitmq:
+    image: rabbitmq:4.0.9-management-alpine
+    container_name: rabbitmq
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 5672 || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+
   loki:
-    image: grafana/loki
+    image: grafana/loki:3.5.0
     container_name: loki
     restart: on-failure
     user: "0"
@@ -13,30 +48,142 @@ services:
       - loki-data:/var/loki
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD", "/usr/bin/loki", "-version"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  authentication-service-database:
+    image: mysql:8.4
+    container_name: authentication-service-database
+    restart: always
+    env_file:
+      - ./authentication-service/.env
+    volumes:
+      - authentication-service-database-data:/var/lib/mysql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    ports:
+      - "3306:3306"
+
+  user-service-database:
+    image: mysql:8.4
+    container_name: user-service-database
+    restart: always
+    env_file:
+      - ./user-service/.env
+    volumes:
+      - user-service-database-data:/var/lib/mysql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    ports:
+      - "3307:3306"
+
+  company-service-database:
+    image: mysql:8.4
+    container_name: company-service-database
+    restart: always
+    env_file:
+      - ./company-service/.env
+    volumes:
+      - company-service-database-data:/var/lib/mysql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    ports:
+      - "3308:3306"
+
+  storage-service-database:
+    image: mysql:8.4
+    container_name: storage-service-database
+    restart: always
+    env_file:
+      - ./storage-service/.env
+    volumes:
+      - storage-service-database-data:/var/lib/mysql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    ports:
+      - "3309:3306"
+
+  freight-service-database:
+    image: mysql:8.4
+    container_name: freight-service-database
+    restart: always
+    env_file:
+      - ./freight-service/.env
+    volumes:
+      - freight-service-database-data:/var/lib/mysql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    ports:
+      - "3310:3306"
+
+  # ===== CAMADA 2 — OBSERVABILIDADE + SERVIÇOS STATELESS (dependem só de infra) =====
 
   grafana:
-    image: grafana/grafana
+    image: grafana/grafana:11.6.11
     container_name: grafana
     restart: on-failure
     depends_on:
-      - loki
+      loki:
+        condition: service_started
     ports:
       - "3101:3000"
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_INSTALL_PLUGINS: "https://storage.googleapis.com/integration-artifacts/grafana-lokiexplore-app/release/main/any/grafana-lokiexplore-app-main.zip;grafana-lokiexplore-app"
     volumes:
       - grafana-data:/var/lib/grafana
       - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   promtail:
-    image: grafana/promtail
+    image: grafana/promtail:3.5.0
     container_name: promtail
     restart: on-failure
     depends_on:
-      - loki
+      loki:
+        condition: service_started
     ports:
       - "3102:9080"
     volumes:
@@ -46,8 +193,71 @@ services:
     command: -config.file=/etc/promtail/config.yml
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD", "/usr/bin/promtail", "-version"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
-  # ===== AUTHENTICATION SERVICE =====
+  mapbox-service:
+    build:
+      context: .
+      dockerfile: mapbox-service/Dockerfile
+    container_name: mapbox-service
+    restart: always
+    env_file:
+      - ./mapbox-service/.env
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3004/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+
+  swagger-service:
+    build:
+      context: .
+      dockerfile: swagger-service/Dockerfile
+    container_name: swagger-service
+    restart: always
+    env_file:
+      - ./swagger-service/.env
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3005/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+
+  email-management-service:
+    build:
+      context: .
+      dockerfile: email-management-service/Dockerfile
+    container_name: email-management-service
+    restart: always
+    env_file:
+      - ./email-management-service/.env
+    environment:
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3003/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+
+  # ===== CAMADA 3 — SERVIÇOS STATEFUL (dependem de DB próprio + infra) =====
+
   authentication-service:
     build:
       context: .
@@ -60,38 +270,18 @@ services:
       authentication-service-database:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/auth/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
-      interval: 10s
-      timeout: 15s
-      retries: 8
-      start_period: 120s
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/auth/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
-  authentication-service-database:
-    image: mysql:8.0
-    container_name: authentication-service-database
-    restart: always
-    env_file:
-      - ./authentication-service/.env
-    volumes:
-      - authentication-service-database-data:/var/lib/mysql
-    networks:
-      - app-network
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 40s
-    ports:
-      - "3306:3306"
-
-  # ===== USER SERVICE =====
   user-service:
     build:
       context: .
@@ -106,32 +296,12 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
-      interval: 10s
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3001/ || exit 1"]
+      interval: 15s
       timeout: 5s
-      retries: 10
-      start_period: 60s
+      retries: 5
+      start_period: 90s
 
-  user-service-database:
-    image: mysql:8.0
-    container_name: user-service-database
-    restart: always
-    env_file:
-      - ./user-service/.env
-    volumes:
-      - user-service-database-data:/var/lib/mysql
-    networks:
-      - app-network
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 40s
-    ports:
-      - "3307:3306"
-
-  # ===== COMPANY SERVICE =====
   company-service:
     build:
       context: .
@@ -146,32 +316,12 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3002/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
-      interval: 10s
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3002/ || exit 1"]
+      interval: 15s
       timeout: 5s
-      retries: 10
-      start_period: 60s
+      retries: 5
+      start_period: 90s
 
-  company-service-database:
-    image: mysql:8.0
-    container_name: company-service-database
-    restart: always
-    env_file:
-      - ./company-service/.env
-    volumes:
-      - company-service-database-data:/var/lib/mysql
-    networks:
-      - app-network
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 40s
-    ports:
-      - "3308:3306"
-
-  # ===== STORAGE SERVICE =====
   storage-service:
     build:
       context: .
@@ -189,102 +339,11 @@ services:
       - storage-service-uploads:/app/uploads
       - ./uploads:/backup/uploads
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3007/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
-      interval: 10s
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3007/health || exit 1"]
+      interval: 15s
       timeout: 5s
-      retries: 10
-      start_period: 60s
-
-  storage-service-database:
-    image: mysql:8.0
-    container_name: storage-service-database
-    restart: always
-    env_file:
-      - ./storage-service/.env
-    volumes:
-      - storage-service-database-data:/var/lib/mysql
-    networks:
-      - app-network
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 40s
-    ports:
-      - "3309:3306"
-
-  # ===== MESSAGE BROKER & CACHE =====
-  rabbitmq:
-    image: rabbitmq:3-management-alpine
-    container_name: rabbitmq
-    restart: always
-    env_file:
-      - .env
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    networks:
-      - app-network
-    healthcheck:
-      test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping && rabbitmq-diagnostics -q check_running && rabbitmq-diagnostics -q check_local_alarms"]
-      interval: 10s
-      timeout: 15s
-      retries: 12
+      retries: 5
       start_period: 90s
-
-  redis:
-    image: redis:7-alpine
-    container_name: redis
-    restart: always
-    networks:
-      - app-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
-
-  # ===== AUXILIARY SERVICES =====
-  email-management-service:
-    build:
-      context: .
-      dockerfile: email-management-service/Dockerfile
-    container_name: email-management-service
-    restart: always
-    env_file:
-      - ./email-management-service/.env
-    environment:
-      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-    networks:
-      - app-network
-    healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3003/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 60s
-
-  mapbox-service:
-    build:
-      context: .
-      dockerfile: mapbox-service/Dockerfile
-    container_name: mapbox-service
-    restart: always
-    env_file:
-      - ./mapbox-service/.env
-    networks:
-      - app-network
-    healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3004/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 60s
 
   freight-service:
     build:
@@ -300,48 +359,13 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3008/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
-      interval: 10s
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3008/ || exit 1"]
+      interval: 15s
       timeout: 5s
-      retries: 10
-      start_period: 60s
-    
-  freight-service-database:
-    image: mysql:8.0
-    container_name: freight-service-database
-    restart: always
-    env_file:
-      - ./freight-service/.env
-    volumes:
-      - freight-service-database-data:/var/lib/mysql
-    networks:
-      - app-network
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 40s
-    ports:
-      - "3310:3306"
+      retries: 5
+      start_period: 90s
 
-  # ===== API GATEWAY =====
-  swagger-service:
-    build:
-      context: .
-      dockerfile: swagger-service/Dockerfile
-    container_name: swagger-service
-    restart: always
-    env_file:
-      - ./swagger-service/.env
-    networks:
-      - app-network
-    healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3005/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 60s
+  # ===== CAMADA 4 — GATEWAY (só sobe quando todos os serviços estão up) =====
 
   nginx:
     build: ./nginx
@@ -373,6 +397,7 @@ services:
       - app-network
 
 volumes:
+  rabbitmq-data:
   loki-data:
   grafana-data:
   authentication-service-database-data:
