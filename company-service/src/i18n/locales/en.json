@@ -37,6 +37,19 @@
     "DELETED_SUCCESSFULLY": "Company address deleted successfully.",
     "DELETE_FAILED": "Error deleting company address."
   },
+  "COMPANY_IMAGE": {
+    "NO_IMAGE_SENT": "No image was sent.",
+    "INVALID_FILE": "Upload a valid 200×83 px PNG logo.",
+    "FILE_TOO_LARGE": "The logo must be up to 5 MB.",
+    "INVALID_DIMENSIONS": "The logo must be exactly 200×83 px.",
+    "INVALID_OWNERSHIP": "The selected image does not belong to this company.",
+    "NOT_FOUND": "The company logo was not found.",
+    "UPDATED_SUCCESSFULLY": "Company logo updated successfully.",
+    "DELETED_SUCCESSFULLY": "Company logo removed successfully.",
+    "UPDATE_FAILED": "Could not update the company logo.",
+    "DELETE_FAILED": "Could not remove the company logo.",
+    "UPLOAD_PROCESS_FAILED": "Could not process the logo upload."
+  },
   "VALIDATION": {
     "ERROR": "Validation error",
     "GENERAL_ERROR": "Data validation error.",

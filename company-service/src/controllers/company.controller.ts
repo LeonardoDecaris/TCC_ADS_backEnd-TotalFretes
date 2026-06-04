@@ -19,6 +19,7 @@ import { translation } from "../utils/i18n";
 import { getLocaleFromRequest } from "../utils/locale";
 import { sendError, sendConflictError } from "../services/httpResponse";
 import { handleZodError } from "../utils/zodError";
+import { validateCompanyLogoPng } from "../utils/validateCompanyLogoPng";
 
 import {
 	createCompanySchema,
@@ -342,6 +343,15 @@ export const upsertCompanyImage = async (req: RequestWithFile, res: Response) =>
 	try {
 		if (!req.file) {
 			return sendError(res, 400, "COMPANY_IMAGE.NO_IMAGE_SENT", locale);
+		}
+
+		const logoValidation = validateCompanyLogoPng(req.file.buffer);
+		if (!logoValidation.valid) {
+			if (logoValidation.reason === "INVALID_DIMENSIONS") {
+				return sendError(res, 400, "COMPANY_IMAGE.INVALID_DIMENSIONS", locale);
+			}
+
+			return sendError(res, 400, "COMPANY_IMAGE.INVALID_FILE", locale);
 		}
 
 		const company = await findCompanyWithAddress(req.params.id as string);
