@@ -40,6 +40,19 @@
     "DELETED_SUCCESSFULLY": "Endereço da empresa deletado com sucesso.",
     "DELETE_FAILED": "Erro ao deletar endereço da empresa."
   },
+  "COMPANY_IMAGE": {
+    "NO_IMAGE_SENT": "Nenhuma imagem foi enviada.",
+    "INVALID_FILE": "Envie uma logo PNG válida em 200×83 px.",
+    "FILE_TOO_LARGE": "A logo deve ter no máximo 5 MB.",
+    "INVALID_DIMENSIONS": "A logo deve ter exatamente 200×83 px.",
+    "INVALID_OWNERSHIP": "A imagem informada não pertence a esta empresa.",
+    "NOT_FOUND": "A logo da empresa não foi encontrada.",
+    "UPDATED_SUCCESSFULLY": "Logo da empresa atualizada com sucesso.",
+    "DELETED_SUCCESSFULLY": "Logo da empresa removida com sucesso.",
+    "UPDATE_FAILED": "Não foi possível atualizar a logo da empresa.",
+    "DELETE_FAILED": "Não foi possível remover a logo da empresa.",
+    "UPLOAD_PROCESS_FAILED": "Não foi possível processar o upload da logo."
+  },
   "VALIDATION": {
     "ERROR": "Erro de validação",
     "GENERAL_ERROR": "Erro na validação dos dados.",

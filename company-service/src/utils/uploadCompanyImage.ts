@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import { getLocaleFromRequest } from './locale';
 import { translation } from './i18n';
 
-const imageMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const imageMimeTypes = ['image/png'];
 
 export const uploadCompanyImage = multer({
 	storage: multer.memoryStorage(),
