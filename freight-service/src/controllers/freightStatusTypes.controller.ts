@@ -18,7 +18,7 @@ export const createFreightStatusType = async (req: Request, res: Response) => {
     });
   } catch (error) {
     if (await handleZodError(error, locale, res)) return;
-    return sendError(res, 500, 'FREIGHT_STATUS_TYPE.CREATE_FAILED', locale);
+    return sendError(res, 500, 'FREIGHT_STATUS_TYPE.CREATE_FAILED', locale, error);
   }
 };
 
@@ -28,7 +28,7 @@ export const getAllFreightStatusTypes = async (req: Request, res: Response) => {
     const freightStatusTypes = await FreightStatusType.findAll();
     return res.status(200).json(freightStatusTypes);
   } catch (error) {
-    return sendError(res, 500, 'FREIGHT_STATUS_TYPE.GET_ALL_FAILED', locale);
+    return sendError(res, 500, 'FREIGHT_STATUS_TYPE.GET_ALL_FAILED', locale, error);
   }
 };
 
@@ -43,7 +43,7 @@ export const getFreightStatusTypeById = async (req: Request, res: Response) => {
     return res.status(200).json(freightStatusType);
   } catch (error) {
     if (await handleZodError(error, locale, res)) return;
-    return sendError(res, 500, 'FREIGHT_STATUS_TYPE.GET_BY_ID_FAILED', locale);
+    return sendError(res, 500, 'FREIGHT_STATUS_TYPE.GET_BY_ID_FAILED', locale, error);
   }
 };
 
@@ -63,7 +63,7 @@ export const updateFreightStatusType = async (req: Request, res: Response) => {
     });
   } catch (error) {
     if (await handleZodError(error, locale, res)) return;
-    return sendError(res, 500, 'FREIGHT_STATUS_TYPE.UPDATE_FAILED', locale);
+    return sendError(res, 500, 'FREIGHT_STATUS_TYPE.UPDATE_FAILED', locale, error);
   }
 };
 
@@ -81,6 +81,6 @@ export const deleteFreightStatusType = async (req: Request, res: Response) => {
     });
   } catch (error) {
     if (await handleZodError(error, locale, res)) return;
-    return sendError(res, 500, 'FREIGHT_STATUS_TYPE.DELETE_FAILED', locale);
+    return sendError(res, 500, 'FREIGHT_STATUS_TYPE.DELETE_FAILED', locale, error);
   }
 };

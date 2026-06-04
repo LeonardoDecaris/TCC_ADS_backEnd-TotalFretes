@@ -18,7 +18,7 @@ export const createCnhType = async (req: Request, res: Response) => {
 	} catch (error) {
 		const zodError = await handleZodError(error, locale, res);
 		if (zodError) return;
-		return sendError(res, 500, 'CNH_TYPE.CREATE_FAILED', locale);
+		return sendError(res, 500, 'CNH_TYPE.CREATE_FAILED', locale, error);
 	}
 };
 
@@ -28,7 +28,7 @@ export const getAllCnhTypes = async (req: Request, res: Response) => {
 		const cnhTypes = await CnhType.findAll();
 		return res.status(200).json(cnhTypes);
 	} catch (error) {
-		return sendError(res, 500, 'CNH_TYPE.GET_ALL_FAILED', locale);
+		return sendError(res, 500, 'CNH_TYPE.GET_ALL_FAILED', locale, error);
 	}
 };
 
@@ -41,7 +41,7 @@ export const getCnhTypeById = async (req: Request, res: Response) => {
 		}
 		return res.status(200).json(cnhType);
 	} catch (error) {	
-		return sendError(res, 500, 'CNH_TYPE.GET_BY_ID_FAILED', locale);
+		return sendError(res, 500, 'CNH_TYPE.GET_BY_ID_FAILED', locale, error);
 	}
 };
 
@@ -61,7 +61,7 @@ export const updateCnhType = async (req: Request, res: Response) => {
 	} catch (error) {
 		const zodError = await handleZodError(error, locale, res);
 		if (zodError) return;
-		return sendError(res, 500, 'CNH_TYPE.UPDATE_FAILED', locale);
+		return sendError(res, 500, 'CNH_TYPE.UPDATE_FAILED', locale, error);
 	}
 };
 
@@ -77,6 +77,6 @@ export const deleteCnhType = async (req: Request, res: Response) => {
 			message: await translation("CNH_TYPE.DELETED_SUCCESSFULLY", locale),
 		});
 	} catch (error) {
-		return sendError(res, 500, 'CNH_TYPE.DELETE_FAILED', locale);
+		return sendError(res, 500, 'CNH_TYPE.DELETE_FAILED', locale, error);
 	}
 };

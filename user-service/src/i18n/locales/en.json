@@ -1,4 +1,7 @@
 {
+  "COMMON": {
+    "INTERNAL_ERROR": "Internal server error."
+  },
   "USER.ALREADY_EXISTS": "A user already exists with one or more provided fields.",
   "USER.EMAIL_ALREADY_EXISTS": "A user with this email already exists.",
   "USER.PHONE_ALREADY_EXISTS": "A user with this phone number already exists.",

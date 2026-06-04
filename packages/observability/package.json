@@ -1,0 +1,20 @@
+{
+  "name": "@total-fretes/observability",
+  "version": "1.0.0",
+  "description": "Logger Winston + Loki e utilitários de origem de erro",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build"
+  },
+  "dependencies": {
+    "winston": "^3.17.0",
+    "winston-loki": "^6.1.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.9.3"
+  },
+  "files": ["dist"]
+}

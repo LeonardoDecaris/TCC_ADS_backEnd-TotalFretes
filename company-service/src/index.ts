@@ -2,6 +2,8 @@ import app from './app';
 import dotenv from 'dotenv';
 import sequelize from './config/database';
 import { ensureCompanyAddressCountryColumn } from './database/ensureCompanyAddressCountryColumn';
+import { logger } from './config/logger';
+import { logError } from '@total-fretes/observability';
 
 dotenv.config();
 
@@ -13,17 +15,17 @@ if (!PORT) {
 (async () => {
   try {
     await sequelize.authenticate();
-    console.log('Database authenticated successfully');
+    logger.info('Database authenticated successfully');
 
     await sequelize.sync({ alter: false });
-    console.log('Database synchronized successfully');
+    logger.info('Database synchronized successfully');
 
     await ensureCompanyAddressCountryColumn();
-    console.log('Company address country column ensured successfully');
+    logger.info('Company address country column ensured successfully');
 
-    app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+    app.listen(PORT, () => logger.info(`Server is running on port ${PORT}`));
   } catch (err) {
-    console.error('error to start the server:', err);
+    logError(logger, 'error to start the server', err);
     process.exit(1);
   }
 })();

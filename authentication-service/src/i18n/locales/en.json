@@ -27,6 +27,15 @@
     "PASSWORD_CHANGED_SUCCESSFULLY": "Password changed successfully.",
     "TOKEN_INVALID_OR_MISSING": "Invalid or missing token.",
     "TOKEN_INVALID_OR_EXPIRED": "Invalid or expired token.",
+    "INTERNAL_ERROR": "Internal server error.",
+    "TOKEN_NOT_PROVIDED": "Token not provided.",
+    "TOKEN_NOT_FORMATTED": "Token not formatted.",
+    "TOKEN_INVALID": "Invalid token.",
+    "ROLE_DENIED": "Access denied. User not authenticated.",
+    "NOT_AUTHENTICATED": "Not authenticated.",
+    "PERMISSION_INSUFFICIENT": "Insufficient permission.",
+    "RESOURCE_ACCESS_DENIED": "Access denied to the requested resource.",
+    "TOKEN_INVALID_OR_EXPIRED": "Invalid or expired token.",
     "PAYMENT_PENDING": "Complete payment to access the platform."
   },
   "PASSWORD_RESET": {

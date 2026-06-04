@@ -21,6 +21,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@total-fretes/observability": "file:../packages/observability",
     "@total-fretes/rpc-contracts": "file:../packages/rpc-contracts",
     "axios": "^1.13.5",
     "amqplib": "^1.0.3",

@@ -28,7 +28,7 @@ export const createAccount = async (req: Request, res: Response) => {
   } catch (error) {
     const zodError = await handleZodError(error, locale);
     if (zodError) return res.status(zodError.status).json(zodError.body);
-    return sendError(res, 500, await translation('ACCOUNT.CREATE_FAILED', locale), { error, ok: false });
+    return sendError(res, 500, await translation('ACCOUNT.CREATE_FAILED', locale), error, { ok: false });
   }
 };
 
@@ -43,7 +43,7 @@ export const getAccountById = async (req: Request, res: Response) => {
 
     return res.status(200).json(account);
   } catch (error) {
-    return sendError(res, 500, await translation('ACCOUNT.GET_BY_ID_FAILED', locale), { error });
+    return sendError(res, 500, await translation('ACCOUNT.GET_BY_ID_FAILED', locale), error);
   }
 };
 
@@ -53,7 +53,7 @@ export const getAccountTypes = async (_req: Request, res: Response) => {
     const types = await AccountType.findAll();
     return res.status(200).json(types);
   } catch (error) {
-    return sendError(res, 500, await translation('ACCOUNT_TYPE.GET_ALL_FAILED', locale), { error });
+    return sendError(res, 500, await translation('ACCOUNT_TYPE.GET_ALL_FAILED', locale), error);
   }
 };
 
@@ -71,7 +71,7 @@ export const deleteAccount = async (req: Request, res: Response) => {
       message: await translation('ACCOUNT.DELETED_SUCCESSFULLY', locale),
     });
   } catch (error) {
-    return sendError(res, 500, await translation('ACCOUNT.DELETE_FAILED', locale), { error });
+    return sendError(res, 500, await translation('ACCOUNT.DELETE_FAILED', locale), error);
   }
 };
 
@@ -89,6 +89,6 @@ export const deleteAccountSubject = async (req: Request, res: Response) => {
       message: await translation('ACCOUNT.DELETED_SUCCESSFULLY', locale),
     });
   } catch (error) {
-    return sendError(res, 500, await translation('ACCOUNT.DELETE_FAILED', locale), { error });
+    return sendError(res, 500, await translation('ACCOUNT.DELETE_FAILED', locale), error);
   }
 };
