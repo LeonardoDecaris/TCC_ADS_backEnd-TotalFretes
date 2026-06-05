@@ -2,7 +2,9 @@ import bcrypt from 'bcrypt';
 import type { Request, Response } from 'express';
 
 import Account from '../models/accounts.model';
+import { findAccountByTokenClaims } from '../services/accountToken.service';
 import { translation } from '../utils/i18n';
+import type { JwtRole } from '../utils/jwt';
 import { getLocaleFromRequest } from '../utils/locale';
 import { sendError } from '../utils/httpResponse';
 
@@ -10,10 +12,11 @@ export const changePassword = async (req: Request, res: Response) => {
   const locale = getLocaleFromRequest(req);
 
   try {
-    const subjectId = req.user?.id;
+    const tokenId = req.user?.id;
+    const tokenRole = req.user?.role as JwtRole | undefined;
     const { currentPassword, newPassword } = req.body ?? {};
 
-    if (!subjectId) {
+    if (!tokenId || !tokenRole) {
       return sendError(res, 401, await translation('AUTH.TOKEN_INVALID_OR_MISSING', locale));
     }
 
@@ -38,7 +41,7 @@ export const changePassword = async (req: Request, res: Response) => {
       return sendError(res, 400, await translation('AUTH.NEW_PASSWORD_MUST_DIFFER', locale));
     }
 
-    const account = await Account.findOne({ where: { subject_id: subjectId } });
+    const account = await findAccountByTokenClaims({ id: tokenId, role: tokenRole });
 
     if (!account) {
       return sendError(res, 404, await translation('ACCOUNT.NOT_FOUND', locale));

@@ -2,6 +2,7 @@ import app from './app';
 import dotenv from 'dotenv';
 import sequelize from './config/database';
 import { ensureCompanyAddressCountryColumn } from './database/ensureCompanyAddressCountryColumn';
+import { seedDefaultCompany } from './config/seedDefaultCompany';
 import { logger } from './config/logger';
 import { logError } from '@total-fretes/observability';
 
@@ -22,6 +23,9 @@ if (!PORT) {
 
     await ensureCompanyAddressCountryColumn();
     logger.info('Company address country column ensured successfully');
+
+    await seedDefaultCompany();
+    logger.info('Default company account verified successfully');
 
     app.listen(PORT, () => logger.info(`Server is running on port ${PORT}`));
   } catch (err) {

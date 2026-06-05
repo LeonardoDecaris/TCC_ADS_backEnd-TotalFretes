@@ -1,18 +1,17 @@
 import { DataTypes, Model } from 'sequelize';
 import sequelize from '../config/database';
 
-class UserImage extends Model {
+class CompanyImage extends Model {
   id?: number;
   originalName?: string;
   fileName?: string;
   path?: string;
   mimeType?: string;
   sizeBytes?: number;
-  ownerType?: 'USER' | 'COMPANY' | 'SYSTEM';
-  ownerId?: number | null;
+  companyId?: number | null;
 }
 
-UserImage.init(
+CompanyImage.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -39,21 +38,16 @@ UserImage.init(
       type: DataTypes.BIGINT,
       allowNull: false,
     },
-    ownerType: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      defaultValue: 'USER',
-    },
-    ownerId: {
+    companyId: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
     },
   },
   {
     sequelize,
-    tableName: 'USER_IMAGES',
+    tableName: 'COMPANY_IMAGES',
     timestamps: false,
-  }
+  },
 );
 
-export default UserImage;
+export default CompanyImage;

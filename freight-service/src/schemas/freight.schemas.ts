@@ -24,6 +24,11 @@ export const createFreightSchema = z.object({
 		.int()
 		.positive('VALIDATION.FREIGHT_STATUS_ID_INVALID')
 		.optional(),
+	company_id: z.coerce
+		.number()
+		.int()
+		.positive('VALIDATION.COMPANY_ID_INVALID')
+		.optional(),
 	daysLimit: z.coerce.number().int().positive('VALIDATION.DAYS_LIMIT_INVALID').optional(),
 	originalValue: z.coerce.number().nonnegative('VALIDATION.ORIGINAL_VALUE_INVALID'),
 	weight: z.coerce.number().positive('VALIDATION.WEIGHT_INVALID'),

@@ -2,6 +2,7 @@ import app from './app';
 import dotenv from 'dotenv';
 import sequelize from './config/database';
 import { seedAccountTypes } from './config/seedAccountTypes';
+import { seedDefaultAdmin } from './config/seedDefaultAdmin';
 import { startEmailPublisher } from './messaging/email.publisher';
 import { logger } from './config/logger';
 import { logError } from '@total-fretes/observability';
@@ -23,6 +24,9 @@ if (!PORT) {
 
     await seedAccountTypes();
     logger.info('Account types verified successfully');
+
+    await seedDefaultAdmin();
+    logger.info('Default admin account verified successfully');
 
     await startEmailPublisher();
     logger.info('Email publisher started successfully');

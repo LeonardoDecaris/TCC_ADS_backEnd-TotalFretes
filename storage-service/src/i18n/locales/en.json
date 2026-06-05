@@ -13,6 +13,7 @@
     "DELETE_FAILED": "Error removing image.",
     "INVALID_FILE": "Invalid file. Send images only.",
     "FILE_TOO_LARGE": "File exceeds the 5MB limit.",
-    "UPLOAD_PROCESS_FAILED": "Error processing upload."
+    "UPLOAD_PROCESS_FAILED": "Error processing upload.",
+    "INVALID_OWNER": "The image must be linked to a valid owner."
   }
 }

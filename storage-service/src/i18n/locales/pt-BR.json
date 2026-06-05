@@ -13,6 +13,7 @@
     "DELETE_FAILED": "Erro ao remover imagem.",
     "INVALID_FILE": "Arquivo inválido. Envie apenas imagens.",
     "FILE_TOO_LARGE": "Arquivo excede o limite de 5MB.",
-    "UPLOAD_PROCESS_FAILED": "Erro ao processar upload."
+    "UPLOAD_PROCESS_FAILED": "Erro ao processar upload.",
+    "INVALID_OWNER": "A imagem precisa estar vinculada a um dono válido."
   }
 }
