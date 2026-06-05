@@ -31,14 +31,13 @@ export type StorageImageData = {
 	path?: string;
 	mimeType?: string;
 	sizeBytes?: number;
-	ownerType?: 'USER' | 'COMPANY';
-	ownerId?: number | null;
+	companyId?: number | null;
 	url?: string | null;
 };
 
-type StorageImageEnvelope = {
+type CompanyImageEnvelope = {
 	message?: string;
-	userImage: StorageImageData;
+	companyImage: StorageImageData;
 };
 
 export type CreateAccountData = {
@@ -79,8 +78,17 @@ export async function createAccountHttp(data: CreateAccountData) {
 		fallback: { ok: false },
 		silentStatuses: [409],
 	});
-	return result.ok === 
-	true;
+	return result.ok === true;
+}
+
+export async function getAccountTypeIdByName(name: string): Promise<number | null> {
+	const types = await authClient.get<Array<{ id: number; name: string }>>('/account/types', {
+		fallback: [],
+		silentStatuses: [404, 500],
+	});
+
+	const match = types.find((type) => type.name === name);
+	return match?.id ?? null;
 }
 
 export async function deleteOwnAccountBySubjectHttp({
@@ -120,8 +128,8 @@ function appendFileToFormData(formData: FormData, file: Express.Multer.File) {
 	);
 }
 
-export async function getUserImageHttp({ id }: { id: number }) {
-	const result = await storageClient.get<StorageImageData | null>(`/user-images/${id}`, {
+export async function getCompanyImageHttp({ id }: { id: number }) {
+	const result = await storageClient.get<StorageImageData | null>(`/company-images/${id}`, {
 		fallback: null,
 		silentStatuses: [404],
 	});
@@ -137,16 +145,18 @@ export async function uploadCompanyImageHttp({
 }) {
 	const formData = new FormData();
 	appendFileToFormData(formData, file);
-	formData.append('ownerType', 'COMPANY');
-	formData.append('ownerId', String(companyId));
+	formData.append('companyId', String(companyId));
 
-	const response = await axios.post<StorageImageEnvelope>(
-		`${storageServiceBaseUrl}/user-images/upload`,
+	const response = await axios.post<CompanyImageEnvelope>(
+		`${storageServiceBaseUrl}/company-images/upload`,
 		formData,
 		{ maxBodyLength: Infinity },
 	);
 
-	return response.data;
+	return {
+		message: response.data.message,
+		userImage: response.data.companyImage,
+	};
 }
 
 export async function updateCompanyImageHttp({
@@ -159,18 +169,21 @@ export async function updateCompanyImageHttp({
 	const formData = new FormData();
 	appendFileToFormData(formData, file);
 
-	const response = await axios.put<StorageImageEnvelope>(
-		`${storageServiceBaseUrl}/user-images/${imageId}`,
+	const response = await axios.put<CompanyImageEnvelope>(
+		`${storageServiceBaseUrl}/company-images/${imageId}`,
 		formData,
 		{ maxBodyLength: Infinity },
 	);
 
-	return response.data;
+	return {
+		message: response.data.message,
+		userImage: response.data.companyImage,
+	};
 }
 
-export async function deleteUserImageHttp({ id }: { id: number }) {
+export async function deleteCompanyImageHttp({ id }: { id: number }) {
 	const result = await storageClient.delete<{ message?: string; ok?: boolean }>(
-		`/user-images/${id}`,
+		`/company-images/${id}`,
 		{
 			fallback: { ok: false },
 			silentStatuses: [404],

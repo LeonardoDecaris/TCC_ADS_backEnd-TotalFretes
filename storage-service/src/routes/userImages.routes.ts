@@ -6,8 +6,8 @@ import {
   handleUploadError,
   saveUserImage,
   updateUserImage,
+  uploadUserImage,
 } from '../controllers/userImages.controller';
-import { uploadUserImage } from '../utils/upload';
 
 const router = express.Router();
 

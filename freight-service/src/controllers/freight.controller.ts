@@ -29,7 +29,18 @@ export const createFreight = async (req: Request, res: Response) => {
   const locale = getLocaleFromRequest(req);
   try {
     const body = createFreightSchema.parse(req.body);
-    const freight = await createFreightRecord(body, req.user!.id);
+    const role = req.user?.role;
+    let companyId = req.user!.id;
+
+    if (role === 'ADMIN') {
+      if (!body.company_id) {
+        return sendError(res, 400, 'VALIDATION.COMPANY_ID_REQUIRED', locale);
+      }
+      companyId = body.company_id;
+    }
+
+    const { company_id: _ignored, ...freightBody } = body;
+    const freight = await createFreightRecord(freightBody, companyId);
     const enriched = await enrichFreightWithCompany(freight, getEnrichmentContext(req));
     return res.status(201).json({
       message: await translation('FREIGHT.CREATED_SUCCESSFULLY', locale),

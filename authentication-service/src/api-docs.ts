@@ -191,31 +191,130 @@ export const apiDocs = {
     },
     '/account': {
       post: {
-        summary: 'Criar conta',
+        summary: 'Criar conta (cadastro público)',
         tags: ['Account'],
         requestBody: {
+          required: true,
           content: {
             'application/json': {
-              schema: {
-                type: 'object',
-                properties: {
-                  email: { type: 'string', example: 'app@totalfretes.com.br' },
-                  password: { type: 'string', example: '12345678' },
-                  account_type_id: { type: 'integer', example: 1 },
-                  subject_id: { type: 'integer', example: 1 },
+              schema: { $ref: '#/components/schemas/AccountCreate' },
+            },
+          },
+        },
+        responses: {
+          201: { description: 'Conta criada' },
+          400: { description: 'Dados inválidos' },
+          409: { description: 'Email já existe' },
+        },
+      },
+      get: {
+        summary: 'Listar contas (ADMIN)',
+        tags: ['Account'],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: 'page', in: 'query', schema: { type: 'integer', minimum: 1, default: 1 } },
+          { name: 'limit', in: 'query', schema: { type: 'integer', minimum: 1, maximum: 100, default: 20 } },
+        ],
+        responses: {
+          200: {
+            description: 'Lista paginada',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/AccountList' } } },
+          },
+          403: { description: 'Acesso negado' },
+        },
+      },
+    },
+    '/account/admin': {
+      post: {
+        summary: 'Criar conta ADMIN',
+        description:
+          'Cria uma conta com perfil ADMIN. Requer token ADMIN. O `subject_id` é definido automaticamente como o id da conta (auto-referência).',
+        tags: ['Account'],
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/AccountAdminCreate' },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: 'Administrador criado',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    message: { type: 'string' },
+                    account: { $ref: '#/components/schemas/Account' },
+                  },
                 },
               },
             },
           },
+          409: { description: 'Email já existe' },
+          403: { description: 'Acesso negado' },
         },
-        responses: { 201: { description: 'Conta criada' }, 400: { description: 'Dados inválidos' }, 409: { description: 'Email já existe' } },
       },
     },
     '/account/types': {
       get: {
         summary: 'Listar tipos de conta',
         tags: ['Account'],
-        responses: { 200: { description: 'Lista de tipos' } },
+        responses: {
+          200: {
+            description: 'Lista de tipos (USER, COMPANY, ADMIN)',
+            content: {
+              'application/json': {
+                schema: { type: 'array', items: { $ref: '#/components/schemas/AccountType' } },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/account/subject/{subjectId}': {
+      get: {
+        summary: 'Buscar conta por subject_id (ADMIN)',
+        tags: ['Account'],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'subjectId',
+            in: 'path',
+            required: true,
+            schema: { type: 'integer' },
+            description: 'ID do subject (usuário, empresa ou id da própria conta ADMIN)',
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Conta encontrada',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/Account' } } },
+          },
+          404: { description: 'Não encontrada' },
+        },
+      },
+      delete: {
+        summary: 'Remover conta pelo subject_id',
+        description: 'Permitido para o próprio dono do subject ou ADMIN.',
+        tags: ['Account'],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'subjectId',
+            in: 'path',
+            required: true,
+            schema: { type: 'integer' },
+            description: 'ID do subject vinculado à conta',
+          },
+        ],
+        responses: {
+          200: { description: 'Conta removida' },
+          404: { description: 'Conta não encontrada' },
+        },
       },
     },
     '/account/{id}': {
@@ -223,43 +322,103 @@ export const apiDocs = {
         summary: 'Buscar conta por ID (ADMIN)',
         tags: ['Account'],
         security: [{ bearerAuth: [] }],
-        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
-        responses: { 200: { description: 'Conta' }, 404: { description: 'Não encontrada' } },
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }],
+        responses: {
+          200: {
+            description: 'Conta',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/Account' } } },
+          },
+          404: { description: 'Não encontrada' },
+        },
+      },
+      patch: {
+        summary: 'Atualizar conta (ADMIN)',
+        description: 'Ao promover para ADMIN, `subject_id` é ajustado para o id da conta.',
+        tags: ['Account'],
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/AccountPatch' },
+            },
+          },
+        },
+        responses: {
+          200: { description: 'Conta atualizada' },
+          404: { description: 'Não encontrada' },
+          409: { description: 'Email já existe' },
+        },
       },
       delete: {
         summary: 'Remover conta (ADMIN)',
         tags: ['Account'],
         security: [{ bearerAuth: [] }],
-        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }],
         responses: { 200: { description: 'Removida' }, 404: { description: 'Não encontrada' } },
-      },
-    },
-    '/account/subject/{id}': {
-      delete: {
-        summary: 'Remover conta pelo subject_id',
-        description: 'Busca conta onde `subject_id` corresponde ao parâmetro. Permitido para o próprio dono do subject ou ADMIN.',
-        tags: ['Account'],
-        security: [{ bearerAuth: [] }],
-        parameters: [
-          {
-            name: 'id',
-            in: 'path',
-            required: true,
-            schema: { type: 'string' },
-            description: 'ID do subject vinculado à conta (usuário ou empresa)',
-          },
-        ],
-        responses: {
-          200: { description: 'Conta removida' },
-          404: { description: 'Conta não encontrada' },
-          500: { description: 'Erro ao remover' },
-        },
       },
     },
   },
   components: {
     securitySchemes: {
       bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+    },
+    schemas: {
+      AccountType: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer' },
+          name: { type: 'string', enum: ['USER', 'COMPANY', 'ADMIN'] },
+        },
+      },
+      Account: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer' },
+          email: { type: 'string', format: 'email' },
+          account_type_id: { type: 'integer' },
+          subject_id: { type: 'integer' },
+          AccountType: { $ref: '#/components/schemas/AccountType' },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' },
+        },
+      },
+      AccountCreate: {
+        type: 'object',
+        required: ['email', 'password', 'account_type_id', 'subject_id'],
+        properties: {
+          email: { type: 'string', format: 'email', example: 'app@totalfretes.com.br' },
+          password: { type: 'string', minLength: 8, example: '12345678' },
+          account_type_id: { type: 'integer', example: 2 },
+          subject_id: { type: 'integer', example: 1 },
+        },
+      },
+      AccountAdminCreate: {
+        type: 'object',
+        required: ['email', 'password'],
+        properties: {
+          email: { type: 'string', format: 'email', example: 'admin2@totalfretes.com.br' },
+          password: { type: 'string', minLength: 8, example: 'Admin@123456' },
+        },
+      },
+      AccountPatch: {
+        type: 'object',
+        properties: {
+          email: { type: 'string', format: 'email' },
+          account_type_id: { type: 'integer' },
+        },
+      },
+      AccountList: {
+        type: 'object',
+        properties: {
+          items: { type: 'array', items: { $ref: '#/components/schemas/Account' } },
+          total: { type: 'integer' },
+          page: { type: 'integer' },
+          limit: { type: 'integer' },
+          hasMore: { type: 'boolean' },
+        },
+      },
     },
   },
 };

@@ -1,13 +1,9 @@
+import { STORED_IMAGE_KINDS } from '../config/storedImageKinds';
 import UserImage from '../models/userImages.model';
+import { serializeStoredImage } from '../services/storedImage.service';
 
 export function serializeUserImage(row: UserImage): Record<string, unknown> {
-  const json = row.toJSON() as Record<string, unknown>;
-  const fileName = typeof json.fileName === 'string' ? json.fileName : '';
-
-  return {
-    ...json,
-    url: fileName ? `/api/uploads/user-images/${fileName}` : null,
-  };
+  return serializeStoredImage(STORED_IMAGE_KINDS.user, row);
 }
 
 export async function getUserImageJsonByPk(

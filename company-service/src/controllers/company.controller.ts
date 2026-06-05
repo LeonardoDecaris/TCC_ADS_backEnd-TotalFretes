@@ -7,9 +7,9 @@ import CompanyAddress from "../models/address.model";
 import {
 	createAccountHttp,
 	deleteOwnAccountBySubjectHttp,
-	deleteUserImageHttp,
+	deleteCompanyImageHttp,
 	getAuthenticatedCompanyFreightsHttp,
-	getUserImageHttp,
+	getCompanyImageHttp,
 	type StorageImageData,
 	uploadCompanyImageHttp,
 	updateCompanyImageHttp,
@@ -63,7 +63,7 @@ function companyImageResponse(image: StorageImageData | null) {
 
 async function hydrateCompanyImage(company: Company) {
 	if (!company.company_image_id) return null;
-	return getUserImageHttp({ id: company.company_image_id });
+	return getCompanyImageHttp({ id: company.company_image_id });
 }
 
 async function buildCompanyResponse(company: Company) {
@@ -76,11 +76,11 @@ async function buildCompanyResponse(company: Company) {
 }
 
 async function companyOwnsImage(companyId: number, imageId: number) {
-	const image = await getUserImageHttp({ id: imageId });
+	const image = await getCompanyImageHttp({ id: imageId });
 
 	if (!image) return false;
 
-	return image.ownerType === "COMPANY" && Number(image.ownerId) === companyId;
+	return Number(image.companyId) === companyId;
 }
 
 function isTerminalFreightStatus(statusName?: string | null) {
@@ -200,7 +200,7 @@ export const deleteCompany = async (req: Request, res: Response) => {
 		}
 
 		if (company.company_image_id) {
-			await deleteUserImageHttp({ id: company.company_image_id });
+			await deleteCompanyImageHttp({ id: company.company_image_id });
 		}
 
 		await company.destroy();
@@ -232,7 +232,7 @@ export const deleteOwnCompany = async (req: Request, res: Response) => {
 		}
 
 		if (company.company_image_id) {
-			await deleteUserImageHttp({ id: company.company_image_id });
+			await deleteCompanyImageHttp({ id: company.company_image_id });
 		}
 
 		await deleteOwnAccountBySubjectHttp({
@@ -386,7 +386,7 @@ export const upsertCompanyImage = async (req: RequestWithFile, res: Response) =>
 			await company.update({ company_image_id: nextImageId });
 		} catch (error) {
 			if (createdImageId) {
-				await deleteUserImageHttp({ id: createdImageId });
+				await deleteCompanyImageHttp({ id: createdImageId });
 			}
 			throw error;
 		}
@@ -431,7 +431,7 @@ export const deleteCompanyImage = async (req: Request, res: Response) => {
 			return sendError(res, 404, "COMPANY_IMAGE.NOT_FOUND", locale);
 		}
 
-		await deleteUserImageHttp({ id: company.company_image_id });
+		await deleteCompanyImageHttp({ id: company.company_image_id });
 		await company.update({ company_image_id: null });
 
 		return res.status(200).json({

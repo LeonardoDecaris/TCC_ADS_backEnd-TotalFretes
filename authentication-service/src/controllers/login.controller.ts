@@ -6,6 +6,7 @@ import { generateToken, verifyToken, type JwtRole } from '../utils/jwt';
 import { translation } from '../utils/i18n';
 import { getLocaleFromRequest } from '../utils/locale';
 import { loginSchema } from '../schemas/login.schemas';
+import { findAccountByTokenClaims, resolveTokenSubjectId } from '../services/accountToken.service';
 import { getCompanyPaymentStatus } from '../services/companyService';
 import { sendError } from '../utils/httpResponse';
 import { handleZodError } from '../utils/zodError';
@@ -44,7 +45,8 @@ export const login = async (req: Request, res: Response) => {
       }
     }
 
-    const token = generateToken({ id: account?.subject_id, role: accountTypeName as JwtRole });
+    const tokenSubjectId = resolveTokenSubjectId(account, accountTypeName);
+    const token = generateToken({ id: tokenSubjectId, role: accountTypeName as JwtRole });
 
     return res.status(200).json({
       message: await translation('AUTH.LOGIN_SUCCESSFUL', locale),
@@ -73,8 +75,10 @@ export const validateToken = async (req: Request, res: Response) => {
       return sendError(res, 401, await translation('AUTH.TOKEN_INVALID_OR_EXPIRED', locale), { valid: false });
     }
 
-    const subjectId = Number(decoded.id);
-    const account = await Account.findOne({ where: { subject_id: subjectId } });
+    const account = await findAccountByTokenClaims({
+      id: Number(decoded.id),
+      role: decoded.role,
+    });
     if (!account) {
       return sendError(res, 401, await translation('AUTH.TOKEN_INVALID_OR_EXPIRED', locale), { valid: false });
     }
