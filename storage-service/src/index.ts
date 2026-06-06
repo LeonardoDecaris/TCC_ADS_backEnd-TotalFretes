@@ -4,7 +4,6 @@ import sequelize from './config/database';
 import './models/userImages.model';
 import './models/companyImage.model';
 import './models/cargoImage.model';
-import './models/vehicleImage.model';
 import { ensureUserImageOwnershipColumns } from './database/ensureUserImageOwnershipColumns';
 import { logger } from './config/logger';
 import { logError } from '@total-fretes/observability';

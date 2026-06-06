@@ -1,4 +1,4 @@
-export type StoredImageKind = 'user' | 'company' | 'cargo' | 'vehicle';
+export type StoredImageKind = 'user' | 'company' | 'cargo';
 
 export type StoredImageKindConfig = {
   kind: StoredImageKind;
@@ -29,12 +29,5 @@ export const STORED_IMAGE_KINDS: Record<StoredImageKind, StoredImageKindConfig> 
     routeBase: 'cargo-images',
     uploadSubdir: 'cargo-images',
     responseKey: 'cargoImage',
-  },
-  vehicle: {
-    kind: 'vehicle',
-    tableName: 'VEHICLE_IMAGES',
-    routeBase: 'vehicle-images',
-    uploadSubdir: 'vehicle-images',
-    responseKey: 'vehicleImage',
   },
 };

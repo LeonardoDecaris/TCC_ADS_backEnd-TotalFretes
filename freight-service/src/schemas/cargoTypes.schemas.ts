@@ -2,7 +2,6 @@ import { z } from 'zod';
 
 export const createCargoTypeSchema = z.object({
 	name: z.string().min(1, 'VALIDATION.NAME_REQUIRED'),
-	vehicleType: z.string().min(1, 'VALIDATION.VEHICLE_TYPE_REQUIRED'),
 	imageCargo_id: z.coerce
 		.number()
 		.int()
