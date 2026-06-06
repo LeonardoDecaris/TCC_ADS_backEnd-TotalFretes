@@ -1,7 +1,6 @@
 import { STORED_IMAGE_KINDS } from '../config/storedImageKinds';
 import CargoImage from '../models/cargoImage.model';
 import CompanyImage from '../models/companyImage.model';
-import VehicleImage from '../models/vehicleImage.model';
 import {
   createStoredImageRoutes,
   handleStoredImageUploadError,
@@ -14,19 +13,12 @@ const parseId = (value: unknown): number | null => {
 };
 
 export const cargoImagesUpload = createStoredImageUpload(STORED_IMAGE_KINDS.cargo.uploadSubdir);
-export const vehicleImagesUpload = createStoredImageUpload(STORED_IMAGE_KINDS.vehicle.uploadSubdir);
 export const companyImagesUpload = createStoredImageUpload(STORED_IMAGE_KINDS.company.uploadSubdir);
 
 export const cargoImagesRoutes = createStoredImageRoutes(
   STORED_IMAGE_KINDS.cargo,
   CargoImage,
   cargoImagesUpload,
-);
-
-export const vehicleImagesRoutes = createStoredImageRoutes(
-  STORED_IMAGE_KINDS.vehicle,
-  VehicleImage,
-  vehicleImagesUpload,
 );
 
 export const companyImagesRoutes = createStoredImageRoutes(

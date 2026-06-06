@@ -4,7 +4,8 @@ const DEFAULT_GROUP_VEHICLE_TYPES = [
   { nome: 'Caminhão', cnhType_id: 4 },
   { nome: 'Carreta', cnhType_id: 5 },
   { nome: 'Bitrem', cnhType_id: 5 },
-  { nome: 'Para carga de líquidos', cnhType_id: 5 },
+  { nome: 'Prancha', cnhType_id: 5 },
+  { nome: 'Cegonha', cnhType_id: 5 },
 ];
 
 export const seedGroupVehicleType = async (): Promise<void> => {

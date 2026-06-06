@@ -3,10 +3,8 @@ import cors from 'cors';
 import userImagesRoutes from './routes/userImages.routes';
 import {
   cargoImagesRoutes,
-  vehicleImagesRoutes,
   companyImagesRoutes,
   cargoImagesUpload,
-  vehicleImagesUpload,
   companyImagesUpload,
   handleStoredImageUploadError,
 } from './routes/catalogImages.routes';
@@ -38,12 +36,10 @@ app.get('/api-docs', (_req, res) => {
 app.use('/uploads/user-images', express.static(userImagesUpload.uploadDirPath));
 app.use('/uploads/company-images', express.static(companyImagesUpload.uploadDirPath));
 app.use('/uploads/cargo-images', express.static(cargoImagesUpload.uploadDirPath));
-app.use('/uploads/vehicle-images', express.static(vehicleImagesUpload.uploadDirPath));
 
 app.use('/user-images', userImagesRoutes);
 app.use('/company-images', companyImagesRoutes);
 app.use('/cargo-images', cargoImagesRoutes);
-app.use('/vehicle-images', vehicleImagesRoutes);
 
 app.use(handleStoredImageUploadError);
 app.use(ErrorHandlerMiddleware);

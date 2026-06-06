@@ -729,7 +729,6 @@ export const apiDocs = {
 				properties: {
 					id: { type: 'integer' },
 					name: { type: 'string' },
-					vehicleType: { type: 'string' },
 					imageCargo_id: { type: 'integer', nullable: true },
 					createdAt: { type: 'string', format: 'date-time' },
 					updatedAt: { type: 'string', format: 'date-time' },
@@ -737,10 +736,9 @@ export const apiDocs = {
 			},
 			CargoTypeCreate: {
 				type: 'object',
-				required: ['name', 'vehicleType'],
+				required: ['name'],
 				properties: {
 					name: { type: 'string', minLength: 1 },
-					vehicleType: { type: 'string', minLength: 1 },
 					imageCargo_id: { type: 'integer', minimum: 1 },
 				},
 			},
@@ -748,7 +746,6 @@ export const apiDocs = {
 				type: 'object',
 				properties: {
 					name: { type: 'string', minLength: 1 },
-					vehicleType: { type: 'string', minLength: 1 },
 					imageCargo_id: { type: 'integer', minimum: 1 },
 				},
 			},

@@ -84,7 +84,6 @@
     "FREIGHT_STATUS_ID_INVALID": "Status de frete inválido.",
     "DAYS_LIMIT_INVALID": "Prazo em dias inválido.",
     "ORIGINAL_VALUE_INVALID": "Valor original inválido.",
-    "VEHICLE_TYPE_REQUIRED": "Tipo de veículo é obrigatório.",
     "IMAGE_CARGO_ID_INVALID": "Identificador da imagem da carga inválido.",
     "FREIGHT_ID_INVALID": "Frete inválido.",
     "PROPOSAL_VALUE_INVALID": "Valor da proposta inválido.",
