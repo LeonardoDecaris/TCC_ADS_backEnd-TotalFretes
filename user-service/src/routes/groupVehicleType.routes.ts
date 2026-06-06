@@ -6,7 +6,7 @@ import {
 	updateGroupVehicleType,
 	deleteGroupVehicleType,
 } from '../controllers/groupVehicleType.controller';
-import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
+import { authMiddleware, authorizeRoles } from '../middlewares/authMiddleware';
 
 const router = express.Router();
 

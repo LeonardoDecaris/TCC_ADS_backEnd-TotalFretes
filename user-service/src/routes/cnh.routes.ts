@@ -1,6 +1,6 @@
 import express from 'express';
 import { createCnhType, getAllCnhTypes, getCnhTypeById, updateCnhType, deleteCnhType } from '../controllers/cnh.controller';
-import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
+import { authMiddleware, authorizeRoles } from '../middlewares/authMiddleware';
 
 const router = express.Router();
 
