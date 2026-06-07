@@ -9,6 +9,7 @@ import {
   handleStoredImageUploadError,
 } from './routes/catalogImages.routes';
 import { apiDocs } from './api-docs';
+import { requestIdMiddleware } from './middlewares/requestId';
 import { requestLoggerMiddleware } from './middlewares/requestLogger';
 import { ErrorHandlerMiddleware } from './middlewares/errors';
 import { createStoredImageUpload } from './utils/storedImageUpload';
@@ -19,6 +20,7 @@ const userImagesUpload = createStoredImageUpload(STORED_IMAGE_KINDS.user.uploadS
 
 app.use(cors());
 app.use(express.json());
+app.use(requestIdMiddleware);
 app.use(requestLoggerMiddleware);
 
 app.get('/', (_req, res) => {

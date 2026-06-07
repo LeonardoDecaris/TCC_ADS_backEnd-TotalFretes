@@ -21,7 +21,7 @@ import { sendError, sendConflictError } from "../services/httpResponse";
 import { handleZodError } from "../utils/zodError";
 import { validateCompanyLogoPng } from "../utils/validateCompanyLogoPng";
 import { logger } from "../config/logger";
-import { logError } from "@total-fretes/observability";
+import { logError } from "../utils/logError";
 
 import {
 	createCompanySchema,
@@ -466,7 +466,7 @@ export const completeCompanyPayment = async (req: Request, res: Response) => {
 			message: await translation("COMPANY.PAYMENT_COMPLETED_SUCCESSFULLY", locale),
 		});
 	} catch (error) {
-		console.error("completeCompanyPayment failed:", error);
+		logError(logger, "completeCompanyPayment failed", error);
 		return sendError(res, 500, "COMPANY.PAYMENT_COMPLETE_FAILED", locale);
 	}
 };
@@ -494,7 +494,7 @@ export const requestCompanyPaymentToken = async (req: Request, res: Response) =>
 		});
 	} catch (error) {
 		if (await handleZodError(error, locale, res)) return;
-		console.error("requestCompanyPaymentToken failed:", error);
+		logError(logger, "requestCompanyPaymentToken failed", error);
 		return sendError(res, 500, "COMPANY.PAYMENT_TOKEN_REQUEST_FAILED", locale);
 	}
 };
@@ -519,7 +519,7 @@ export const getCompanyPaymentStatusBySubject = async (req: Request, res: Respon
 			isPaid: Boolean(company.isPaid),
 		});
 	} catch (error) {
-		console.error("getCompanyPaymentStatusBySubject failed:", error);
+		logError(logger, "getCompanyPaymentStatusBySubject failed", error);
 		return sendError(res, 500, "COMPANY.GET_PAYMENT_STATUS_FAILED", locale);
 	}
 };

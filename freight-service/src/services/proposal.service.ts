@@ -26,6 +26,13 @@ import {
   fetchProposalListSummary,
   mapProposalStatusFilterToDomainNames,
 } from './proposalsList.service';
+import {
+  notifyCompanyProposalAccepted,
+  notifyCompanyProposalSent,
+  notifyDriverAwaitingConfirmation,
+  notifyDriverProposalNotSelected,
+  notifyDriverProposalRejected,
+} from '../messaging/notificationEvents';
 
 export const getFreightNestedInclude = () => [
   { model: CargoType, as: 'cargo', required: false },
@@ -114,11 +121,20 @@ export async function createProposalRecord(body: CreateProposalBody, driverId: n
     where: { name: ProposalStatusSlug.ENVIADA },
   });
 
-  return Proposal.create({
+  const proposal = await Proposal.create({
     ...body,
     driver_id: driverId,
     status_id: enviadaStatus?.id,
   });
+
+  if (freight.company_id != null && proposal.id != null) {
+    notifyCompanyProposalSent(Number(freight.company_id), {
+      proposalId: proposal.id,
+      freightId: freight.id,
+    });
+  }
+
+  return proposal;
 }
 
 export async function listProposals(
@@ -322,6 +338,15 @@ export async function acceptProposalRecord(
 
     await proposal.update({ status_id: awaitingDriverStatus.id }, { transaction });
 
+    const otherProposals = await Proposal.findAll({
+      where: {
+        freight_id: proposal.freight_id,
+        id: { [Op.ne]: proposal.id },
+        status_id: enviadaStatus.id,
+      },
+      transaction,
+    });
+
     await Proposal.update(
       { status_id: notSelectedStatus.id },
       {
@@ -335,6 +360,22 @@ export async function acceptProposalRecord(
     );
 
     await transaction.commit();
+
+    if (proposal.driver_id != null) {
+      notifyDriverAwaitingConfirmation(Number(proposal.driver_id), {
+        proposalId: proposal.id,
+        freightId: proposal.freight_id,
+      });
+    }
+
+    for (const other of otherProposals) {
+      if (other.driver_id == null) continue;
+      notifyDriverProposalNotSelected(Number(other.driver_id), {
+        proposalId: other.id,
+        freightId: other.freight_id,
+      });
+    }
+
     return proposal;
   } catch (error) {
     await transaction.rollback();
@@ -430,6 +471,14 @@ export async function confirmProposalByDriverRecord(
     }
 
     await transaction.commit();
+
+    if (freight.company_id != null) {
+      notifyCompanyProposalAccepted(Number(freight.company_id), {
+        proposalId: proposal.id,
+        freightId: proposal.freight_id ?? undefined,
+      });
+    }
+
     return proposal;
   } catch (error) {
     await transaction.rollback();
@@ -520,6 +569,14 @@ export async function rejectProposalRecord(
   }
 
   await proposal.update({ status_id: rejectedStatus.id });
+
+  if (proposal.driver_id != null) {
+    notifyDriverProposalRejected(Number(proposal.driver_id), {
+      proposalId: proposal.id,
+      freightId: proposal.freight_id,
+    });
+  }
+
   return proposal;
 }
 

@@ -7,12 +7,14 @@ import freightRoutes from './routes/freight.routes';
 import freightStatusTypeRoutes from './routes/freightStatusTypes.routes';
 import proposalRoutes from './routes/proposals.routes';
 import proposalStatusTypeRoutes from './routes/proposalsStatusTypes.routes';
+import { requestIdMiddleware } from './middlewares/requestId';
 import { requestLoggerMiddleware } from './middlewares/requestLogger';
 import { ErrorHandlerMiddleware } from './middlewares/errors';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(requestIdMiddleware);
 app.use(requestLoggerMiddleware);
 
 app.get('/', (_req, res) => {

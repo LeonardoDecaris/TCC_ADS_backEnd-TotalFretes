@@ -1,14 +1,17 @@
 import { Response } from 'express';
-import { originFields } from '@total-fretes/observability';
+import { buildErrorResponseFields } from './errorResponse';
 
 export const sendStorageError = async (
   res: Response,
   status: number,
   message: string,
-  error?: unknown,
+  errorId?: string | unknown,
 ) => {
+  const resolvedErrorId = typeof errorId === 'string' ? errorId : undefined;
+  const { requestId, errorId: generatedErrorId } = buildErrorResponseFields(res, resolvedErrorId);
   return res.status(status).json({
     message,
-    ...originFields(error),
+    requestId,
+    errorId: generatedErrorId,
   });
 };

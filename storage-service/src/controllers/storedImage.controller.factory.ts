@@ -13,7 +13,7 @@ import { sendStorageError } from '../utils/httpResponse';
 import { translation } from '../utils/i18n';
 import { getLocaleFromRequest } from '../utils/locale';
 import type { StoredImageUploadHelpers } from '../utils/storedImageUpload';
-import { logError } from '@total-fretes/observability';
+import { logError } from '../utils/logError';
 
 type RequestWithFile = Request & {
   file?: { originalname: string; filename: string; mimetype: string; size: number };
