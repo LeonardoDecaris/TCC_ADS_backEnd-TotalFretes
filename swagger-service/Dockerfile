@@ -11,7 +11,8 @@ RUN npm install && npm run build
 WORKDIR /app/swagger-service
 
 COPY swagger-service/package.json swagger-service/tsconfig.json ./
-COPY swagger-service/*.ts ./
+COPY swagger-service/index.ts ./
+COPY swagger-service/src ./src
 
 RUN npm install
 
