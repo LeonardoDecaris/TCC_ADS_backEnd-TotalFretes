@@ -1,7 +1,7 @@
 import {
   EMAIL_EVENT_PASSWORD_RESET,
   passwordResetEmailMessageSchema,
-} from '../../../packages/rpc-contracts/src/email-events';
+} from '@total-fretes/rpc-contracts';
 
 describe('passwordResetEmailMessageSchema', () => {
   it('aceita job válido de reset de senha', () => {
