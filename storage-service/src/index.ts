@@ -6,7 +6,7 @@ import './models/companyImage.model';
 import './models/cargoImage.model';
 import { ensureUserImageOwnershipColumns } from './database/ensureUserImageOwnershipColumns';
 import { logger } from './config/logger';
-import { logError } from '@total-fretes/observability';
+import { logError } from './utils/logError';
 
 dotenv.config();
 

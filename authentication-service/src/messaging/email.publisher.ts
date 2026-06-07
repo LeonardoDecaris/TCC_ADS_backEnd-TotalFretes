@@ -5,6 +5,8 @@ import {
   EMAIL_EVENT_PASSWORD_RESET,
   type PasswordResetEmailMessage,
 } from '@total-fretes/rpc-contracts';
+import { logger } from '../config/logger';
+import { logError } from '../utils/logError';
 
 function publishConfirmed(
   ch: ConfirmChannel,
@@ -30,9 +32,9 @@ let channel: ConfirmChannel | null   = null;
 let isClosing = false;
 
 function attachEvents(target: ChannelModel | ConfirmChannel, label: string): void {
-  target.on('error', (err) => console.error(`[email publisher] ${label} error:`, err));
+  target.on('error', (err) => logError(logger, `[email publisher] ${label} error`, err));
   target.on('close', () => {
-    if (!isClosing) console.warn(`[email publisher] ${label} closed unexpectedly`);
+    if (!isClosing) logger.warn(`[email publisher] ${label} closed unexpectedly`);
   });
 }
 
@@ -47,7 +49,7 @@ export async function startEmailPublisher(): Promise<void> {
 
   await assertEmailTopology(channel);
 
-  console.info('[email publisher] ready');
+  logger.info('[email publisher] ready');
 }
 
 export async function publishPasswordResetEmail(payload: {

@@ -4,7 +4,7 @@ import sequelize from './config/database';
 import './models/associations';
 import { runDatabaseSeeds } from './config/runDatabaseSeeds';
 import { logger } from './config/logger';
-import { logError } from '@total-fretes/observability';
+import { logError } from './utils/logError';
 import { startNotificationPublisher } from './messaging/rabbitmq';
 
 dotenv.config();

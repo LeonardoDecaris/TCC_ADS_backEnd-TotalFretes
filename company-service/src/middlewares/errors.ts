@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import { ZodError } from 'zod';
-import { logError } from '@total-fretes/observability';
 import { logger } from '../config/logger';
+import { createErrorId, getRequestId } from '../utils/correlation';
+import { logError } from '../utils/logError';
 import { sendError } from '../services/httpResponse';
 import { getLocaleFromRequest } from '../utils/locale';
 import { handleZodError } from '../utils/zodError';
@@ -19,9 +20,16 @@ export async function ErrorHandlerMiddleware(
   const locale = getLocaleFromRequest(req);
 
   if (error instanceof ZodError) {
-    if (await handleZodError(error, locale, res, error)) return;
+    if (await handleZodError(error, locale, res)) return;
   }
 
-  logError(logger, 'Erro não tratado', error, { path: req.originalUrl, method: req.method });
-  return sendError(res, 500, 'COMMON.INTERNAL_ERROR', locale, error);
+  const errorId = createErrorId();
+  logError(logger, 'Erro não tratado', error, {
+    path: req.originalUrl,
+    method: req.method,
+    requestId: getRequestId(res),
+    errorId,
+  });
+
+  return sendError(res, 500, 'COMMON.INTERNAL_ERROR', locale, errorId);
 }

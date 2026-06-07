@@ -27,7 +27,7 @@ export const createAccount = async (req: Request, res: Response) => {
       ok: true,
     });
   } catch (error) {
-    const zodError = await handleZodError(error, locale);
+    const zodError = await handleZodError(error, locale, res);
     if (zodError) return res.status(zodError.status).json(zodError.body);
     return sendError(res, 500, await translation('ACCOUNT.CREATE_FAILED', locale), error, { ok: false });
   }
@@ -79,7 +79,7 @@ export const getAllAccounts = async (req: Request, res: Response) => {
       hasMore: offset + rows.length < count,
     });
   } catch (error) {
-    const zodError = await handleZodError(error, locale);
+    const zodError = await handleZodError(error, locale, res);
     if (zodError) return res.status(zodError.status).json(zodError.body);
     return sendError(res, 500, await translation('ACCOUNT.GET_ALL_FAILED', locale), error);
   }
@@ -100,7 +100,7 @@ export const getAccountBySubjectId = async (req: Request, res: Response) => {
 
     return res.status(200).json(account);
   } catch (error) {
-    const zodError = await handleZodError(error, locale);
+    const zodError = await handleZodError(error, locale, res);
     if (zodError) return res.status(zodError.status).json(zodError.body);
     return sendError(res, 500, await translation('ACCOUNT.GET_BY_ID_FAILED', locale), error);
   }
@@ -159,7 +159,7 @@ export const patchAccount = async (req: Request, res: Response) => {
       account: updated,
     });
   } catch (error) {
-    const zodError = await handleZodError(error, locale);
+    const zodError = await handleZodError(error, locale, res);
     if (zodError) return res.status(zodError.status).json(zodError.body);
     return sendError(res, 500, await translation('ACCOUNT.UPDATE_FAILED', locale), error);
   }
@@ -222,7 +222,7 @@ export const createAdminAccount = async (req: Request, res: Response) => {
       account: serializeAccountPublic(result.account),
     });
   } catch (error) {
-    const zodError = await handleZodError(error, locale);
+    const zodError = await handleZodError(error, locale, res);
     if (zodError) return res.status(zodError.status).json(zodError.body);
     return sendError(res, 500, await translation('ACCOUNT.CREATE_FAILED', locale), error);
   }

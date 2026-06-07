@@ -7,12 +7,14 @@ import cnhRoutes from './routes/cnh.routes';
 import groupVehicleTypeRoutes from './routes/groupVehicleType.routes';
 import vehicleTypeRoutes from './routes/vehicleType.routes';
 import vehicleRoutes from './routes/vehicle.routes';
+import { requestIdMiddleware } from './middlewares/requestId';
 import { requestLoggerMiddleware } from './middlewares/requestLogger';
 import { ErrorHandlerMiddleware } from './middlewares/errors';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(requestIdMiddleware);
 app.use(requestLoggerMiddleware);
 
 app.get('/', (_req, res) => {

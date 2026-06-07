@@ -1,5 +1,6 @@
 import https from 'node:https';
 import axios from 'axios';
+import { logger } from '../config/logger';
 
 const GEO_CACHE_TTL_MS = 30 * 60 * 1000;
 const ROUTE_CACHE_TTL_MS = 45 * 1000;
@@ -64,7 +65,7 @@ const mapboxHttp = axios.create(
 );
 
 if (allowSelfSignedTls) {
-	console.warn(
+	logger.warn(
 		'[mapbox] TLS certificate validation disabled for local development (MAPBOX_ALLOW_SELF_SIGNED_TLS=true).',
 	);
 }
@@ -294,7 +295,7 @@ export async function buildMapBoxRoute(input: RouteInput): Promise<Record<string
 				navRouteForHint = pickupRoute;
 			} catch (error) {
 				const message = error instanceof Error ? error.message : 'Erro desconhecido';
-				console.warn('[mapbox] Trecho motorista→carga ignorado (422/outro)', message);
+				logger.warn('[mapbox] Trecho motorista→carga ignorado (422/outro)', { message });
 			}
 		}
 	}

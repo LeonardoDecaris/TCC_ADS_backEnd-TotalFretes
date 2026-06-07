@@ -4,7 +4,7 @@ import sequelize from './config/database';
 import { ensureCompanyAddressCountryColumn } from './database/ensureCompanyAddressCountryColumn';
 import { seedDefaultCompany } from './config/seedDefaultCompany';
 import { logger } from './config/logger';
-import { logError } from '@total-fretes/observability';
+import { logError } from './utils/logError';
 
 dotenv.config();
 

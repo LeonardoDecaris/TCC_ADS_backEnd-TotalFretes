@@ -4,7 +4,7 @@ import { logger } from './config/logger';
 import { startNotificationConsumer, stopNotificationConsumer } from './consumer';
 import './models/notification.model';
 import { createServer } from './server';
-import { logError } from '@total-fretes/observability';
+import { logError } from './utils/logError';
 
 dotenv.config();
 

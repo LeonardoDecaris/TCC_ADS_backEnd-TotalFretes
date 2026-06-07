@@ -5,7 +5,7 @@ import { seedAccountTypes } from './config/seedAccountTypes';
 import { seedDefaultAdmin } from './config/seedDefaultAdmin';
 import { startEmailPublisher } from './messaging/email.publisher';
 import { logger } from './config/logger';
-import { logError } from '@total-fretes/observability';
+import { logError } from './utils/logError';
 
 dotenv.config();
 

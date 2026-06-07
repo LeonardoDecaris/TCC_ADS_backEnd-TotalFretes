@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { logger } from '../config/logger';
 
 let transporter: nodemailer.Transporter | null = null;
 
@@ -35,5 +36,5 @@ export async function sendPasswordResetEmail(email: string, codigo: string): Pro
   };
 
   await getTransporter().sendMail(mailOptions);
-  console.log(`E-mail de recuperação enviado para: ${email}`);
+  logger.info(`E-mail de recuperação enviado para: ${email}`);
 }

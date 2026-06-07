@@ -1,5 +1,5 @@
 import http from 'http';
-import { WebSocketServer, WebSocket } from 'ws';
+import { WebSocketServer, WebSocket, type RawData } from 'ws';
 import type { IncomingMessage } from 'http';
 import app from './app';
 import {
@@ -90,7 +90,7 @@ function handleConnection(
 
   logger.info('[telemetry-ws] client connected', { userId: auth.userId, role: auth.role });
 
-  ws.on('message', (raw: WebSocket.RawData) => {
+  ws.on('message', (raw: RawData) => {
     void handleMessage(ws, raw);
   });
 
@@ -113,7 +113,7 @@ function handleConnection(
   });
 }
 
-async function handleMessage(ws: WebSocket, raw: WebSocket.RawData): Promise<void> {
+async function handleMessage(ws: WebSocket, raw: RawData): Promise<void> {
   const meta = clientMeta.get(ws);
   if (!meta) return;
 

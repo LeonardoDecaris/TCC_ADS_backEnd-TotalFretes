@@ -1,6 +1,6 @@
 import { Response } from 'express';
-import { originFields } from '@total-fretes/observability';
 import { translation } from '../utils/i18n';
+import { buildErrorResponseFields } from '../utils/errorResponse';
 
 export type ValidationIssue = {
   field: string;
@@ -12,13 +12,13 @@ export type ConflictDetail = {
   message: string;
 };
 
-type ErrorOriginFields = { file?: string; line?: number };
-
 type BaseErrorBody = {
   status: number;
   code: string;
   message: string;
-} & ErrorOriginFields;
+  requestId: string;
+  errorId: string;
+};
 
 type PlainErrorBody = BaseErrorBody & { type: 'plain' };
 type ValidationErrorBody = BaseErrorBody & { type: 'validation'; issues: ValidationIssue[] };
@@ -26,19 +26,28 @@ type ConflictErrorBody = BaseErrorBody & { type: 'conflict'; conflicts: Conflict
 
 export type ErrorBody = PlainErrorBody | ValidationErrorBody | ConflictErrorBody;
 
+function resolveErrorId(value?: unknown): string | undefined {
+  return typeof value === 'string' ? value : undefined;
+}
+
 export const sendError = async (
   res: Response,
   status: number,
   code: string,
   locale: string,
-  error?: unknown,
+  errorOrErrorId?: unknown,
 ) => {
+  const { requestId, errorId: resolvedErrorId } = buildErrorResponseFields(
+    res,
+    resolveErrorId(errorOrErrorId),
+  );
   const body: PlainErrorBody = {
     type: 'plain',
     status,
     code,
     message: await translation(code, locale),
-    ...originFields(error),
+    requestId,
+    errorId: resolvedErrorId,
   };
   return res.status(status).json(body);
 };
@@ -48,15 +57,20 @@ export const sendValidationError = async (
   code: string,
   locale: string,
   issues: ValidationIssue[],
-  error?: unknown,
+  errorOrErrorId?: unknown,
 ) => {
+  const { requestId, errorId: resolvedErrorId } = buildErrorResponseFields(
+    res,
+    resolveErrorId(errorOrErrorId),
+  );
   const body: ValidationErrorBody = {
     type: 'validation',
     status: 400,
     code,
     message: await translation(code, locale),
     issues,
-    ...originFields(error),
+    requestId,
+    errorId: resolvedErrorId,
   };
   return res.status(400).json(body);
 };
@@ -66,15 +80,20 @@ export const sendConflictError = async (
   code: string,
   locale: string,
   conflicts: ConflictDetail[],
-  error?: unknown,
+  errorOrErrorId?: unknown,
 ) => {
+  const { requestId, errorId: resolvedErrorId } = buildErrorResponseFields(
+    res,
+    resolveErrorId(errorOrErrorId),
+  );
   const body: ConflictErrorBody = {
     type: 'conflict',
     status: 409,
     code,
     message: await translation(code, locale),
     conflicts,
-    ...originFields(error),
+    requestId,
+    errorId: resolvedErrorId,
   };
   return res.status(409).json(body);
 };

@@ -4,12 +4,14 @@ import express from 'express';
 import { apiDocs } from './api-docs';
 import authRoutes from './routes/auth.routes';
 import accountRoutes from './routes/account.routes';
+import { requestIdMiddleware } from './middlewares/requestId';
 import { requestLoggerMiddleware } from './middlewares/requestLogger';
 import { ErrorHandlerMiddleware } from './middlewares/errors';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(requestIdMiddleware);
 app.use(requestLoggerMiddleware);
 
 app.get('/', (_req, res) => {

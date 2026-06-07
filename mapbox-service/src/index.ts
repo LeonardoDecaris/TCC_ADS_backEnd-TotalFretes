@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { logError } from '@total-fretes/observability';
+import { logError } from './utils/logError';
 import sequelize from './config/database';
 import { logger } from './config/logger';
 import './models/driverLocation.model';

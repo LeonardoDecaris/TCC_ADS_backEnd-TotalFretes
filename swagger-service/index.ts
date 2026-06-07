@@ -3,11 +3,10 @@ import swaggerUi from 'swagger-ui-express';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import axios from 'axios';
 import dotenv from 'dotenv';
-import { createLogger } from '@total-fretes/observability';
+import { logger } from './config/logger';
+import { logError } from './utils/logError';
 
 dotenv.config();
-
-const logger = createLogger(process.env.SERVICE_NAME ?? 'swagger-service');
 
 const app = express();
 const PORT = process.env.PORT ?? 3005;
@@ -49,8 +48,7 @@ const fetchSwaggerSpecs = async (): Promise<{ name: string; spec: Record<string,
         logger.warn(`Invalid spec from ${service.name}: response is not OpenAPI/Swagger JSON`);
       }
     } catch (error) {
-      const msg = error instanceof Error ? error.message : String(error);
-      logger.error(`Failed to fetch ${service.name} (${service.url}): ${msg}`);
+      logError(logger, `Failed to fetch ${service.name}`, error, { url: service.url });
     }
   }
   return specs;
