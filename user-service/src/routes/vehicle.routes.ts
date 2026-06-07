@@ -7,7 +7,7 @@ import {
 	updateVehicle,
 	deleteVehicle,
 } from '../controllers/vehicle.controller';
-import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
+import { authMiddleware, authorizeRoles } from '../middlewares/authMiddleware';
 
 const router = express.Router();
 
