@@ -219,6 +219,25 @@ services:
       retries: 3
       start_period: 30s
 
+  mapbox-service-database:
+    image: mysql:8.4
+    container_name: mapbox-service-database
+    restart: always
+    env_file:
+      - ./mapbox-service/.env
+    volumes:
+      - mapbox-service-database-data:/var/lib/mysql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    ports:
+      - "3312:3306"
+
   mapbox-service:
     build:
       context: .
@@ -227,6 +246,9 @@ services:
     restart: always
     env_file:
       - ./mapbox-service/.env
+    depends_on:
+      mapbox-service-database:
+        condition: service_healthy
     networks:
       - app-network
     healthcheck:
@@ -454,6 +476,7 @@ volumes:
   storage-service-uploads:
   freight-service-database-data:
   notification-service-database-data:
+  mapbox-service-database-data:
 
 networks:
   app-network:
