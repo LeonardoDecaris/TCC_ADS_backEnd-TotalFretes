@@ -20,8 +20,8 @@ import { getLocaleFromRequest } from "../utils/locale";
 import { sendError, sendConflictError } from "../services/httpResponse";
 import { handleZodError } from "../utils/zodError";
 import { validateCompanyLogoPng } from "../utils/validateCompanyLogoPng";
-import { logger } from "../config/logger";
-import { logError } from "../utils/logError";
+import { logger } from "../config/logging";
+import { logError } from "@total-fretes/logging";
 
 import {
 	createCompanySchema,

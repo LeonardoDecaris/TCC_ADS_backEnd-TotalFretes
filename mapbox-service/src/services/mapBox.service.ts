@@ -1,6 +1,6 @@
 import https from 'node:https';
 import axios from 'axios';
-import { logger } from '../config/logger';
+import { logger } from '../config/logging';
 
 const GEO_CACHE_TTL_MS = 30 * 60 * 1000;
 const ROUTE_CACHE_TTL_MS = 45 * 1000;

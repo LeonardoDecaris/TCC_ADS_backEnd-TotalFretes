@@ -1,9 +1,9 @@
 import { isAxiosError } from 'axios';
 import { Response } from 'express';
 import { z } from 'zod';
-import { logger } from '../config/logger';
+import { logger } from '../config/logging';
 import { buildErrorResponseFields } from '../utils/errorResponse';
-import { logError } from '../utils/logError';
+import { logError } from '@total-fretes/logging';
 import { isCoordinateError } from '../services/mapBox.service';
 
 export function axiosErrorMessage(error: unknown): string {

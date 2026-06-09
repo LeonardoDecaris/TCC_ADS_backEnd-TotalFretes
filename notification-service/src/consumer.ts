@@ -2,7 +2,7 @@ import amqp from 'amqplib';
 import type { Channel, ChannelModel, ConsumeMessage } from 'amqplib';
 import { z } from 'zod';
 import { notifyUser } from './clients';
-import { logger } from './config/logger';
+import { logger } from './config/logging';
 import {
   assertNotificationsTopology,
   buildNotificationsAmqpUri,

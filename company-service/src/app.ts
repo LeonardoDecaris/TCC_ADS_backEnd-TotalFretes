@@ -4,8 +4,7 @@ import express from 'express';
 import { apiDocs } from './api-docs';
 import companyRoutes from './routes/company.routes';
 import addressRoutes from './routes/address.routes';
-import { requestIdMiddleware } from './middlewares/requestId';
-import { requestLoggerMiddleware } from './middlewares/requestLogger';
+import { requestIdMiddleware, requestLoggerMiddleware } from './config/logging';
 import { ErrorHandlerMiddleware } from './middlewares/errors';
 
 const app = express();

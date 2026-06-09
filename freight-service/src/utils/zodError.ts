@@ -1,6 +1,6 @@
 import { ZodError } from 'zod';
 import { translation } from './i18n';
-import { createErrorId } from './correlation';
+import { createErrorId } from '@total-fretes/logging';
 import { sendValidationError, type ValidationIssue } from '../services/httpResponse';
 import { Response } from 'express';
 

@@ -5,6 +5,11 @@ COPY packages/rpc-contracts/package.json packages/rpc-contracts/tsconfig.json ./
 COPY packages/rpc-contracts/src ./src
 RUN npm install && npm run build
 
+WORKDIR /app/packages/logging
+COPY packages/logging/package.json packages/logging/tsconfig.json ./
+COPY packages/logging/src ./src
+RUN npm install && npm run build
+
 WORKDIR /app/email-management-service
 COPY email-management-service/package*.json ./
 COPY email-management-service/tsconfig.json ./

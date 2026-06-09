@@ -2,8 +2,7 @@ import cors from 'cors';
 import express from 'express';
 import notificationsRoutes from './routes/notifications.routes';
 import { getOnlineCount } from './clients';
-import { requestIdMiddleware } from './middlewares/requestId';
-import { requestLoggerMiddleware } from './middlewares/requestLogger';
+import { requestIdMiddleware, requestLoggerMiddleware } from './config/logging';
 import { ErrorHandlerMiddleware } from './middlewares/errors';
 
 const app = express();

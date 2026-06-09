@@ -1,6 +1,6 @@
 import amqp from 'amqplib';
 import type { Channel, ChannelModel } from 'amqplib';
-import { logger } from '../config/logger';
+import { logger } from '../config/logging';
 import {
   assertNotificationsTopology,
   buildNotificationsAmqpUri,

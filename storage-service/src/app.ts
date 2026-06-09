@@ -9,8 +9,7 @@ import {
   handleStoredImageUploadError,
 } from './routes/catalogImages.routes';
 import { apiDocs } from './api-docs';
-import { requestIdMiddleware } from './middlewares/requestId';
-import { requestLoggerMiddleware } from './middlewares/requestLogger';
+import { requestIdMiddleware, requestLoggerMiddleware } from './config/logging';
 import { ErrorHandlerMiddleware } from './middlewares/errors';
 import { createStoredImageUpload } from './utils/storedImageUpload';
 import { STORED_IMAGE_KINDS } from './config/storedImageKinds';

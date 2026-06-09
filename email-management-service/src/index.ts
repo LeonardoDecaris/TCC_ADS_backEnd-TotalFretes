@@ -2,10 +2,8 @@ import 'dotenv/config';
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { startEmailConsumer, stopEmailConsumer } from './messaging/email.consumer';
-import { logger } from './config/logger';
-import { logError } from './utils/logError';
-import { requestIdMiddleware } from './middlewares/requestId';
-import { requestLoggerMiddleware } from './middlewares/requestLogger';
+import { logger, requestIdMiddleware, requestLoggerMiddleware } from './config/logging';
+import { logError } from '@total-fretes/logging';
 
 const app = express();
 

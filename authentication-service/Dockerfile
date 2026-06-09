@@ -5,6 +5,11 @@ COPY packages/rpc-contracts/package.json packages/rpc-contracts/tsconfig.json ./
 COPY packages/rpc-contracts/src ./src
 RUN npm install && npm run build
 
+WORKDIR /app/packages/logging
+COPY packages/logging/package.json packages/logging/tsconfig.json ./
+COPY packages/logging/src ./src
+RUN npm install && npm run build
+
 WORKDIR /app/authentication-service
 COPY authentication-service/package.json authentication-service/tsconfig.json ./
 COPY authentication-service/src ./src

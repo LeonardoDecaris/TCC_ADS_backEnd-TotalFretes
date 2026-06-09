@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { logger } from '../config/logger';
-import { logError } from '../utils/logError';
+import { logger } from '../config/logging';
+import { logError } from '@total-fretes/logging';
 
 type CompanyPaymentStatusResponse = {
 	isPaid?: boolean;

@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
-import { logError } from './utils/logError';
+import { logError } from '@total-fretes/logging';
 import sequelize from './config/database';
-import { logger } from './config/logger';
+import { logger } from './config/logging';
 import './models/driverLocation.model';
 import { createServer } from './server';
 

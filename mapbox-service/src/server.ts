@@ -7,7 +7,7 @@ import {
   removeFreightWatcher,
   removeSocketFromAllFreights,
 } from './clients/freightWatchers';
-import { logger } from './config/logger';
+import { logger } from './config/logging';
 import { assertCanViewTrail, fetchFreightById } from './services/freightClient';
 import { AuthPayload, verifyToken } from './utils/jwt';
 

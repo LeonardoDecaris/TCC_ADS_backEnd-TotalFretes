@@ -2,10 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import mapBox from './routes/mapBox.routes';
 import telemetry from './routes/telemetry.routes';
-import { requestIdMiddleware } from './middlewares/requestId';
-import { requestLoggerMiddleware } from './middlewares/requestLogger';
+import { requestIdMiddleware, requestLoggerMiddleware } from './config/logging';
 import { ErrorHandlerMiddleware } from './middlewares/errors';
-import { logger } from './config/logger';
+import { logger } from './config/logging';
 
 const app = express();
 

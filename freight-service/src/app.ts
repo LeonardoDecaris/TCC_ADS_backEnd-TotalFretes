@@ -7,8 +7,7 @@ import freightRoutes from './routes/freight.routes';
 import freightStatusTypeRoutes from './routes/freightStatusTypes.routes';
 import proposalRoutes from './routes/proposals.routes';
 import proposalStatusTypeRoutes from './routes/proposalsStatusTypes.routes';
-import { requestIdMiddleware } from './middlewares/requestId';
-import { requestLoggerMiddleware } from './middlewares/requestLogger';
+import { requestIdMiddleware, requestLoggerMiddleware } from './config/logging';
 import { ErrorHandlerMiddleware } from './middlewares/errors';
 
 const app = express();

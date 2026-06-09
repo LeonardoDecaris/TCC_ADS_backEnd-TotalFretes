@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { createErrorId, getRequestId } from './correlation';
+import { createErrorId, getRequestId } from '@total-fretes/logging';
 
 export type ErrorResponseFields = {
   requestId: string;

@@ -1,4 +1,4 @@
-import { logger } from '../config/logger';
+import { logger } from '../config/logging';
 import { getNotificationChannel, getNotificationsQueueName } from './rabbitmq';
 
 export type NotificationPublishInput = {

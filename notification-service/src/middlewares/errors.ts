@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
-import { logger } from '../config/logger';
-import { createErrorId, getRequestId } from '../utils/correlation';
-import { logError } from '../utils/logError';
+import { logger } from '../config/logging';
+import { createErrorId, getRequestId, logError } from '@total-fretes/logging';
 
 export async function ErrorHandlerMiddleware(
   error: Error,

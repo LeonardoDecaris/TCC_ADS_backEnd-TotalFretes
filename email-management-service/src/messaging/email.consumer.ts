@@ -3,8 +3,8 @@ import type { Channel, ChannelModel, ConsumeMessage } from 'amqplib';
 import { sendPasswordResetEmail } from '../services/passwordResetMail';
 import { assertEmailTopology, buildEmailAmqpUri, emailAmqpConfig } from './email.amqp';
 import { passwordResetEmailMessageSchema } from '@total-fretes/rpc-contracts';
-import { logger } from '../config/logger';
-import { logError } from '../utils/logError';
+import { logger } from '../config/logging';
+import { logError } from '@total-fretes/logging';
 
 let connection: ChannelModel | null = null;
 let channel: Channel | null = null;

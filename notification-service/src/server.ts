@@ -3,7 +3,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 import type { IncomingMessage } from 'http';
 import app from './app';
 import { addClient, removeClient } from './clients';
-import { logger } from './config/logger';
+import { logger } from './config/logging';
 import { getUnreadByUser, toNotificationPayload } from './services/notification.service';
 import { verifyToken } from './utils/jwt';
 

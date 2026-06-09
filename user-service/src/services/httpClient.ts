@@ -1,7 +1,6 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios';
-import { logger } from '../config/logger';
-import { getActiveRequestId, REQUEST_ID_HEADER } from '../utils/correlation';
-import { logError } from '../utils/logError';
+import { logger } from '../config/logging';
+import { getActiveRequestId, REQUEST_ID_HEADER, logError } from '@total-fretes/logging';
 
 const errorStatuses = [400, 401, 403, 404, 409, 500];
 

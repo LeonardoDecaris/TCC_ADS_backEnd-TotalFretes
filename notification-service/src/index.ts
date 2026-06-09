@@ -1,10 +1,10 @@
 import dotenv from 'dotenv';
 import sequelize from './config/database';
-import { logger } from './config/logger';
+import { logger } from './config/logging';
 import { startNotificationConsumer, stopNotificationConsumer } from './consumer';
 import './models/notification.model';
 import { createServer } from './server';
-import { logError } from './utils/logError';
+import { logError } from '@total-fretes/logging';
 
 dotenv.config();
 

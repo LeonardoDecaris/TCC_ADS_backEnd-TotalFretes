@@ -3,8 +3,8 @@ import dotenv from 'dotenv';
 import sequelize from './config/database';
 import './models/associations';
 import { runDatabaseSeeds } from './config/runDatabaseSeeds';
-import { logger } from './config/logger';
-import { logError } from './utils/logError';
+import { logger } from './config/logging';
+import { logError } from '@total-fretes/logging';
 import { startNotificationPublisher } from './messaging/rabbitmq';
 
 dotenv.config();

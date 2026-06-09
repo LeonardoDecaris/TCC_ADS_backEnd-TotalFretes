@@ -4,8 +4,8 @@ import sequelize from './config/database';
 import { seedCnhTypes } from './config/seedCnh';
 import { seedGroupVehicleType } from './config/seedGrupVehicleType';
 import { seedVehicleType } from './config/seedVehicleType';
-import { logger } from './config/logger';
-import { logError } from './utils/logError';
+import { logger } from './config/logging';
+import { logError } from '@total-fretes/logging';
 
 dotenv.config();
 

@@ -1,8 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { ZodError } from 'zod';
-import { logger } from '../config/logger';
-import { createErrorId, getRequestId } from '../utils/correlation';
-import { logError } from '../utils/logError';
+import { logger } from '../config/logging';
+import { createErrorId, getRequestId, logError } from '@total-fretes/logging';
 import { sendError } from '../utils/httpResponse';
 import { getLocaleFromRequest } from '../utils/locale';
 import { handleZodError } from '../utils/zodError';

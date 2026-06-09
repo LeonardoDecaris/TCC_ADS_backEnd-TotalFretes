@@ -3,13 +3,18 @@ import swaggerUi from 'swagger-ui-express';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import axios from 'axios';
 import dotenv from 'dotenv';
-import { logger } from './config/logger';
-import { logError } from './utils/logError';
+import { logger, requestIdMiddleware, requestLoggerMiddleware } from './config/logging';
+import { logError } from '@total-fretes/logging';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT ?? 3005;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+app.use(requestIdMiddleware as any);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+app.use(requestLoggerMiddleware as any);
 
 const AUTH_SERVICE_URL =
   (process.env.AUTH_SERVICE_URL ?? 'http://authentication-service:3000').replace(/\/$/, '');

@@ -5,8 +5,8 @@ import {
   EMAIL_EVENT_PASSWORD_RESET,
   type PasswordResetEmailMessage,
 } from '@total-fretes/rpc-contracts';
-import { logger } from '../config/logger';
-import { logError } from '../utils/logError';
+import { logger } from '../config/logging';
+import { logError } from '@total-fretes/logging';
 
 function publishConfirmed(
   ch: ConfirmChannel,

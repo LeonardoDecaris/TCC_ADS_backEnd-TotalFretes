@@ -16,9 +16,8 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@total-fretes/logging": "file:../packages/logging",
     "@total-fretes/rpc-contracts": "file:../packages/rpc-contracts",
-    "winston": "^3.17.0",
-    "winston-loki": "^6.1.3",
     "amqplib": "^1.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
