@@ -39,9 +39,25 @@ const baseUserFields = {
 	userImage_id: userImageSchema,
 } as const;
 
+const updateUserFields = {
+	name: nameSchema,
+	email: emailSchema,
+	birthDate: birthDateSchema,
+	phoneNumber: phoneSchema,
+	sex: sexSchema,
+	useGlasses: booleanFromInputSchema,
+	isDeficient: booleanFromInputSchema,
+	cnhNumber: cnhNumberSchema,
+	issuingAgencyCnh: issuingAgencyCnhSchema,
+	cnhType_id: cnhTypeSchema,
+	vehicle_id: vehicleIdSchema,
+	vehicleType_id: vehicleTypeSchema,
+	userImage_id: userImageSchema,
+} as const;
+
 export const createUserSchema = z.object(baseUserFields);
 
-export const updateUserSchema = z.object(baseUserFields).partial();
+export const updateUserSchema = z.object(updateUserFields).partial().strict();
 
 export const createUserEndAccountSchema = z.object({
 	...baseUserFields,

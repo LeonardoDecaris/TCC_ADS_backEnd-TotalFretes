@@ -89,6 +89,10 @@ export const getAllUsers = async (req: Request, res: Response) => {
 export const patchUser = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
 	try {
+		if (Object.prototype.hasOwnProperty.call(req.body, 'cpf')) {
+			return sendError(res, 400, 'USER.CPF_UPDATE_NOT_ALLOWED', locale);
+		}
+
 		const body = updateUserSchema.parse(req.body);
 
 		const user = await User.findByPk(req.params.id as string);

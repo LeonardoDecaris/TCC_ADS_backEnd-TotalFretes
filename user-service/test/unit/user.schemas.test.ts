@@ -1,4 +1,4 @@
-import { createUserSchema } from '../../src/schemas/user.schemas';
+import { createUserSchema, updateUserSchema } from '../../src/schemas/user.schemas';
 
 const validUser = {
   name: 'João Silva',
@@ -38,6 +38,13 @@ describe('createUserSchema', () => {
 
   it('rejeita email inválido', () => {
     const result = createUserSchema.safeParse({ ...validUser, email: 'invalido' });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('updateUserSchema', () => {
+  it('não permite atualizar CPF', () => {
+    const result = updateUserSchema.safeParse({ cpf: '12345678901' });
     expect(result.success).toBe(false);
   });
 });

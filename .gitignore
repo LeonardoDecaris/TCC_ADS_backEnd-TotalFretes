@@ -77,6 +77,7 @@ web_modules/
 
 # dotenv — versionar apenas templates (*.example)
 .env*
+.env.test*
 !.env*.example
 
 # parcel-bundler cache (https://parceljs.org/)
