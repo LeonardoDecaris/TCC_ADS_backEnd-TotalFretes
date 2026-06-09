@@ -10,6 +10,7 @@
     "NOT_FOUND": "Empresa não encontrada.",
     "GET_BY_ID_FAILED": "Erro ao buscar empresa.",
     "UPDATED_SUCCESSFULLY": "Empresa atualizada com sucesso.",
+    "CNPJ_UPDATE_NOT_ALLOWED": "CNPJ não pode ser atualizado após o cadastro.",
     "UPDATE_FAILED": "Erro ao atualizar empresa.",
     "DELETED_SUCCESSFULLY": "Empresa deletada com sucesso.",
     "DELETE_FAILED": "Erro ao deletar empresa.",
