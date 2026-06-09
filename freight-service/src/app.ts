@@ -1,7 +1,10 @@
 import cors from 'cors';
 import express from 'express';
 
+import { isCacheEnabled } from './cache/freightCache';
 import { apiDocs } from './api-docs';
+import sequelize from './config/database';
+import { checkRedis } from './lib/redisClient';
 import cargoTypeRoutes from './routes/cargoTypes.routes';
 import freightRoutes from './routes/freight.routes';
 import freightStatusTypeRoutes from './routes/freightStatusTypes.routes';
@@ -20,8 +23,28 @@ app.get('/', (_req, res) => {
   res.send('Freight Service is running');
 });
 
-app.get('/health', (_req, res) => {
-  res.status(200).json({ status: 'OK', PID: process.pid });
+app.get('/health', async (_req, res) => {
+  let dbOk = false;
+  try {
+    await sequelize.authenticate();
+    dbOk = true;
+  } catch {
+    dbOk = false;
+  }
+
+  let redisStatus: 'connected' | 'disconnected' | 'disabled' = 'disabled';
+  if (isCacheEnabled()) {
+    redisStatus = (await checkRedis()) ? 'connected' : 'disconnected';
+  }
+
+  const isHealthy = dbOk && (redisStatus === 'connected' || redisStatus === 'disabled');
+
+  return res.status(isHealthy ? 200 : 503).json({
+    status: isHealthy ? 'up' : 'down',
+    database: dbOk ? 'connected' : 'disconnected',
+    redis: redisStatus,
+    PID: process.pid,
+  });
 });
 
 app.get('/api-docs', (_req, res) => res.json(apiDocs));

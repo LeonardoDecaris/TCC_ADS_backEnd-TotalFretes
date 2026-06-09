@@ -18,17 +18,17 @@ const reconcileKinds: ReconcileKind[] = [
   {
     kind: 'user',
     uploadDirPath: createStoredImageUpload(STORED_IMAGE_KINDS.user.uploadSubdir).uploadDirPath,
-    fetchRows: async () => UserImage.findAll({ attributes: ['id', 'fileName'] }) as Array<{ id?: number; fileName?: string | null }>,
+    fetchRows: async () => UserImage.findAll({ attributes: ['id', 'fileName'] }),
   },
   {
     kind: 'company',
     uploadDirPath: createStoredImageUpload(STORED_IMAGE_KINDS.company.uploadSubdir).uploadDirPath,
-    fetchRows: async () => CompanyImage.findAll({ attributes: ['id', 'fileName'] }) as Array<{ id?: number; fileName?: string | null }>,
+    fetchRows: async () => CompanyImage.findAll({ attributes: ['id', 'fileName'] }),
   },
   {
     kind: 'cargo',
     uploadDirPath: createStoredImageUpload(STORED_IMAGE_KINDS.cargo.uploadSubdir).uploadDirPath,
-    fetchRows: async () => CargoImage.findAll({ attributes: ['id', 'fileName'] }) as Array<{ id?: number; fileName?: string | null }>,
+    fetchRows: async () => CargoImage.findAll({ attributes: ['id', 'fileName'] }),
   },
 ];
 
