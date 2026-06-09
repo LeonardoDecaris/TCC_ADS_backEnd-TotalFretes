@@ -14,7 +14,6 @@ COPY swagger-service/package.json swagger-service/tsconfig.json ./
 COPY swagger-service/index.ts ./
 COPY swagger-service/src ./src
 COPY swagger-service/config ./config
-COPY swagger-service/utils ./utils
 COPY swagger-service/*.ts ./
 
 RUN npm install

@@ -2,9 +2,8 @@ import express, { Request, Response } from 'express';
 import swaggerUi from 'swagger-ui-express';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import axios from 'axios';
-import { createLogger } from '@total-fretes/observability';
-
-const logger = createLogger(process.env.SERVICE_NAME ?? 'swagger-service');
+import { logError } from '@total-fretes/logging';
+import { logger, requestIdMiddleware, requestLoggerMiddleware } from '../config/logging';
 
 const AUTH_SERVICE_URL =
   (process.env.AUTH_SERVICE_URL ?? 'http://authentication-service:3000').replace(/\/$/, '');
@@ -43,14 +42,18 @@ const fetchSwaggerSpecs = async (): Promise<{ name: string; spec: Record<string,
         logger.warn(`Invalid spec from ${service.name}: response is not OpenAPI/Swagger JSON`);
       }
     } catch (error) {
-      const msg = error instanceof Error ? error.message : String(error);
-      logger.error(`Failed to fetch ${service.name} (${service.url}): ${msg}`);
+      logError(logger, `Failed to fetch ${service.name}`, error, { url: service.url });
     }
   }
   return specs;
 };
 
 const app = express();
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+app.use(requestIdMiddleware as any);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+app.use(requestLoggerMiddleware as any);
 
 app.get('/docs', async (_req: Request, res: Response) => {
   const specs = await fetchSwaggerSpecs();
