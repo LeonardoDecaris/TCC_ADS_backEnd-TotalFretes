@@ -40,6 +40,7 @@ export type ProtectedJsonCrudConfig = {
   listResponseIsArray?: boolean;
   listUsesFindAndCountAll?: boolean;
   ownerIdForRead?: number;
+  authChecks?: 'all' | 'minimal';
 };
 
 function auth(app: TestableApp, role: TestJwtRole, id = 1) {
@@ -61,6 +62,7 @@ export function defineProtectedJsonCrudTests(config: ProtectedJsonCrudConfig): v
     listResponseIsArray = true,
     listUsesFindAndCountAll = false,
     ownerIdForRead = 1,
+    authChecks = 'all',
   } = config;
 
   const writeRole = roles.create?.[0] ?? 'ADMIN';
@@ -72,16 +74,20 @@ export function defineProtectedJsonCrudTests(config: ProtectedJsonCrudConfig): v
   });
 
   describe(`POST ${basePath}`, () => {
-    it('retorna 401 sem autenticação', async () => {
-      const res = await unauthenticatedRequest(app).post(basePath).send(validCreate);
-      expect(res.status).toBe(401);
-    });
+    if (authChecks === 'all' || authChecks === 'minimal') {
+      it('retorna 401 sem autenticação', async () => {
+        const res = await unauthenticatedRequest(app).post(basePath).send(validCreate);
+        expect(res.status).toBe(401);
+      });
+    }
 
     if (roles.create && roles.create.length > 0) {
-      it(`retorna 403 com role ${forbidden} não autorizada`, async () => {
-        const res = await auth(app, forbidden).post(basePath).send(validCreate);
-        expect(res.status).toBe(403);
-      });
+      if (authChecks === 'all' || authChecks === 'minimal') {
+        it(`retorna 403 com role ${forbidden} não autorizada`, async () => {
+          const res = await auth(app, forbidden).post(basePath).send(validCreate);
+          expect(res.status).toBe(403);
+        });
+      }
 
       it('retorna 400 com payload inválido', async () => {
         const res = await auth(app, writeRole).post(basePath).send(invalidCreate);
@@ -98,12 +104,14 @@ export function defineProtectedJsonCrudTests(config: ProtectedJsonCrudConfig): v
   });
 
   describe(`GET ${basePath}`, () => {
-    it('retorna 401 sem autenticação', async () => {
-      const res = await unauthenticatedRequest(app).get(basePath);
-      expect(res.status).toBe(401);
-    });
+    if (authChecks === 'all') {
+      it('retorna 401 sem autenticação', async () => {
+        const res = await unauthenticatedRequest(app).get(basePath);
+        expect(res.status).toBe(401);
+      });
+    }
 
-    if (roles.list) {
+    if (roles.list && authChecks === 'all') {
       it(`retorna 403 com role ${forbidden} não autorizada`, async () => {
         const res = await auth(app, forbidden).get(basePath);
         expect(res.status).toBe(403);
@@ -127,10 +135,12 @@ export function defineProtectedJsonCrudTests(config: ProtectedJsonCrudConfig): v
   });
 
   describe(`GET ${basePath}/:id`, () => {
-    it('retorna 401 sem autenticação', async () => {
-      const res = await unauthenticatedRequest(app).get(`${basePath}/999`);
-      expect(res.status).toBe(401);
-    });
+    if (authChecks === 'all') {
+      it('retorna 401 sem autenticação', async () => {
+        const res = await unauthenticatedRequest(app).get(`${basePath}/999`);
+        expect(res.status).toBe(401);
+      });
+    }
 
     it('retorna 404 quando não encontrado', async () => {
       model.findByPk.mockResolvedValueOnce(null);
@@ -149,12 +159,14 @@ export function defineProtectedJsonCrudTests(config: ProtectedJsonCrudConfig): v
   const updateMethod = usePatchForUpdate ? 'patch' : 'put';
 
   describe(`${updateMethod.toUpperCase()} ${basePath}/:id`, () => {
-    it('retorna 401 sem autenticação', async () => {
-      const res = await unauthenticatedRequest(app)[updateMethod](`${basePath}/1`).send(validUpdate);
-      expect(res.status).toBe(401);
-    });
+    if (authChecks === 'all') {
+      it('retorna 401 sem autenticação', async () => {
+        const res = await unauthenticatedRequest(app)[updateMethod](`${basePath}/1`).send(validUpdate);
+        expect(res.status).toBe(401);
+      });
+    }
 
-    if (roles.update) {
+    if (roles.update && authChecks === 'all') {
       it(`retorna 403 com role ${forbidden} não autorizada`, async () => {
         const res = await auth(app, forbidden)[updateMethod](`${basePath}/1`).send(validUpdate);
         expect(res.status).toBe(403);
@@ -186,12 +198,14 @@ export function defineProtectedJsonCrudTests(config: ProtectedJsonCrudConfig): v
   });
 
   describe(`DELETE ${basePath}/:id`, () => {
-    it('retorna 401 sem autenticação', async () => {
-      const res = await unauthenticatedRequest(app).delete(`${basePath}/1`);
-      expect(res.status).toBe(401);
-    });
+    if (authChecks === 'all') {
+      it('retorna 401 sem autenticação', async () => {
+        const res = await unauthenticatedRequest(app).delete(`${basePath}/1`);
+        expect(res.status).toBe(401);
+      });
+    }
 
-    if (roles.delete) {
+    if (roles.delete && authChecks === 'all') {
       it(`retorna 403 com role ${forbidden} não autorizada`, async () => {
         const res = await auth(app, forbidden).delete(`${basePath}/1`);
         expect(res.status).toBe(403);

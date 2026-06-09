@@ -54,6 +54,28 @@ export const apiDocs = {
 				},
 			},
 		},
+		'/health': {
+			get: {
+				summary: 'Health check do serviço',
+				tags: ['Freight'],
+				responses: {
+					200: {
+						description: 'Serviço saudável',
+						content: {
+							'application/json': {
+								schema: {
+									type: 'object',
+									properties: {
+										status: { type: 'string', example: 'OK' },
+										PID: { type: 'integer', example: 12345 },
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 		'/cargo-type': {
 			post: {
 				summary: 'Criar tipo de carga',
@@ -401,6 +423,79 @@ export const apiDocs = {
 				},
 			},
 		},
+		'/freight/user/{id}': {
+			get: {
+				summary: 'Listar fretes por usuário',
+				description: 'Retorna fretes vinculados ao usuário informado no path.',
+				tags: ['Freight'],
+				security: [{ bearerAuth: [] }],
+				parameters: [{ $ref: '#/components/parameters/IdPath' }],
+				responses: {
+					200: {
+						description: 'Lista de fretes',
+						content: {
+							'application/json': {
+								schema: { type: 'array', items: { $ref: '#/components/schemas/Freight' } },
+							},
+						},
+					},
+					401: { $ref: '#/components/responses/Unauthorized' },
+					403: { $ref: '#/components/responses/Forbidden' },
+					404: { $ref: '#/components/responses/NotFound' },
+					500: { $ref: '#/components/responses/ServerError' },
+				},
+			},
+		},
+		'/freight/{id}/cancel': {
+			patch: {
+				summary: 'Cancelar frete',
+				description: 'Marca o frete como cancelado. Ação permitida para COMPANY/ADMIN.',
+				tags: ['Freight'],
+				security: [{ bearerAuth: [] }],
+				parameters: [{ $ref: '#/components/parameters/IdPath' }],
+				requestBody: {
+					required: false,
+					content: {
+						'application/json': {
+							schema: { type: 'object', additionalProperties: false },
+						},
+					},
+				},
+				responses: {
+					200: { description: 'Frete cancelado', content: { 'application/json': { schema: { $ref: '#/components/schemas/MessageWithFreight' } } } },
+					400: { $ref: '#/components/responses/BadRequest' },
+					401: { $ref: '#/components/responses/Unauthorized' },
+					403: { $ref: '#/components/responses/Forbidden' },
+					404: { $ref: '#/components/responses/NotFound' },
+					500: { $ref: '#/components/responses/ServerError' },
+				},
+			},
+		},
+		'/freight/{id}/complete': {
+			patch: {
+				summary: 'Concluir frete',
+				description: 'Marca o frete como concluído/entregue. Ação permitida para COMPANY/ADMIN.',
+				tags: ['Freight'],
+				security: [{ bearerAuth: [] }],
+				parameters: [{ $ref: '#/components/parameters/IdPath' }],
+				requestBody: {
+					required: false,
+					content: {
+						'application/json': {
+							schema: { type: 'object', additionalProperties: false },
+						},
+					},
+				},
+				responses: {
+					200: { description: 'Frete concluído', content: { 'application/json': { schema: { $ref: '#/components/schemas/MessageWithFreight' } } } },
+					400: { $ref: '#/components/responses/BadRequest' },
+					401: { $ref: '#/components/responses/Unauthorized' },
+					403: { $ref: '#/components/responses/Forbidden' },
+					404: { $ref: '#/components/responses/NotFound' },
+					500: { $ref: '#/components/responses/ServerError' },
+				},
+			},
+		},
 
 		'/proposal': {
 			post: {
@@ -617,6 +712,56 @@ export const apiDocs = {
 				responses: {
 					200: { description: 'Aceito', content: { 'application/json': { schema: { $ref: '#/components/schemas/MessageWithProposal' } } } },
 					400: { description: 'Status aceito não cadastrado (seed)', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorBody' } } } },
+					401: { $ref: '#/components/responses/Unauthorized' },
+					403: { $ref: '#/components/responses/Forbidden' },
+					404: { $ref: '#/components/responses/NotFound' },
+					500: { $ref: '#/components/responses/ServerError' },
+				},
+			},
+		},
+		'/proposal/{id}/confirm-driver': {
+			patch: {
+				summary: 'Confirmar proposta pelo motorista',
+				description: 'Motorista confirma a proposta selecionada para assumir o frete.',
+				tags: ['Proposal'],
+				security: [{ bearerAuth: [] }],
+				parameters: [{ $ref: '#/components/parameters/IdPath' }],
+				requestBody: {
+					required: false,
+					content: {
+						'application/json': {
+							schema: { type: 'object', additionalProperties: false },
+						},
+					},
+				},
+				responses: {
+					200: { description: 'Proposta confirmada', content: { 'application/json': { schema: { $ref: '#/components/schemas/MessageWithProposal' } } } },
+					400: { $ref: '#/components/responses/BadRequest' },
+					401: { $ref: '#/components/responses/Unauthorized' },
+					403: { $ref: '#/components/responses/Forbidden' },
+					404: { $ref: '#/components/responses/NotFound' },
+					500: { $ref: '#/components/responses/ServerError' },
+				},
+			},
+		},
+		'/proposal/{id}/decline-driver': {
+			patch: {
+				summary: 'Recusar proposta pelo motorista',
+				description: 'Motorista recusa a proposta selecionada para o frete.',
+				tags: ['Proposal'],
+				security: [{ bearerAuth: [] }],
+				parameters: [{ $ref: '#/components/parameters/IdPath' }],
+				requestBody: {
+					required: false,
+					content: {
+						'application/json': {
+							schema: { type: 'object', additionalProperties: false },
+						},
+					},
+				},
+				responses: {
+					200: { description: 'Proposta recusada pelo motorista', content: { 'application/json': { schema: { $ref: '#/components/schemas/MessageWithProposal' } } } },
+					400: { $ref: '#/components/responses/BadRequest' },
 					401: { $ref: '#/components/responses/Unauthorized' },
 					403: { $ref: '#/components/responses/Forbidden' },
 					404: { $ref: '#/components/responses/NotFound' },

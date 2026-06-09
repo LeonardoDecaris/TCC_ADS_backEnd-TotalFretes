@@ -15,6 +15,12 @@ const STORAGE_SERVICE_URL =
   (process.env.STORAGE_SERVICE_URL ?? 'http://storage-service:3007').replace(/\/$/, '');
 const FREIGHT_SERVICE_URL =
   (process.env.FREIGHT_SERVICE_URL ?? 'http://freight-service:3008').replace(/\/$/, '');
+const NOTIFICATION_SERVICE_URL =
+  (process.env.NOTIFICATION_SERVICE_URL ?? 'http://notification-service:3006').replace(/\/$/, '');
+const MAPBOX_SERVICE_URL =
+  (process.env.MAPBOX_SERVICE_URL ?? 'http://mapbox-service:3004').replace(/\/$/, '');
+const EMAIL_MANAGEMENT_SERVICE_URL =
+  (process.env.EMAIL_MANAGEMENT_SERVICE_URL ?? 'http://email-management-service:3003').replace(/\/$/, '');
 
 interface ServiceSpecUrl {
   name: string;
@@ -27,6 +33,9 @@ const specSources: ServiceSpecUrl[] = [
   { name: 'User Service', url: `${USER_SERVICE_URL}/api-docs` },
   { name: 'Storage Service', url: `${STORAGE_SERVICE_URL}/api-docs` },
   { name: 'Freight Service', url: `${FREIGHT_SERVICE_URL}/api-docs` },
+  { name: 'Notification Service', url: `${NOTIFICATION_SERVICE_URL}/api-docs` },
+  { name: 'Mapbox Service', url: `${MAPBOX_SERVICE_URL}/api-docs` },
+  { name: 'Email Management Service', url: `${EMAIL_MANAGEMENT_SERVICE_URL}/api-docs` },
 ];
 
 const fetchSwaggerSpecs = async (): Promise<{ name: string; spec: Record<string, unknown> }[]> => {

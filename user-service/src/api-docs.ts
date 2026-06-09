@@ -130,6 +130,43 @@ export const apiDocs = {
         parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
         responses: { 200: { description: 'Usuário' }, 404: { description: 'Não encontrado' } },
       },
+      patch: {
+        summary: 'Atualização parcial de usuário',
+        tags: ['User'],
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        requestBody: {
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  name: { type: 'string', example: 'Total Fretes app' },
+                  email: { type: 'string', example: 'app@totalfretes.com.br' },
+                  birthDate: { type: 'string', format: 'date', example: '1990-01-01' },
+                  phoneNumber: { type: 'string', example: '44999927372' },
+                  cpf: { type: 'string', example: '83841575021' },
+                  sex: { type: 'string', example: 'M' },
+                  useGlasses: { type: 'boolean', example: false },
+                  isDeficient: { type: 'boolean', example: false },
+                  cnhNumber: { type: 'string', example: '36079305308' },
+                  issuingAgencyCnh: { type: 'string', example: 'PR' },
+                  cnhType_id: { type: 'number', example: 3 },
+                  vehicleType_id: { type: 'number', example: 0 },
+                  userImage_id: { type: 'number', example: 0 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: 'Usuário atualizado parcialmente' },
+          400: { description: 'Erro de validação dos dados enviados (retorna status no body)' },
+          404: { description: 'Não encontrado' },
+          409: { description: 'Conflito de unicidade em email/phoneNumber/cpf/cnhNumber (retorna conflicts e status no body)' },
+          500: { description: 'Erro ao atualizar (retorna status no body)' },
+        },
+      },
       put: {
         summary: 'Atualizar usuário',
         tags: ['User'],

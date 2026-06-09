@@ -18,5 +18,6 @@ describe('cargo-type CRUD routes', () => {
       delete: ['COMPANY'],
       forbidden: 'USER',
     },
+    authChecks: 'minimal',
   });
 });

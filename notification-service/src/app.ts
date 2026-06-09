@@ -1,5 +1,6 @@
 import cors from 'cors';
 import express from 'express';
+import { apiDocs } from './api-docs';
 import notificationsRoutes from './routes/notifications.routes';
 import { getOnlineCount } from './clients';
 import { requestIdMiddleware, requestLoggerMiddleware } from './config/logging';
@@ -22,6 +23,10 @@ app.get('/health', (_req, res) => {
     PID: process.pid,
     onlineUsers: getOnlineCount(),
   });
+});
+
+app.get('/api-docs', (_req, res) => {
+  res.json(apiDocs);
 });
 
 app.use('/notifications', notificationsRoutes);

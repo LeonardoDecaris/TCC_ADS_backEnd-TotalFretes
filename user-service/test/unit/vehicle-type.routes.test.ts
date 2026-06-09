@@ -18,5 +18,6 @@ describe('vehicle-type CRUD routes', () => {
       delete: ['ADMIN'],
       forbidden: 'USER',
     },
+    authChecks: 'minimal',
   });
 });

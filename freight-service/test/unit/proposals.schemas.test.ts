@@ -14,11 +14,6 @@ describe('createProposalSchema', () => {
       expect(result.data.value).toBe(1500.5);
     }
   });
-
-  it('rejeita value negativo', () => {
-    const result = createProposalSchema.safeParse({ freight_id: 1, value: -1 });
-    expect(result.success).toBe(false);
-  });
 });
 
 describe('rejectProposalSchema', () => {

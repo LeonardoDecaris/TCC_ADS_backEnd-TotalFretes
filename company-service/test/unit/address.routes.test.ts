@@ -20,5 +20,6 @@ describe('address CRUD routes', () => {
       delete: ['COMPANY'],
       forbidden: 'USER',
     },
+    authChecks: 'minimal',
   });
 });

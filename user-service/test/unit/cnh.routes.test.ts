@@ -20,5 +20,6 @@ describe('cnh CRUD routes', () => {
       delete: ['ADMIN'],
       forbidden: 'USER',
     },
+    authChecks: 'minimal',
   });
 });

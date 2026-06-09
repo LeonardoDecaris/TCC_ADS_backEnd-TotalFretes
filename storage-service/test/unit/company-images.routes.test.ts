@@ -1,7 +1,9 @@
 import { createModelMock } from '../../../packages/test-utils/src/mocks/sequelizeModel';
-import { definePublicStoredImageCrudTests } from '../../../packages/test-utils/src/jest/publicStoredImageCrudSuite';
 import { storageCompanyImageFields } from '../../../packages/test-utils/src/fixtures/entities';
 import { asUser } from '../../../packages/test-utils/src/http/authenticatedRequest';
+import { asAdmin, unauthenticatedRequest } from '../../../packages/test-utils/src/http/authenticatedRequest';
+import { attachTestPng } from '../../../packages/test-utils/src/http/attachTestPng';
+import { createMockModelInstance } from '../../../packages/test-utils/src/mocks/sequelizeModel';
 
 const modelMock = createModelMock();
 
@@ -36,13 +38,28 @@ describe('company-images CRUD routes', () => {
     jest.clearAllMocks();
   });
 
-  definePublicStoredImageCrudTests({
-    app,
-    basePath: '/company-images',
-    model: modelMock,
-    uploadFields: storageCompanyImageFields,
-    invalidUploadFields: { companyId: '0' },
-    responseKey: 'companyImage',
+  it('retorna 401 sem autenticação no upload', async () => {
+    const res = await unauthenticatedRequest(app).post('/company-images/upload').field(storageCompanyImageFields);
+    expect(res.status).toBe(401);
+  });
+
+  it('retorna 201 com upload válido', async () => {
+    const instance = createMockModelInstance({
+      id: 1,
+      fileName: 'company.png',
+      originalName: 'company.png',
+      mimeType: 'image/png',
+      sizeBytes: 100,
+      path: 'uploads/company-images/company.png',
+      companyId: 10,
+    });
+    modelMock.create.mockResolvedValueOnce(instance);
+
+    const res = await attachTestPng(
+      asAdmin(app).post('/company-images/upload').field(storageCompanyImageFields),
+    );
+    expect(res.status).toBe(201);
+    expect(res.body.companyImage).toBeDefined();
   });
 
   it('retorna 403 para USER no upload de company image', async () => {

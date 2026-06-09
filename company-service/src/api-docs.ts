@@ -1,7 +1,33 @@
 export const apiDocs = {
   openapi: '3.0.0',
   info: { title: 'Company Service', version: '1.0.0' },
+  tags: [
+    { name: 'Company', description: 'Cadastro e gestão de empresas' },
+    { name: 'Address', description: 'Cadastro e gestão de endereços de empresa' },
+  ],
   paths: {
+    '/health': {
+      get: {
+        summary: 'Health check do serviço',
+        tags: ['Company'],
+        responses: {
+          200: {
+            description: 'Serviço saudável',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    status: { type: 'string', example: 'OK' },
+                    PID: { type: 'integer', example: 12345 },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
     '/company': {
       post: {
         summary: 'Criar empresa',
@@ -92,6 +118,55 @@ export const apiDocs = {
         responses: { 200: { description: 'Empresa deletada' }, 404: { description: 'Não encontrada' } },
       },
     },
+    '/company/{id}/image': {
+      post: {
+        summary: 'Inserir ou atualizar imagem da empresa',
+        description: 'Upload multipart no campo `image` para empresa autenticada/permitida.',
+        tags: ['Company'],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string' } },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'multipart/form-data': {
+              schema: {
+                type: 'object',
+                properties: {
+                  image: { type: 'string', format: 'binary' },
+                },
+                required: ['image'],
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: 'Imagem atualizada' },
+          201: { description: 'Imagem inserida' },
+          400: { description: 'Arquivo inválido ou dados inconsistentes' },
+          401: { description: 'Não autenticado' },
+          403: { description: 'Sem permissão' },
+          404: { description: 'Empresa não encontrada' },
+          500: { description: 'Erro ao processar imagem' },
+        },
+      },
+      delete: {
+        summary: 'Remover imagem da empresa',
+        tags: ['Company'],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string' } },
+        ],
+        responses: {
+          200: { description: 'Imagem removida com sucesso' },
+          401: { description: 'Não autenticado' },
+          403: { description: 'Sem permissão' },
+          404: { description: 'Imagem/empresa não encontrada' },
+          500: { description: 'Erro ao remover imagem' },
+        },
+      },
+    },
     '/company/end-account': {
       post: {
         summary: 'Criar empresa com endereço e conta de acesso',
@@ -152,6 +227,75 @@ export const apiDocs = {
           201: { description: 'Empresa, endereço e conta criados' },
           409: { description: 'Empresa já cadastrada' },
           500: { description: 'Erro ao criar empresa com conta' },
+        },
+      },
+    },
+    '/company/payment-token/request': {
+      post: {
+        summary: 'Solicitar token para conclusão de pagamento da empresa',
+        tags: ['Company'],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['companyId'],
+                properties: {
+                  companyId: { type: 'integer', minimum: 1, example: 10 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: 'Token de pagamento gerado com sucesso' },
+          400: { description: 'Dados inválidos para geração do token' },
+          404: { description: 'Empresa não encontrada' },
+          500: { description: 'Erro ao gerar token' },
+        },
+      },
+    },
+    '/company/complete-payment': {
+      patch: {
+        summary: 'Concluir pagamento/assinatura da empresa',
+        description: 'Requer token válido de pagamento via middleware específico.',
+        tags: ['Company'],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['token'],
+                properties: {
+                  token: { type: 'string', example: 'payment-token-value' },
+                  paidAt: { type: 'string', format: 'date-time', example: '2026-06-09T18:00:00.000Z' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: 'Pagamento concluído e empresa atualizada' },
+          400: { description: 'Token inválido/expirado ou payload inválido' },
+          404: { description: 'Empresa não encontrada' },
+          500: { description: 'Erro ao concluir pagamento' },
+        },
+      },
+    },
+    '/company/internal/{subjectId}/payment-status': {
+      get: {
+        summary: 'Consultar status de pagamento por subject (rota interna)',
+        tags: ['Company'],
+        parameters: [
+          { name: 'subjectId', in: 'path', required: true, schema: { type: 'string' } },
+        ],
+        responses: {
+          200: { description: 'Status de pagamento retornado com sucesso' },
+          400: { description: 'subjectId inválido' },
+          404: { description: 'Empresa/subject não encontrado' },
+          500: { description: 'Erro ao consultar status de pagamento' },
         },
       },
     },
