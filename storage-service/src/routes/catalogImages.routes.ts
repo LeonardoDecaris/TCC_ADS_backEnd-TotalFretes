@@ -25,8 +25,11 @@ export const companyImagesRoutes = createStoredImageRoutes(
   STORED_IMAGE_KINDS.company,
   CompanyImage,
   companyImagesUpload,
-  (body) => {
-    const companyId = parseId(body.companyId);
+  (req) => {
+    const user = req.user;
+    const companyId = user?.role === 'COMPANY'
+      ? Number(user.id)
+      : parseId((req.body as Record<string, unknown>).companyId);
     return companyId === null ? null : { companyId };
   },
 );

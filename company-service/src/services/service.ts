@@ -139,9 +139,11 @@ export async function getCompanyImageHttp({ id }: { id: number }) {
 export async function uploadCompanyImageHttp({
 	file,
 	companyId,
+	authorization,
 }: {
 	file: Express.Multer.File;
 	companyId: number;
+	authorization?: string;
 }) {
 	const formData = new FormData();
 	appendFileToFormData(formData, file);
@@ -150,7 +152,10 @@ export async function uploadCompanyImageHttp({
 	const response = await axios.post<CompanyImageEnvelope>(
 		`${storageServiceBaseUrl}/company-images/upload`,
 		formData,
-		{ maxBodyLength: Infinity },
+		{
+			maxBodyLength: Infinity,
+			headers: buildForwardHeaders({ authorization }),
+		},
 	);
 
 	return {
@@ -162,9 +167,11 @@ export async function uploadCompanyImageHttp({
 export async function updateCompanyImageHttp({
 	imageId,
 	file,
+	authorization,
 }: {
 	imageId: number;
 	file: Express.Multer.File;
+	authorization?: string;
 }) {
 	const formData = new FormData();
 	appendFileToFormData(formData, file);
@@ -172,7 +179,10 @@ export async function updateCompanyImageHttp({
 	const response = await axios.put<CompanyImageEnvelope>(
 		`${storageServiceBaseUrl}/company-images/${imageId}`,
 		formData,
-		{ maxBodyLength: Infinity },
+		{
+			maxBodyLength: Infinity,
+			headers: buildForwardHeaders({ authorization }),
+		},
 	);
 
 	return {
@@ -181,10 +191,19 @@ export async function updateCompanyImageHttp({
 	};
 }
 
-export async function deleteCompanyImageHttp({ id }: { id: number }) {
+export async function deleteCompanyImageHttp({
+	id,
+	authorization,
+	locale,
+}: {
+	id: number;
+	authorization?: string;
+	locale?: string;
+}) {
 	const result = await storageClient.delete<{ message?: string; ok?: boolean }>(
 		`/company-images/${id}`,
 		{
+			headers: buildForwardHeaders({ authorization, locale }),
 			fallback: { ok: false },
 			silentStatuses: [404],
 		},

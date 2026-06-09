@@ -19,6 +19,17 @@ jest.mock('../../src/models/userImages.model', () => ({
   default: modelMock,
 }));
 
+jest.mock('../../src/services/imageOutbox.service', () => ({
+  enqueueImageEvent: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock('../../src/services/imageIdempotency.service', () => ({
+  normalizeIdempotencyKey: jest.fn(() => null),
+  buildIdempotencyFingerprint: jest.fn(() => 'fingerprint'),
+  getIdempotencyReplay: jest.fn().mockResolvedValue(null),
+  storeIdempotencyResponse: jest.fn().mockResolvedValue(undefined),
+}));
+
 import app from '../../src/app';
 
 describe('user-images CRUD routes', () => {
