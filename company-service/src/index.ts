@@ -3,8 +3,8 @@ import dotenv from 'dotenv';
 import sequelize from './config/database';
 import { ensureCompanyAddressCountryColumn } from './database/ensureCompanyAddressCountryColumn';
 import { seedDefaultCompany } from './config/seedDefaultCompany';
-import { logger } from './config/logger';
-import { logError } from '@total-fretes/observability';
+import { logger } from './config/logging';
+import { logError } from '@total-fretes/logging';
 
 dotenv.config();
 

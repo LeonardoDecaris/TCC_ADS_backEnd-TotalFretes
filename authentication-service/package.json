@@ -22,9 +22,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@total-fretes/observability": "file:../packages/observability",
     "@total-fretes/rpc-contracts": "file:../packages/rpc-contracts",
     "axios": "^1.13.5",
+    "@total-fretes/logging": "file:../packages/logging",
     "amqplib": "^1.0.3",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",

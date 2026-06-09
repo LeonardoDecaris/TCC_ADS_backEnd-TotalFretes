@@ -4,8 +4,8 @@ import sequelize from './config/database';
 import { seedAccountTypes } from './config/seedAccountTypes';
 import { seedDefaultAdmin } from './config/seedDefaultAdmin';
 import { startEmailPublisher } from './messaging/email.publisher';
-import { logger } from './config/logger';
-import { logError } from '@total-fretes/observability';
+import { logger } from './config/logging';
+import { logError } from '@total-fretes/logging';
 
 dotenv.config();
 

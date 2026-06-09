@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { originFields } from '@total-fretes/observability';
+import { buildErrorResponseFields } from './errorResponse';
 
 type ErrorExtra = Record<string, unknown>;
 
@@ -7,20 +7,29 @@ export const sendError = (
   res: Response,
   status: number,
   message: string,
-  errorOrExtra?: unknown,
-  extra: ErrorExtra = {},
+  ...rest: unknown[]
 ) => {
-  const isErrorInstance = errorOrExtra instanceof Error;
-  const origin = isErrorInstance ? originFields(errorOrExtra) : {};
-  const mergedExtra =
-    errorOrExtra !== undefined && !isErrorInstance
-      ? (errorOrExtra as ErrorExtra)
-      : extra;
+  let errorId: string | undefined;
+  let mergedExtra: ErrorExtra = {};
+
+  for (const item of rest) {
+    if (item === undefined || item instanceof Error) continue;
+    if (typeof item === 'string') {
+      errorId = item;
+      continue;
+    }
+    if (typeof item === 'object' && item !== null) {
+      mergedExtra = { ...mergedExtra, ...(item as ErrorExtra) };
+    }
+  }
+
+  const { requestId, errorId: resolvedErrorId } = buildErrorResponseFields(res, errorId);
 
   return res.status(status).json({
     status,
     message,
-    ...origin,
+    requestId,
+    errorId: resolvedErrorId,
     ...mergedExtra,
   });
 };

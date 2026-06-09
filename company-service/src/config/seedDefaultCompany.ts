@@ -1,7 +1,7 @@
 import Company from '../models/company.model';
 import CompanyAddress from '../models/address.model';
 import { createAccountHttp, getAccountTypeIdByName } from '../services/service';
-import { logger } from '../config/logger';
+import { logger } from '../config/logging';
 import { normalizeCnpj } from '../utils/cnpjInRfb2229';
 
 const DEFAULT_COMPANY_EMAIL = 'seed.empresa@demo.totalfretes.com.br';

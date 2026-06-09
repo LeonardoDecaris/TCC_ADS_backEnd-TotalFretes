@@ -31,8 +31,7 @@
         {
             "name": "swagger-service",
             "path": "./swagger-service"
-        }
-    ],
+        }    ],
    
     "settings": {
         "files.exclude": {

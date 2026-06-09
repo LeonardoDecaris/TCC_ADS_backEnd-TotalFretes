@@ -15,7 +15,7 @@
     "lint:fix": "eslint --no-error-on-unmatched-pattern \"src/**/*.ts\" \"test/**/*.ts\" --fix"
   },
   "dependencies": {
-    "@total-fretes/observability": "file:../packages/observability",
+    "@total-fretes/logging": "file:../packages/logging",
     "axios": "^1.13.5",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",

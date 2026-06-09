@@ -1,8 +1,8 @@
 FROM node:22-slim AS build
 
-WORKDIR /app/packages/observability
-COPY packages/observability/package.json packages/observability/tsconfig.json ./
-COPY packages/observability/src ./src
+WORKDIR /app/packages/logging
+COPY packages/logging/package.json packages/logging/tsconfig.json ./
+COPY packages/logging/src ./src
 RUN npm install && npm run build
 
 WORKDIR /app/company-service

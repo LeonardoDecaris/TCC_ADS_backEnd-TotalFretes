@@ -11,6 +11,12 @@ import ProposalStatusType from '../models/proposalsStatusTypes.model';
 import type { createFreightSchema, freightListPaginatedQuerySchema, updateFreightSchema } from '../schemas/freight.schemas';
 import type { z } from 'zod';
 import { recordFreightStatusHistory } from './freightStatusHistory.service';
+import {
+  notifyCompanyFreightCancelled,
+  notifyCompanyFreightDelivered,
+  notifyCompanyFreightInTransit,
+  notifyDriversFreightCancelled,
+} from '../messaging/notificationEvents';
 
 export const getFreightStatusHistoryInclude = () => ({
   model: FreightStatusHistory,
@@ -217,6 +223,7 @@ export async function updateFreightRecord(
     }
 
     const previousStatusId = freight.status_id ?? null;
+    let driverTargetStatusName: string | null = null;
 
     if (isAssignedDriver && !isAdmin) {
       if (body.status_id == null) {
@@ -238,6 +245,8 @@ export async function updateFreightRecord(
         await transaction.rollback();
         throw new FreightValidationError('FREIGHT.INVALID_STATUS_TRANSITION');
       }
+
+      driverTargetStatusName = targetName;
 
       await freight.update({ status_id: body.status_id }, { transaction });
 
@@ -265,6 +274,20 @@ export async function updateFreightRecord(
     await transaction.commit();
     transactionCommitted = true;
     await freight.reload({ include: getFreightDetailInclude() });
+
+    if (driverTargetStatusName && freight.company_id != null && freight.id != null) {
+      const metadata = { freightId: freight.id };
+      const notifyCompanyId = Number(freight.company_id);
+
+      if (driverTargetStatusName === FreightStatusSlug.EM_TRANSITO) {
+        notifyCompanyFreightInTransit(notifyCompanyId, metadata);
+      }
+
+      if (driverTargetStatusName === FreightStatusSlug.ENTREGUE) {
+        notifyCompanyFreightDelivered(notifyCompanyId, metadata);
+      }
+    }
+
     return freight;
   } catch (error) {
     if (!transactionCommitted) {
@@ -327,6 +350,15 @@ export async function cancelFreightRecord(id: number, user: { role?: string; id?
 
     const statusId = canceladoStatus?.id ?? 2;
     const previousStatusId = freight.status_id ?? null;
+    const assignedDriverId = freight.assignedDriver_id;
+    const companyId = freight.company_id;
+    const cancelledByRole = user?.role;
+
+    const proposalsBeforeCancel = await Proposal.findAll({
+      where: { freight_id: freight.id },
+      attributes: ['driver_id'],
+      transaction,
+    });
 
     await freight.update({ assignedDriver_id: null, status_id: statusId }, { transaction });
 
@@ -338,6 +370,19 @@ export async function cancelFreightRecord(id: number, user: { role?: string; id?
     await transaction.commit();
     transactionCommitted = true;
     await freight.reload({ include: getFreightDetailInclude() });
+
+    if (freight.id != null) {
+      await notifyDriversFreightCancelled(
+        freight.id,
+        assignedDriverId,
+        proposalsBeforeCancel.map((proposal) => proposal.driver_id),
+      );
+
+      if (companyId != null && cancelledByRole !== 'COMPANY') {
+        notifyCompanyFreightCancelled(Number(companyId), { freightId: freight.id });
+      }
+    }
+
     return freight;
   } catch (error) {
     if (!transactionCommitted) {

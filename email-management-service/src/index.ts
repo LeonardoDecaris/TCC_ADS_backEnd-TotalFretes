@@ -1,6 +1,21 @@
 import 'dotenv/config';
 import app from './app';
 import { startEmailConsumer, stopEmailConsumer } from './messaging/email.consumer';
+import { logger, requestIdMiddleware, requestLoggerMiddleware } from './config/logging';
+import { logError } from '@total-fretes/logging';
+
+const app = express();
+
+app.use(express.json());
+app.use(cors());
+app.use(requestIdMiddleware);
+app.use(requestLoggerMiddleware);
+
+app.get('/health', (_req: Request, res: Response) => {
+  res.status(200).send('OK');
+});
+
+const PORT = process.env.PORT || 3000;
 import { createLogger, logError } from '@total-fretes/observability';
 
 const logger = createLogger(process.env.SERVICE_NAME ?? 'email-management-service');
