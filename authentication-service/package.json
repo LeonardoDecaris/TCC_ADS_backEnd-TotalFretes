@@ -9,6 +9,7 @@
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
     "test": "jest --runInBand",
+    "test:unit": "jest --testPathPattern=test/unit",
     "test:watch": "jest --watch",
     "lint": "eslint --no-error-on-unmatched-pattern \"src/**/*.ts\" \"test/**/*.ts\"",
     "lint:fix": "eslint --no-error-on-unmatched-pattern \"src/**/*.ts\" \"test/**/*.ts\" --fix"

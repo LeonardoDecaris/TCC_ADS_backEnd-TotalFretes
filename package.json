@@ -6,6 +6,18 @@
   },
   "scripts": {
     "prepare": "husky",
-    "end-2-end": "cd FrontEnd && npm run end-2-end"
+    "end-2-end": "cd FrontEnd && npm run end-2-end",
+    "test:unit": "node scripts/test-unit-all.js",
+    "test:service": "node scripts/test-service.js",
+    "test:integration:up": "docker compose -f docker-compose.yml -f docker-compose.test.yml up -d --wait",
+    "test:integration:down": "docker compose -f docker-compose.yml -f docker-compose.test.yml down",
+    "test:integration": "node scripts/test-integration.js",
+    "test:integration:local": "node scripts/test-integration.js --skip-stack",
+    "test:load:smoke": "node scripts/test-load.js smoke",
+    "test:load": "node scripts/test-load.js all",
+    "test:all": "node scripts/test-all.js",
+    "test:all:local": "node scripts/test-all.js --skip-stack",
+    "test:all:ci": "node scripts/test-all.js --teardown",
+    "test": "npm run test:unit"
   }
 }

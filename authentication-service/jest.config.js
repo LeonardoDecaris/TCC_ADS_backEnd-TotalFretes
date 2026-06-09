@@ -1,8 +1,12 @@
+const path = require('path');
+const base = require('../packages/test-utils/jest/base.config');
+
 module.exports = {
-  preset: 'ts-jest',
-  testEnvironment: 'node',
-  testMatch: ['**/test/**/*.test.ts'],
-  transform: {
-    '^.+\\.tsx?$': ['ts-jest', { tsconfig: 'tsconfig.jest.json' }],
-  },
+  ...base,
+  rootDir: '.',
+  setupFiles: [
+    path.join(__dirname, 'test/setup/env.ts'),
+    path.join(__dirname, 'test/setup/mockModels.ts'),
+  ],
+  setupFilesAfterEnv: [path.join(__dirname, '../packages/test-utils/jest/setup.ts')],
 };
