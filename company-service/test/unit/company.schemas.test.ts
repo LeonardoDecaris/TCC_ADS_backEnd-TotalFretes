@@ -1,4 +1,4 @@
-import { createCompanySchema } from '../../src/schemas/company.schemas';
+import { createCompanySchema, updateCompanySchema } from '../../src/schemas/company.schemas';
 
 const validCompany = {
   name: 'Transportes Demo Ltda',
@@ -27,6 +27,13 @@ describe('createCompanySchema', () => {
 
   it('rejeita email inválido', () => {
     const result = createCompanySchema.safeParse({ ...validCompany, email: 'nao-email' });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('updateCompanySchema', () => {
+  it('não permite atualizar CNPJ', () => {
+    const result = updateCompanySchema.safeParse({ cnpj: '00000000000191' });
     expect(result.success).toBe(false);
   });
 });

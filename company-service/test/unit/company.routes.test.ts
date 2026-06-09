@@ -108,6 +108,11 @@ describe('company CRUD routes', () => {
       const res = await asCompany(app, 1).put('/company/1').send({ name: 'Empresa Atualizada' });
       expect(res.status).toBe(200);
     });
+
+    it('retorna 400 ao tentar atualizar CNPJ', async () => {
+      const res = await asCompany(app, 1).put('/company/1').send({ cnpj: '00000000000191' });
+      expect(res.status).toBe(400);
+    });
   });
 
   describe('DELETE /company/:id', () => {

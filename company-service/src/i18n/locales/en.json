@@ -10,6 +10,7 @@
     "NOT_FOUND": "Company not found.",
     "GET_BY_ID_FAILED": "Error fetching company.",
     "UPDATED_SUCCESSFULLY": "Company updated successfully.",
+    "CNPJ_UPDATE_NOT_ALLOWED": "CNPJ cannot be updated after registration.",
     "UPDATE_FAILED": "Error updating company.",
     "DELETED_SUCCESSFULLY": "Company deleted successfully.",
     "DELETE_FAILED": "Error deleting company.",

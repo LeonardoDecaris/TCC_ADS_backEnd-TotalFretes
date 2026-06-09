@@ -21,6 +21,7 @@
     "NOT_FOUND": "Usuário não encontrado.",
     "GET_BY_ID_FAILED": "Erro ao buscar usuário.",
     "UPDATED_SUCCESSFULLY": "Usuário atualizado com sucesso.",
+    "CPF_UPDATE_NOT_ALLOWED": "CPF não pode ser atualizado após o cadastro.",
     "UPDATE_FAILED": "Erro ao atualizar usuário.",
     "DELETED_SUCCESSFULLY": "Usuário deletado com sucesso.",
     "DELETE_FAILED": "Erro ao deletar usuário."

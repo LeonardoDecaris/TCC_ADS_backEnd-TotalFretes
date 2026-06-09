@@ -78,9 +78,19 @@ const baseCompanyFields = {
 	companyAddress_id: companyAddressIdSchema,
 };
 
+const updateCompanyFields = {
+	name: nameSchema,
+	email: emailSchema,
+	birthFundation: birthFundationSchema,
+	phoneNumber: phoneNumberSchema,
+	website: websiteSchema,
+	company_image_id: companyImageIdSchema,
+	companyAddress_id: companyAddressIdSchema,
+};
+
 export const createCompanySchema = z.object(baseCompanyFields);
 
-export const updateCompanySchema = z.object(baseCompanyFields).partial();
+export const updateCompanySchema = z.object(updateCompanyFields).partial().strict();
 
 export const createCompanyAddressSchema = z.object({
 	country: z.string().min(1, "VALIDATION.COUNTRY_REQUIRED"),

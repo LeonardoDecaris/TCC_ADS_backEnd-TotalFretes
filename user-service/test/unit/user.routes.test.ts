@@ -103,6 +103,11 @@ describe('user CRUD routes', () => {
       const res = await asUser(app, 1).patch('/user/1').send({ name: 'Novo Nome' });
       expect(res.status).toBe(200);
     });
+
+    it('retorna 400 ao tentar atualizar CPF', async () => {
+      const res = await asUser(app, 1).patch('/user/1').send({ cpf: '12345678901' });
+      expect(res.status).toBe(400);
+    });
   });
 
   describe('DELETE /user/:id', () => {

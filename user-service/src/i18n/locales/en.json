@@ -21,6 +21,7 @@
     "NOT_FOUND": "User not found.",
     "GET_BY_ID_FAILED": "Error fetching user.",
     "UPDATED_SUCCESSFULLY": "User updated successfully.",
+    "CPF_UPDATE_NOT_ALLOWED": "CPF cannot be updated after registration.",
     "UPDATE_FAILED": "Error updating user.",
     "DELETED_SUCCESSFULLY": "User deleted successfully.",
     "DELETE_FAILED": "Error deleting user."

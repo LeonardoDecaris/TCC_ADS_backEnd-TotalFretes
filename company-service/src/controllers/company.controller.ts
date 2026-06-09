@@ -166,6 +166,10 @@ export const getAllCompanies = async (req: Request, res: Response) => {
 export const updateCompany = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
 	try {
+		if (Object.prototype.hasOwnProperty.call(req.body, "cnpj")) {
+			return sendError(res, 400, "COMPANY.CNPJ_UPDATE_NOT_ALLOWED", locale);
+		}
+
 		const body = updateCompanySchema.parse(req.body);
 
 		const company = await findCompanyWithAddress(req.params.id as string);
