@@ -204,7 +204,11 @@ export const deleteCompany = async (req: Request, res: Response) => {
 		}
 
 		if (company.company_image_id) {
-			await deleteCompanyImageHttp({ id: company.company_image_id });
+			await deleteCompanyImageHttp({
+				id: company.company_image_id,
+				authorization: req.headers.authorization,
+				locale,
+			});
 		}
 
 		await company.destroy();
@@ -236,7 +240,11 @@ export const deleteOwnCompany = async (req: Request, res: Response) => {
 		}
 
 		if (company.company_image_id) {
-			await deleteCompanyImageHttp({ id: company.company_image_id });
+			await deleteCompanyImageHttp({
+				id: company.company_image_id,
+				authorization: req.headers.authorization,
+				locale,
+			});
 		}
 
 		await deleteOwnAccountBySubjectHttp({
@@ -376,12 +384,14 @@ export const upsertCompanyImage = async (req: RequestWithFile, res: Response) =>
 				const response = await updateCompanyImageHttp({
 					imageId: company.company_image_id,
 					file: req.file,
+					authorization: req.headers.authorization,
 				});
 				nextImageId = response.userImage.id;
 			} else {
 				const response = await uploadCompanyImageHttp({
 					file: req.file,
 					companyId: company.id,
+					authorization: req.headers.authorization,
 				});
 				nextImageId = response.userImage.id;
 				createdImageId = response.userImage.id;
@@ -390,7 +400,11 @@ export const upsertCompanyImage = async (req: RequestWithFile, res: Response) =>
 			await company.update({ company_image_id: nextImageId });
 		} catch (error) {
 			if (createdImageId) {
-				await deleteCompanyImageHttp({ id: createdImageId });
+				await deleteCompanyImageHttp({
+					id: createdImageId,
+					authorization: req.headers.authorization,
+					locale,
+				});
 			}
 			throw error;
 		}
@@ -435,7 +449,11 @@ export const deleteCompanyImage = async (req: Request, res: Response) => {
 			return sendError(res, 404, "COMPANY_IMAGE.NOT_FOUND", locale);
 		}
 
-		await deleteCompanyImageHttp({ id: company.company_image_id });
+		await deleteCompanyImageHttp({
+			id: company.company_image_id,
+			authorization: req.headers.authorization,
+			locale,
+		});
 		await company.update({ company_image_id: null });
 
 		return res.status(200).json({

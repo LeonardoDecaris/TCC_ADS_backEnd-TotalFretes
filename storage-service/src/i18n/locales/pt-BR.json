@@ -12,8 +12,18 @@
     "DELETED_SUCCESSFULLY": "Imagem removida com sucesso.",
     "DELETE_FAILED": "Erro ao remover imagem.",
     "INVALID_FILE": "Arquivo inválido. Envie apenas imagens.",
+    "INVALID_FILE_SIGNATURE": "Conteúdo do arquivo inválido. Assinatura de imagem não reconhecida.",
     "FILE_TOO_LARGE": "Arquivo excede o limite de 5MB.",
     "UPLOAD_PROCESS_FAILED": "Erro ao processar upload.",
-    "INVALID_OWNER": "A imagem precisa estar vinculada a um dono válido."
+    "INVALID_OWNER": "A imagem precisa estar vinculada a um dono válido.",
+    "IDEMPOTENCY_CONFLICT": "A mesma chave de idempotência foi reutilizada com payload diferente."
+  },
+  "AUTH": {
+    "TOKEN_NOT_PROVIDED": "Token não fornecido.",
+    "TOKEN_NOT_FORMATTED": "Token mal formatado.",
+    "TOKEN_INVALID": "Token inválido.",
+    "ROLE_DENIED": "Acesso negado para o perfil informado.",
+    "NOT_AUTHENTICATED": "Usuário não autenticado.",
+    "PERMISSION_INSUFFICIENT": "Permissão insuficiente para acessar este recurso."
   }
 }

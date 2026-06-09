@@ -1,4 +1,5 @@
 import type { Model, ModelStatic } from 'sequelize';
+import type { Request } from 'express';
 
 import type { StoredImageKindConfig } from '../config/storedImageKinds';
 import type { StoredImageUploadHelpers } from '../utils/storedImageUpload';
@@ -30,6 +31,6 @@ export type StoredImageControllerDeps = {
   config: StoredImageKindConfig;
   upload: StoredImageUploadHelpers;
   resolveCreatePayload?: (
-    body: Record<string, unknown>,
+    req: Request,
   ) => Promise<Record<string, unknown> | null> | Record<string, unknown> | null;
 };
