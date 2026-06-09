@@ -1,6 +1,6 @@
 import express from 'express';
 import { createFreightStatusType, deleteFreightStatusType, getAllFreightStatusTypes, getFreightStatusTypeById, updateFreightStatusType } from '../controllers/freightStatusTypes.controller';
-import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
+import { authMiddleware, authorizeRoles } from '../middlewares/authMiddleware';
 
 const router = express.Router();
 

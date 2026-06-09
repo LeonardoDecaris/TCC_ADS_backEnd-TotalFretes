@@ -29,14 +29,16 @@ export const createFreight = async (req: Request, res: Response) => {
   const locale = getLocaleFromRequest(req);
   try {
     const body = createFreightSchema.parse(req.body);
-    const role = req.user?.role;
-    let companyId = req.user!.id;
+    const role = req.user!.role;
 
+    let companyId: number;
     if (role === 'ADMIN') {
       if (!body.company_id) {
         return sendError(res, 400, 'VALIDATION.COMPANY_ID_REQUIRED', locale);
       }
       companyId = body.company_id;
+    } else {
+      companyId = req.user!.id;
     }
 
     const { company_id: _ignored, ...freightBody } = body;

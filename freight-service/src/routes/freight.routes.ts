@@ -9,11 +9,11 @@ import {
 	getFreightByUserId,
 	updateFreight,
 } from '../controllers/freight.controller';
-import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
+import { authMiddleware, authorizeRoles } from '../middlewares/authMiddleware';
 
 const router = express.Router();
 
-router.post('/', authMiddleware, authorizeRoles('COMPANY'), createFreight);
+router.post('/', authMiddleware, authorizeRoles('COMPANY', 'ADMIN'), createFreight);
 router.get('/', authMiddleware, getAllFreights);
 router.get('/user/:id', authMiddleware, getFreightByUserId);
 router.get('/:id', authMiddleware, getFreightById);

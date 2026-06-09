@@ -1,6 +1,6 @@
 import express from 'express';
 import { getDriverTrail, postDriverLocation } from '../controllers/telemetry.controller';
-import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
+import { authMiddleware, authorizeRoles } from '../middlewares/authMiddleware';
 
 const router = express.Router();
 

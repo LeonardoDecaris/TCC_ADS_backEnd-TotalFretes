@@ -1,6 +1,6 @@
 import express from 'express';
 import { createCargoType, getAllCargoTypes, getCargoTypeById, updateCargoType, deleteCargoType } from '../controllers/cargoTypes.controller';
-import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
+import { authMiddleware, authorizeRoles } from '../middlewares/authMiddleware';
 
 const router = express.Router();
 
