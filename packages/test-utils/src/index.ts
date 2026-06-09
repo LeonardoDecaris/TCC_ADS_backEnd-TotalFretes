@@ -15,3 +15,30 @@ export {
 export { createSequelizeMock } from './mocks/sequelize';
 export { createMockResponse } from './mocks/express';
 export type { MockResponseState } from './mocks/express';
+export { createModelMock, createMockModelInstance } from './mocks/sequelizeModel';
+export type { ModelMock, MockModelInstance } from './mocks/sequelizeModel';
+export { getMockedAxios, mockAxiosSuccess, mockAxiosError } from './mocks/axios';
+export {
+  authenticatedRequest,
+  asAdmin,
+  asCompany,
+  asUser,
+  unauthenticatedRequest,
+} from './http/authenticatedRequest';
+export type { AuthRequestOptions, TestableApp } from './http/authenticatedRequest';
+export { attachTestPng, TEST_PNG_BUFFER } from './http/attachTestPng';
+export { mockDatabaseModule } from './jest/mockDatabase';
+export { definePublicStoredImageCrudTests } from './jest/publicStoredImageCrudSuite';
+export type { PublicStoredImageCrudConfig } from './jest/publicStoredImageCrudSuite';
+export {
+  defineProtectedJsonCrudTests,
+  definePublicJsonCrudTests,
+  defineAuthOnlyEndpointTests,
+} from './jest/protectedJsonCrudSuite';
+export type {
+  ProtectedJsonCrudConfig,
+  PublicJsonCrudConfig,
+  AuthOnlyEndpointConfig,
+  RoleMatrix,
+} from './jest/protectedJsonCrudSuite';
+export * from './fixtures/entities';

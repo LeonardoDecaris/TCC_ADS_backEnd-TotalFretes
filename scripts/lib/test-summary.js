@@ -220,7 +220,7 @@ function printPhaseBlock(title, phase) {
     console.log(
       paint(
         ANSI.dim,
-        `  ♻️​ Subtotal: ${totals.scenarios ?? 0} cenários · ${totals.checksPassed ?? 0} checks ✓ · ${totals.checksFailed ?? 0} ✗`,
+        `  ♻️​  Subtotal: ${totals.scenarios ?? 0} cenários · ${totals.checksPassed ?? 0} checks ✓ · ${totals.checksFailed ?? 0} ✗`,
       ),
     );
   }

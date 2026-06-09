@@ -77,8 +77,10 @@ TCC_ADS_backEnd-TotalFretes/
 │
 ├── packages/test-utils/                ← biblioteca compartilhada
 │   ├── src/jwt/                        ← createTestToken
-│   ├── src/fixtures/                   ← credenciais de teste
-│   ├── src/mocks/                      ← mock Express, Sequelize
+│   ├── src/http/                       ← authenticatedRequest, attachTestPng
+│   ├── src/fixtures/entities/          ← payloads CRUD válidos
+│   ├── src/mocks/                      ← Express, Sequelize, axios
+│   ├── src/jest/                       ← suites CRUD reutilizáveis
 │   └── jest/base.config.js             ← config Jest base
 │
 ├── tests/
@@ -95,6 +97,7 @@ TCC_ADS_backEnd-TotalFretes/
     ├── jest.config.js
     ├── tsconfig.jest.json
     ├── test/setup/env.ts               ← carrega .env.test + defaults
+    ├── test/setup/mockModels.ts        ← mocks Sequelize/services (CRUD)
     └── test/unit/*.test.ts
 ```
 
@@ -102,16 +105,41 @@ TCC_ADS_backEnd-TotalFretes/
 
 Referência completa do que cada camada valida hoje, com o nome de cada teste.
 
-**Totais atuais:** 76 unitários · 17 integração · 4 cenários K6 (7 checks HTTP)
+**Totais atuais:** 358 unitários · 17 integração · 4 cenários K6 (7 checks HTTP)
 
 ---
 
 ### Nível 1 — Testes unitários (por microserviço)
 
-Testam o serviço **isolado** (`app.ts`, schemas Zod, middlewares, utils) — sem Docker.  
-**76 testes** em **27 arquivos** (`<service>/test/unit/`).
+Testam o serviço **isolado** (`app.ts`, schemas Zod, middlewares, utils, **rotas CRUD HTTP**) — sem Docker.  
+**358 testes** em **43 arquivos** (`<service>/test/unit/`).
 
-#### `authentication-service` — 18 testes
+#### Testes CRUD HTTP (`*.routes.test.ts`)
+
+Matriz por operação (rotas protegidas): **401** sem token · **403** role inadequada · **400** validação · **404** não encontrado · **200/201** happy path (com mocks). Rotas públicas omitem 401/403.
+
+| Serviço | Arquivo | Recurso | Testes |
+|---------|---------|---------|--------|
+| `authentication-service` | `account.routes.test.ts` | `/account` | 30 |
+| `user-service` | `user.routes.test.ts` | `/user` | 18 |
+| `user-service` | `cnh.routes.test.ts` | `/cnh` | 19 |
+| `user-service` | `vehicle-type.routes.test.ts` | `/vehicle-type` | 17 |
+| `user-service` | `group-vehicle-type.routes.test.ts` | `/group-vehicle-type` | 17 |
+| `user-service` | `vehicle.routes.test.ts` | `/vehicle` | 15 |
+| `company-service` | `company.routes.test.ts` | `/company` | 18 |
+| `company-service` | `address.routes.test.ts` | `/address` | 19 |
+| `freight-service` | `cargo-type.routes.test.ts` | `/cargo-type` | 17 |
+| `freight-service` | `freight.routes.test.ts` | `/freight` | 16 |
+| `freight-service` | `freight-status-type.routes.test.ts` | `/freight-status-type` | 18 |
+| `freight-service` | `proposal.routes.test.ts` | `/proposal` | 16 |
+| `freight-service` | `proposal-status-type.routes.test.ts` | `/proposal-status-type` | 18 |
+| `storage-service` | `user-images.routes.test.ts` | `/user-images` | 14 |
+| `storage-service` | `company-images.routes.test.ts` | `/company-images` | 15 |
+| `storage-service` | `cargo-images.routes.test.ts` | `/cargo-images` | 14 |
+
+**Subtotal CRUD:** 16 arquivos · **282 testes** (demais 76 testes = schemas, middlewares, health, utils).
+
+#### `authentication-service` — 48 testes
 
 | Arquivo | Grupo (`describe`) | Teste (`it`) |
 |---------|---------------------|--------------|
@@ -133,8 +161,9 @@ Testam o serviço **isolado** (`app.ts`, schemas Zod, middlewares, utils) — se
 | `jwt.utils.test.ts` | `JWT utils` | gera e valida token de autenticação |
 | `jwt.utils.test.ts` | `JWT utils` | gera e valida token de reset de senha |
 | `jwt.utils.test.ts` | `JWT utils` | rejeita token de reset inválido |
+| `account.routes.test.ts` | CRUD `/account` | 30 testes (401/403/400/404 + happy path) |
 
-#### `user-service` — 10 testes
+#### `user-service` — 98 testes
 
 | Arquivo | Grupo | Teste |
 |---------|-------|-------|
@@ -148,8 +177,13 @@ Testam o serviço **isolado** (`app.ts`, schemas Zod, middlewares, utils) — se
 | `user.schemas.test.ts` | `createUserSchema` | rejeita email inválido |
 | `vehicle.schemas.test.ts` | `createVehicleSchema` | normaliza aliases plate e state para plateNumber e stateUF |
 | `vehicle.schemas.test.ts` | `createVehicleSchema` | rejeita payload sem city |
+| `user.routes.test.ts` | CRUD `/user` | 18 testes |
+| `cnh.routes.test.ts` | CRUD `/cnh` | 19 testes |
+| `vehicle-type.routes.test.ts` | CRUD `/vehicle-type` | 17 testes |
+| `group-vehicle-type.routes.test.ts` | CRUD `/group-vehicle-type` | 17 testes |
+| `vehicle.routes.test.ts` | CRUD `/vehicle` | 15 testes |
 
-#### `company-service` — 14 testes
+#### `company-service` — 50 testes
 
 | Arquivo | Grupo | Teste |
 |---------|-------|-------|
@@ -167,8 +201,10 @@ Testam o serviço **isolado** (`app.ts`, schemas Zod, middlewares, utils) — se
 | `company.schemas.test.ts` | `createCompanySchema` | aceita payload válido e normaliza telefone e website |
 | `company.schemas.test.ts` | `createCompanySchema` | rejeita CNPJ inválido |
 | `company.schemas.test.ts` | `createCompanySchema` | rejeita email inválido |
+| `company.routes.test.ts` | CRUD `/company` | 18 testes |
+| `address.routes.test.ts` | CRUD `/address` | 19 testes |
 
-#### `freight-service` — 17 testes
+#### `freight-service` — 104 testes
 
 | Arquivo | Grupo | Teste |
 |---------|-------|-------|
@@ -189,13 +225,21 @@ Testam o serviço **isolado** (`app.ts`, schemas Zod, middlewares, utils) — se
 | `common.schemas.test.ts` | `idParamSchema` | aceita id positivo via coerce |
 | `common.schemas.test.ts` | `idParamSchema` | rejeita id zero |
 | `common.schemas.test.ts` | `idParamSchema` | rejeita id negativo |
+| `cargo-type.routes.test.ts` | CRUD `/cargo-type` | 17 testes |
+| `freight.routes.test.ts` | CRUD `/freight` | 16 testes |
+| `freight-status-type.routes.test.ts` | CRUD `/freight-status-type` | 18 testes |
+| `proposal.routes.test.ts` | CRUD `/proposal` | 16 testes |
+| `proposal-status-type.routes.test.ts` | CRUD `/proposal-status-type` | 18 testes |
 
-#### `storage-service` — 2 testes
+#### `storage-service` — 43 testes
 
 | Arquivo | Grupo | Teste |
 |---------|-------|-------|
 | `health.app.test.ts` | `GET /health` | retorna status 200 |
 | `upload.utils.test.ts` | `upload utils` | getStoredRelativePath monta caminho relativo em uploads/user-images |
+| `user-images.routes.test.ts` | CRUD `/user-images` | 14 testes |
+| `company-images.routes.test.ts` | CRUD `/company-images` | 15 testes |
+| `cargo-images.routes.test.ts` | CRUD `/cargo-images` | 14 testes |
 
 #### `mapbox-service` — 7 testes
 
@@ -616,9 +660,36 @@ Isso permite rodar unitários **sem Docker** e sem banco real.
 ## Convenções adotadas
 
 ### Nomenclatura de arquivos
-- `health.app.test.ts` — testes HTTP do `app.ts`
-- `login.schemas.test.ts` — validação Zod
-- `authMiddleware.middleware.test.ts` — middlewares
+- `health.app.test.ts` — health check HTTP do `app.ts`
+- `*.routes.test.ts` — CRUD HTTP via Supertest + mocks (Sequelize/axios/services)
+- `*.schemas.test.ts` — validação Zod
+- `*.middleware.test.ts` — middlewares isolados
+
+### Como mockar em `*.routes.test.ts`
+
+1. **`test/setup/mockModels.ts`** (por serviço) — registra `jest.mock` de `database`, models e services **antes** do import de `app` (via `setupFiles` no `jest.config.js`).
+2. **Helpers** em `packages/test-utils`:
+   - `authenticatedRequest` / `asAdmin` / `asCompany` / `asUser` — header `Authorization`
+   - `createModelMock` / `createMockModelInstance` — Sequelize
+   - `defineProtectedJsonCrudTests` / `definePublicStoredImageCrudTests` — matriz CRUD reutilizável
+   - `attachTestPng` — upload multipart em storage
+3. **Padrão mínimo:**
+
+```typescript
+import { cargoTypeModel } from '../setup/mockModels';
+import app from '../../src/app';
+
+describe('cargo-type CRUD routes', () => {
+  defineProtectedJsonCrudTests({
+    app,
+    basePath: '/cargo-type',
+    model: cargoTypeModel,
+    validCreate: { name: 'Grãos' },
+    invalidCreate: { name: '' },
+    roles: { create: ['COMPANY'], forbidden: 'USER' },
+  });
+});
+```
 
 ### Padrão dos testes
 - **AAA**: Arrange → Act → Assert
@@ -628,7 +699,7 @@ Isso permite rodar unitários **sem Docker** e sem banco real.
 ### Configuração Jest
 - Base compartilhada: `packages/test-utils/jest/base.config.js`
 - `forceExit: true` — evita travamento por handles do Winston/Loki
-- `setupFiles`: `test/setup/env.ts` — carrega env antes dos imports
+- `setupFiles`: `test/setup/env.ts` + `test/setup/mockModels.ts` (serviços com CRUD) — env e mocks antes dos imports
 
 ---
 
@@ -685,7 +756,7 @@ Ou use **`npm run test:all`** para executar as três fases automaticamente em se
 - **Cypress** — E2E de UI no frontend, reutilizando `docker-compose.test.yml`
 - **CI/CD** — jobs separados: unitários em PR, integração em merge, carga em nightly
 - **Cobertura** — `jest --coverage` por serviço com meta mínima
-- **Mais unitários** — controllers, consumer AMQP, agregação Swagger (`GET /docs`), logo PNG
+- **Mais unitários** — consumer AMQP, agregação Swagger (`GET /docs`), logo PNG, workflows de proposta/frete (PATCH accept/cancel)
 
 ---
 
