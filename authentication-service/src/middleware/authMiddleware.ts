@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
-import { originFields } from '@total-fretes/observability';
 import { verifyToken, type JwtRole } from '../utils/jwt';
 import { translation } from '../utils/i18n';
 import { getLocaleFromRequest } from '../utils/locale';
+import { buildErrorResponseFields } from '../utils/errorResponse';
 
 declare global {
   namespace Express {
@@ -59,9 +59,11 @@ export const authMiddleware = async (
 
     next();
   } catch (error) {
+    const { requestId, errorId } = buildErrorResponseFields(res);
     return res.status(401).json({
       message: await authMessage(req, 'AUTH.TOKEN_INVALID'),
-      ...originFields(error),
+      requestId,
+      errorId,
     });
   }
 };

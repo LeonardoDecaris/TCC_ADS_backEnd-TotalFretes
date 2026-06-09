@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { logger } from '../config/logging';
+import { logError } from '@total-fretes/logging';
 
 type CompanyPaymentStatusResponse = {
 	isPaid?: boolean;
@@ -38,7 +40,7 @@ export async function getCompanyPaymentStatus(subjectId: number): Promise<boolea
 
 		return Boolean(response.data?.isPaid);
 	} catch (error) {
-		console.error('getCompanyPaymentStatus failed:', error);
+		logError(logger, 'getCompanyPaymentStatus failed', error, { subjectId });
 		return null;
 	}
 }

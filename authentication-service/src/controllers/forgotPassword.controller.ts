@@ -7,8 +7,8 @@ import { publishPasswordResetEmail } from '../messaging/email.publisher';
 import { translation } from '../utils/i18n';
 import { getLocaleFromRequest } from '../utils/locale';
 import { sendError } from '../utils/httpResponse';
-import { logger } from '../config/logger';
-import { logError } from '@total-fretes/observability';
+import { logger } from '../config/logging';
+import { logError } from '@total-fretes/logging';
 
 const dispatchResetEmail = (email: string, codigo: string) =>
   publishPasswordResetEmail({ email, codigo });

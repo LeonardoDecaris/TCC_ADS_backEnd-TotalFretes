@@ -1,5 +1,6 @@
 import { ZodError } from 'zod';
 import { translation } from './i18n';
+import { createErrorId } from '@total-fretes/logging';
 import { sendValidationError, type ValidationIssue } from '../services/httpResponse';
 import { Response } from 'express';
 
@@ -7,10 +8,10 @@ export const handleZodError = async (
   error: unknown,
   locale: string,
   res: Response,
-  sourceError?: unknown,
 ): Promise<boolean> => {
   if (!(error instanceof ZodError)) return false;
 
+  const errorId = createErrorId();
   const issues: ValidationIssue[] = await Promise.all(
     error.issues.map(async (issue) => ({
       field: issue.path.join('.') || 'unknown',
@@ -18,6 +19,6 @@ export const handleZodError = async (
     })),
   );
 
-  await sendValidationError(res, 'VALIDATION.GENERAL_ERROR', locale, issues, sourceError ?? error);
+  await sendValidationError(res, 'VALIDATION.GENERAL_ERROR', locale, issues, errorId);
   return true;
 };

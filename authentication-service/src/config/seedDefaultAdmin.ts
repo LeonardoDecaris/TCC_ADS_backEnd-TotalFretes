@@ -1,7 +1,7 @@
 import { Account } from '../models/accounts.model';
 import AccountType from '../models/accounts_types.model';
 import { createAdminAccountRecord } from '../services/accountCreation.service';
-import { logger } from '../config/logger';
+import { logger } from '../config/logging';
 
 const DEFAULT_ADMIN_EMAIL = 'admin@totalfretes.com.br';
 const DEFAULT_ADMIN_PASSWORD = 'Admin@123456';

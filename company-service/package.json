@@ -22,7 +22,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@total-fretes/observability": "file:../packages/observability",
+    "@total-fretes/logging": "file:../packages/logging",
     "axios": "^1.13.5",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",

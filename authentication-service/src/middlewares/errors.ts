@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { ZodError } from 'zod';
-import { logError } from '@total-fretes/observability';
-import { logger } from '../config/logger';
+import { logger } from '../config/logging';
+import { createErrorId, getRequestId, logError } from '@total-fretes/logging';
 import { sendError } from '../utils/httpResponse';
 import { getLocaleFromRequest } from '../utils/locale';
 import { handleZodError } from '../utils/zodError';
@@ -19,17 +19,23 @@ export async function ErrorHandlerMiddleware(
 
   const locale = getLocaleFromRequest(req);
 
-  const zodError = await handleZodError(error, locale);
-  if (zodError) {
-    return res.status(zodError.status).json(zodError.body);
+  if (error instanceof ZodError) {
+    const zodError = await handleZodError(error, locale, res);
+    if (zodError) {
+      return res.status(zodError.status).json(zodError.body);
+    }
   }
 
-  if (process.env.NODE_ENV !== 'production') {
-    logError(logger, 'Error occurred', error, { path: req.originalUrl });
-  } else {
-    logError(logger, 'Erro desconhecido', error, { path: req.originalUrl });
-  }
+  const errorId = createErrorId();
+  const logMessage =
+    process.env.NODE_ENV !== 'production' ? 'Error occurred' : 'Erro desconhecido';
+  logError(logger, logMessage, error, {
+    path: req.originalUrl,
+    method: req.method,
+    requestId: getRequestId(res),
+    errorId,
+  });
 
   const message = await translation('AUTH.INTERNAL_ERROR', locale);
-  return sendError(res, 500, message, error);
+  return sendError(res, 500, message, errorId);
 }

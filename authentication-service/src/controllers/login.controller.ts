@@ -53,7 +53,7 @@ export const login = async (req: Request, res: Response) => {
       token,
     });
   } catch (error) {
-    const zodError = await handleZodError(error, locale);
+    const zodError = await handleZodError(error, locale, res);
     if (zodError) return res.status(zodError.status).json(zodError.body);
     return sendError(res, 500, await translation('AUTH.LOGIN_FAILED', locale), error);
   }

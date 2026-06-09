@@ -3,7 +3,7 @@ import { Request, Response, Router } from 'express';
 import type { Model, ModelStatic } from 'sequelize';
 
 import type { StoredImageKindConfig } from '../config/storedImageKinds';
-import { logger } from '../config/logger';
+import { logger } from '../config/logging';
 import {
   getStoredImageJsonByPk,
   serializeStoredImage,
@@ -13,7 +13,7 @@ import { sendStorageError } from '../utils/httpResponse';
 import { translation } from '../utils/i18n';
 import { getLocaleFromRequest } from '../utils/locale';
 import type { StoredImageUploadHelpers } from '../utils/storedImageUpload';
-import { logError } from '@total-fretes/observability';
+import { logError } from '@total-fretes/logging';
 
 type RequestWithFile = Request & {
   file?: { originalname: string; filename: string; mimetype: string; size: number };

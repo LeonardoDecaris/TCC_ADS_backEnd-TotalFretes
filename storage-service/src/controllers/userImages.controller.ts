@@ -7,8 +7,8 @@ import { sendStorageError } from '../utils/httpResponse';
 import { translation } from '../utils/i18n';
 import { getLocaleFromRequest } from '../utils/locale';
 import { createStoredImageUpload } from '../utils/storedImageUpload';
-import { logError } from '@total-fretes/observability';
-import { logger } from '../config/logger';
+import { logError } from '@total-fretes/logging';
+import { logger } from '../config/logging';
 
 const userImagesUpload = createStoredImageUpload(STORED_IMAGE_KINDS.user.uploadSubdir);
 

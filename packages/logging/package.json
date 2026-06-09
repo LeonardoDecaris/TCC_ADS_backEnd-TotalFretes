@@ -1,0 +1,23 @@
+{
+  "name": "@total-fretes/logging",
+  "version": "1.0.0",
+  "description": "Utilitários de logging compartilhados (Winston + Loki)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build"
+  },
+  "dependencies": {
+    "winston": "^3.17.0"
+  },
+  "peerDependencies": {
+    "express": ">=4.0.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.0",
+    "typescript": "^5.9.3"
+  },
+  "files": ["dist"]
+}
