@@ -14,17 +14,32 @@ services:
       ADMIN_SEED_ENABLED: "true"
       ADMIN_SEED_EMAIL: admin@totalfretes.com.br
       ADMIN_SEED_PASSWORD: Admin@123456
+      OTEL_SERVICE_NAME: authentication-service
+      OTEL_TRACES_EXPORTER: otlp
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      OTEL_NODE_ENABLED_INSTRUMENTATIONS: http,express,axios
 
   user-service:
     environment:
       JWT_SECRET: test-jwt-secret-totalfretes-suite
       NODE_ENV: test
+      OTEL_SERVICE_NAME: user-service
+      OTEL_TRACES_EXPORTER: otlp
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      OTEL_NODE_ENABLED_INSTRUMENTATIONS: http,express,axios
 
   company-service:
     environment:
       JWT_SECRET: test-jwt-secret-totalfretes-suite
       INTERNAL_SERVICE_KEY: test-internal-service-key
       NODE_ENV: test
+      OTEL_SERVICE_NAME: company-service
+      OTEL_TRACES_EXPORTER: otlp
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      OTEL_NODE_ENABLED_INSTRUMENTATIONS: http,express,axios
       COMPANY_SEED_EMAIL: seed.empresa@demo.totalfretes.com.br
       COMPANY_SEED_PASSWORD: Empresa@123456
     depends_on:
@@ -44,6 +59,11 @@ services:
       SEED_TEST_DATA: "true"
       SEED_TEST_COMPANY_ID: "1"
       SEED_TEST_DRIVER_IDS: "2,3,4,5"
+      OTEL_SERVICE_NAME: freight-service
+      OTEL_TRACES_EXPORTER: otlp
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      OTEL_NODE_ENABLED_INSTRUMENTATIONS: http,express,axios
     depends_on:
       freight-service-database:
         condition: service_healthy
@@ -61,6 +81,11 @@ services:
     environment:
       JWT_SECRET: test-jwt-secret-totalfretes-suite
       NODE_ENV: test
+      OTEL_SERVICE_NAME: storage-service
+      OTEL_TRACES_EXPORTER: otlp
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      OTEL_NODE_ENABLED_INSTRUMENTATIONS: http,express,axios
 
   mapbox-service:
     environment:
@@ -74,3 +99,8 @@ services:
     environment:
       NODE_ENV: test
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      OTEL_SERVICE_NAME: email-management-service
+      OTEL_TRACES_EXPORTER: otlp
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      OTEL_NODE_ENABLED_INSTRUMENTATIONS: http,express,axios

@@ -1,7 +1,6 @@
-import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { loginAdmin } from '../lib/auth.js';
-import { BASE_URL, defaultHeaders } from '../lib/http.js';
+import { BASE_URL, tracedGet } from '../lib/http.js';
 import { writeThresholds } from '../config/thresholds.js';
 
 export const options = {
@@ -13,6 +12,8 @@ export const options = {
   thresholds: writeThresholds,
 };
 
+const SCENARIO = 'freight-write';
+
 export function setup() {
   const token = loginAdmin();
   if (!token) {
@@ -22,8 +23,10 @@ export function setup() {
 }
 
 export default function freightWrite(data) {
-  const listResponse = http.get(`${BASE_URL}/api/cargo-type`, {
-    headers: defaultHeaders(data.token),
+  const listResponse = tracedGet(`${BASE_URL}/api/cargo-type`, {
+    token: data.token,
+    scenario: SCENARIO,
+    endpoint: '/api/cargo-type',
     tags: { name: 'cargo_type_list' },
   });
 

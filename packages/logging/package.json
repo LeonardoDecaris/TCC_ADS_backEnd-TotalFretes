@@ -9,6 +9,7 @@
     "prepare": "npm run build"
   },
   "dependencies": {
+    "@opentelemetry/api": "^1.9.0",
     "winston": "^3.17.0"
   },
   "peerDependencies": {

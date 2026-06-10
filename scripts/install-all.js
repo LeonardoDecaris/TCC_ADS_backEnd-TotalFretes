@@ -1,7 +1,7 @@
 /**
  * Instala dependências npm na raiz, pacotes compartilhados e microserviços.
  *
- * Ordem: pacotes internos primeiro (rpc-contracts → logging → test-utils),
+ * Ordem: pacotes internos primeiro (rpc-contracts → logging → tracing → test-utils),
  * depois os microserviços e tests/integration.
  *
  * Uso:
@@ -18,6 +18,7 @@ const targets = [
   { label: 'raiz', dir: '.' },
   { label: 'packages/rpc-contracts', dir: 'packages/rpc-contracts' },
   { label: 'packages/logging', dir: 'packages/logging' },
+  { label: 'packages/tracing', dir: 'packages/tracing' },
   { label: 'packages/test-utils', dir: 'packages/test-utils' },
   { label: 'authentication-service', dir: 'authentication-service' },
   { label: 'user-service', dir: 'user-service' },

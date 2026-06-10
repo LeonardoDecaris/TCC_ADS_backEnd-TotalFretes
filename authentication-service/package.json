@@ -6,8 +6,8 @@
   "type": "commonjs",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/index.js",
-    "dev": "ts-node src/index.ts",
+    "start": "node -r @total-fretes/tracing/register dist/index.js",
+    "dev": "ts-node -r @total-fretes/tracing/register src/index.ts",
     "test": "jest --runInBand",
     "test:unit": "jest --testPathPattern=test/unit",
     "test:watch": "jest --watch",
@@ -25,6 +25,7 @@
     "@total-fretes/rpc-contracts": "file:../packages/rpc-contracts",
     "axios": "^1.13.5",
     "@total-fretes/logging": "file:../packages/logging",
+    "@total-fretes/tracing": "file:../packages/tracing",
     "amqplib": "^1.0.3",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",

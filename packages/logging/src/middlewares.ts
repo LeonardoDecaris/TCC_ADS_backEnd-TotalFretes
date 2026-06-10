@@ -1,6 +1,19 @@
 import { NextFunction, Request, Response } from 'express';
 import type winston from 'winston';
+import { trace } from '@opentelemetry/api';
 import { REQUEST_ID_HEADER, requestContext, resolveRequestId } from './correlation';
+
+function getActiveTraceFields(): { trace_id?: string; span_id?: string } {
+  const spanContext = trace.getActiveSpan()?.spanContext();
+  if (!spanContext?.traceId) {
+    return {};
+  }
+
+  return {
+    trace_id: spanContext.traceId,
+    span_id: spanContext.spanId,
+  };
+}
 
 export function requestIdMiddleware(req: Request, res: Response, next: NextFunction): void {
   const requestId = resolveRequestId(req);
@@ -24,6 +37,7 @@ export function createRequestLoggerMiddleware(logger: winston.Logger) {
         requestId: res.locals.requestId,
         method: req.method,
         path: req.originalUrl,
+        ...getActiveTraceFields(),
       });
     });
 

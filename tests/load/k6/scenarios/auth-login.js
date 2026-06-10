@@ -1,6 +1,5 @@
-import http from 'k6/http';
 import { check, sleep } from 'k6';
-import { BASE_URL, defaultHeaders } from '../lib/http.js';
+import { BASE_URL, tracedPost } from '../lib/http.js';
 import { authThresholds } from '../config/thresholds.js';
 
 export const options = {
@@ -12,14 +11,19 @@ export const options = {
   thresholds: authThresholds,
 };
 
+const SCENARIO = 'auth-login';
 const ADMIN_EMAIL = __ENV.ADMIN_EMAIL || 'admin@totalfretes.com.br';
 const ADMIN_PASSWORD = __ENV.ADMIN_PASSWORD || 'Admin@123456';
 
 export default function authLogin() {
-  const response = http.post(
+  const response = tracedPost(
     `${BASE_URL}/api/auth/login`,
     JSON.stringify({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD }),
-    { headers: defaultHeaders(), tags: { name: 'auth_login' } },
+    {
+      scenario: SCENARIO,
+      endpoint: '/api/auth/login',
+      tags: { name: 'auth_login' },
+    },
   );
 
   check(response, {

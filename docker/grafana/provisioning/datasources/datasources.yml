@@ -8,3 +8,21 @@ datasources:
     url: http://loki:3100
     isDefault: true
     editable: false
+
+  - name: Tempo
+    type: tempo
+    uid: tempo
+    access: proxy
+    url: http://tempo:3200
+    editable: false
+    jsonData:
+      tracesToLogs:
+        datasourceUid: loki
+        filterByTraceID: true
+        mapTagNamesEnabled: true
+      serviceMap:
+        enabled: true
+      nodeGraph:
+        enabled: true
+      search:
+        hide: false

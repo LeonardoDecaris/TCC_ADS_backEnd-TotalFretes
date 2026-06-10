@@ -439,7 +439,11 @@ Validam **checks** HTTP sob carga (não usam `it()` do Jest).
 - Build do pacote compartilhado:
 
 ```powershell
-cd packages/observability
+cd packages/logging
+npm install
+npm run build
+
+cd ../tracing
 npm install
 npm run build
 
@@ -596,7 +600,10 @@ k6 run tests/load/k6/scenarios/freight-write.js
 ### Preparação dos pacotes compartilhados (antes dos testes)
 
 ```powershell
-cd packages/observability
+cd packages/logging
+npm install && npm run build
+
+cd ../tracing
 npm install && npm run build
 
 cd ../test-utils
@@ -622,7 +629,7 @@ npm install && npm run build
 | Apresentação / demo rápida | `npm run test:service -- mapbox` |
 | Demo com API real (stack já up) | `npm run test:service -- freight --with-integration --skip-stack` |
 | Validar contratos entre serviços | `npm run test:integration` |
-| Validar performance | `npm run test:integration:up` → `npm run test:load` |
+| Validar performance | `npm run test:integration:up` → `npm run test:load` → Grafana Tempo |
 | CI local / pré-merge completo | `npm run test:all:ci` |
 
 ---
@@ -733,6 +740,28 @@ Ou use **`npm run test:all`** para executar as três fases automaticamente em se
 
 ---
 
+## Observabilidade durante testes de carga
+
+Com a stack de teste ativa (`npm run test:integration:up`), o **Grafana Tempo** recebe traces do K6 e dos microserviços instrumentados no caminho da carga.
+
+| Serviço | Porta | Função |
+|---------|-------|--------|
+| Grafana | `3101` | UI (`admin` / `admin`) |
+| Loki | `3100` | Logs (Promtail → containers) |
+| Tempo | `3200` (query), `4317` (OTLP gRPC) | Traces distribuídos |
+
+### Fluxo recomendado
+
+1. `npm run test:integration:up`
+2. `npm run test:load:smoke` (export OTLP automático se Tempo estiver up)
+3. Abrir [http://localhost:3101](http://localhost:3101) → dashboard **K6 Load Test Traces** ou **Explore → Tempo**
+4. Filtrar `{resource.service.name="k6-load-test"}` ou `{resource.service.name="freight-service"}`
+5. Em um trace, usar **Logs for this span** para ver access logs correlacionados no Loki (`trace_id`)
+
+Para desabilitar export OTLP do K6: `node scripts/test-load.js smoke --without-traces` ou `K6_WITH_TRACES=false`.
+
+---
+
 ## Solução de problemas
 
 | Problema | Causa provável | Solução |
@@ -746,7 +775,7 @@ Ou use **`npm run test:all`** para executar as três fases automaticamente em se
 | Integração: 401 em rotas protegidas | `JWT_SECRET` divergente entre serviços | Usar `docker-compose.test.yml` |
 | Integração: 429 Too Many Requests | Rate limit do Nginx | Confirmar que `nginx.test.conf` está montado |
 | K6: comando não encontrado | K6 não instalado no SO | `choco install k6` |
-| `npm install` falha em serviço | `packages/observability` não compilado | Build observability antes (ver Pré-requisitos) |
+| `npm install` falha em serviço | `packages/logging` ou `packages/tracing` não compilados | Build pacotes compartilhados antes (ver Pré-requisitos) |
 | Login integração falha | Admin seed não criado | Verificar `ADMIN_SEED_*` no `.env` do authentication-service |
 
 ---
