@@ -7,6 +7,7 @@ import {
 	getAllFreights,
 	getFreightById,
 	getFreightByUserId,
+	getFreightHistoryByUserId,
 	updateFreight,
 } from '../controllers/freight.controller';
 import { authMiddleware, authorizeRoles } from '../middlewares/authMiddleware';
@@ -15,6 +16,7 @@ const router = express.Router();
 
 router.post('/', authMiddleware, authorizeRoles('COMPANY', 'ADMIN'), createFreight);
 router.get('/', authMiddleware, getAllFreights);
+router.get('/user/:id/history', authMiddleware, getFreightHistoryByUserId);
 router.get('/user/:id', authMiddleware, getFreightByUserId);
 router.get('/:id', authMiddleware, getFreightById);
 router.put('/:id', authMiddleware, authorizeRoles('COMPANY', 'USER'), updateFreight);

@@ -1,6 +1,11 @@
 import { Request, Response } from 'express';
 import { idParamSchema } from '../schemas/common.schemas';
-import { createFreightSchema, freightListPaginatedQuerySchema, updateFreightSchema } from '../schemas/freight.schemas';
+import {
+  createFreightSchema,
+  freightHistoryPaginatedQuerySchema,
+  freightListPaginatedQuerySchema,
+  updateFreightSchema,
+} from '../schemas/freight.schemas';
 import {
   enrichFreightWithCompany,
   enrichFreightsWithCompany,
@@ -17,6 +22,7 @@ import {
   FreightValidationError,
   getFreightByIdRecord,
   getFreightByUserIdRecord,
+  listFreightHistoryByUserIdRecord,
   listFreights,
   updateFreightRecord,
 } from '../services/freight.service';
@@ -131,6 +137,42 @@ export const getFreightByUserId = async (req: Request, res: Response) => {
   } catch (error) {
     if (await handleZodError(error, locale, res)) return;
     return sendError(res, 500, 'FREIGHT.GET_BY_ID_FAILED', locale, error);
+  }
+};
+
+export const getFreightHistoryByUserId = async (req: Request, res: Response) => {
+  const locale = getLocaleFromRequest(req);
+  const ctx = getEnrichmentContext(req);
+
+  try {
+    const userIdRaw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const userId = Number(userIdRaw);
+
+    if (req.user?.role === 'USER' && req.user.id !== userId) {
+      return sendError(res, 403, 'AUTH.FORBIDDEN', locale);
+    }
+
+    const query = freightHistoryPaginatedQuerySchema.parse(req.query);
+    const result = await listFreightHistoryByUserIdRecord(userId, query);
+
+    if (!result.paginated) {
+      return sendError(res, 500, 'FREIGHT.GET_ALL_FAILED', locale);
+    }
+
+    const items = await enrichFreightsWithCompany(result.items, ctx);
+    return res.status(200).json({
+      items,
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+      hasMore: result.hasMore,
+    });
+  } catch (error) {
+    if (error instanceof FreightForbiddenError) {
+      return sendError(res, 403, 'AUTH.FORBIDDEN', locale, error);
+    }
+    if (await handleZodError(error, locale, res)) return;
+    return sendError(res, 500, 'FREIGHT.GET_ALL_FAILED', locale, error);
   }
 };
 

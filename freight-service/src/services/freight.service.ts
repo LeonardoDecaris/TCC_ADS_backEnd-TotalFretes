@@ -8,7 +8,12 @@ import FreightStatusHistory from '../models/freightStatusHistory.model';
 import FreightStatusType from '../models/freightStatusTypes.model';
 import Proposal from '../models/proposals.model';
 import ProposalStatusType from '../models/proposalsStatusTypes.model';
-import type { createFreightSchema, freightListPaginatedQuerySchema, updateFreightSchema } from '../schemas/freight.schemas';
+import type {
+  createFreightSchema,
+  freightHistoryPaginatedQuerySchema,
+  freightListPaginatedQuerySchema,
+  updateFreightSchema,
+} from '../schemas/freight.schemas';
 import type { z } from 'zod';
 import { recordFreightStatusHistory } from './freightStatusHistory.service';
 import {
@@ -99,6 +104,13 @@ const DRIVER_VALID_TRANSITIONS: Record<string, readonly string[]> = {
 type CreateFreightBody = z.infer<typeof createFreightSchema>;
 type UpdateFreightBody = z.infer<typeof updateFreightSchema>;
 type FreightListQuery = z.infer<typeof freightListPaginatedQuerySchema>;
+type FreightHistoryQuery = z.infer<typeof freightHistoryPaginatedQuerySchema>;
+
+const HISTORY_STATUS_BY_FILTER: Record<FreightHistoryQuery['status'], readonly string[]> = {
+  concluido: [FreightStatusSlug.CONCLUIDO],
+  cancelado: [FreightStatusSlug.CANCELADO],
+  todos: NON_ONGOING_DRIVER_STATUSES,
+};
 
 export async function createFreightRecord(body: CreateFreightBody, companyId: number) {
   const defaultStatus = await FreightStatusType.findOne({
@@ -174,6 +186,59 @@ export async function getFreightByUserIdRecord(userId: string | number) {
     include: getFreightListInclude(),
     order: [['updatedAt', 'DESC']],
   });
+}
+
+export async function listFreightHistoryByUserIdRecord(
+  userId: string | number,
+  query: FreightHistoryQuery,
+) {
+  const statusSlugs = HISTORY_STATUS_BY_FILTER[query.status];
+  const historyStatuses = await FreightStatusType.findAll({
+    where: { name: { [Op.in]: [...statusSlugs] } },
+    attributes: ['id'],
+  });
+  const statusIds = historyStatuses.map((s) => s.id).filter((id): id is number => id != null);
+
+  if (statusIds.length === 0) {
+    return {
+      items: [],
+      total: 0,
+      page: query.page,
+      limit: query.limit,
+      hasMore: false,
+      paginated: true as const,
+    };
+  }
+
+  const where = {
+    assignedDriver_id: userId,
+    status_id: { [Op.in]: statusIds },
+  };
+  const listInclude = getFreightListInclude();
+  const listOrder: Order = [
+    ['updatedAt', 'DESC'],
+    ['id', 'DESC'],
+  ];
+
+  const { rows, count } = await Freight.findAndCountAll({
+    where,
+    include: listInclude,
+    limit: query.limit,
+    offset: (query.page - 1) * query.limit,
+    order: listOrder,
+  });
+
+  const total = typeof count === 'number' ? count : (count as { length: number }).length;
+  const hasMore = query.page * query.limit < total;
+
+  return {
+    items: rows,
+    total,
+    page: query.page,
+    limit: query.limit,
+    hasMore,
+    paginated: true as const,
+  };
 }
 
 export class FreightForbiddenError extends Error {

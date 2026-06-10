@@ -34,6 +34,24 @@ export const createFreightSchema = z.object({
 	weight: z.coerce.number().positive('VALIDATION.WEIGHT_INVALID'),
 });
 
+/** Query string para histórico de fretes do motorista (`GET /freight/user/:id/history`). */
+export const freightHistoryPaginatedQuerySchema = z
+	.object({
+		page: z.coerce.number().int().min(1, 'VALIDATION.PAGE_INVALID'),
+		limit: z.coerce
+			.number()
+			.int()
+			.min(1, 'VALIDATION.LIMIT_INVALID')
+			.max(50, 'VALIDATION.LIMIT_MAX')
+			.optional(),
+		status: z.enum(['concluido', 'cancelado', 'todos']).optional(),
+	})
+	.transform((data) => ({
+		page: data.page,
+		limit: data.limit ?? 20,
+		status: data.status ?? 'todos',
+	}));
+
 /** Query string para listagem paginada de fretes (`GET /freight?page=&limit=`). */
 export const freightListPaginatedQuerySchema = z
 	.object({
