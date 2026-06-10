@@ -1,6 +1,5 @@
 import { Op } from 'sequelize';
 import type { Transaction } from 'sequelize';
-import { invalidateFreightCache } from '../cache/freightCache';
 import sequelize from '../config/database';
 import {
   ACCEPTED_PROPOSAL_STATUS_NAMES,
@@ -479,11 +478,6 @@ export async function confirmProposalByDriverRecord(
         freightId: proposal.freight_id ?? undefined,
       });
     }
-
-    await invalidateFreightCache({
-      freightId,
-      assignedDriverId: driverId,
-    });
 
     return proposal;
   } catch (error) {

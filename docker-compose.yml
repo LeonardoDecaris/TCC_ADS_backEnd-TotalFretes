@@ -397,8 +397,6 @@ services:
     depends_on:
       freight-service-database:
         condition: service_healthy
-      redis:
-        condition: service_healthy
       rabbitmq:
         condition: service_healthy
     networks:

@@ -1,6 +1,5 @@
 import type { Order, Transaction } from 'sequelize';
 import { Op } from 'sequelize';
-import { invalidateFreightCache } from '../cache/freightCache';
 import sequelize from '../config/database';
 import { FreightStatusSlug, ProposalStatusSlug } from '../config/statusTypes.constants';
 import CargoType from '../models/cargoTypes.model';
@@ -122,9 +121,7 @@ export async function createFreightRecord(body: CreateFreightBody, companyId: nu
     return freight;
   }
 
-  const created = await Freight.findByPk(freight.id, { include: getFreightDetailInclude() });
-  await invalidateFreightCache({ freightId: freight.id });
-  return created;
+  return Freight.findByPk(freight.id, { include: getFreightDetailInclude() });
 }
 
 export async function listFreights(
@@ -292,12 +289,6 @@ export async function updateFreightRecord(
       }
     }
 
-    await invalidateFreightCache({
-      freightId: freight.id,
-      assignedDriverId: freight.assignedDriver_id,
-      previousAssignedDriverId,
-    });
-
     return freight;
   } catch (error) {
     if (!transactionCommitted) {
@@ -322,17 +313,11 @@ export async function deleteFreightRecord(id: number, user: { role?: string; id?
       throw new FreightForbiddenError();
     }
 
-    const freightId = freight.id;
-    const assignedDriverId = freight.assignedDriver_id;
-
     await Proposal.destroy({ where: { freight_id: freight.id }, transaction });
     await FreightStatusHistory.destroy({ where: { freight_id: freight.id }, transaction });
     await freight.destroy({ transaction });
     await transaction.commit();
 
-    if (freightId != null) {
-      await invalidateFreightCache({ freightId, assignedDriverId });
-    }
   } catch (error) {
     await transaction.rollback();
     throw error;
@@ -399,11 +384,6 @@ export async function cancelFreightRecord(id: number, user: { role?: string; id?
         notifyCompanyFreightCancelled(Number(companyId), { freightId: freight.id });
       }
 
-      await invalidateFreightCache({
-        freightId: freight.id,
-        assignedDriverId,
-        previousAssignedDriverId: assignedDriverId,
-      });
     }
 
     return freight;
@@ -449,11 +429,6 @@ export async function completeFreightRecord(id: number, user: { role?: string; i
   }
 
   await freight.reload({ include: getFreightDetailInclude() });
-
-  await invalidateFreightCache({
-    freightId: freight.id,
-    assignedDriverId: freight.assignedDriver_id,
-  });
 
   return freight;
 }

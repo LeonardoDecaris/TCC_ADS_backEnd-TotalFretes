@@ -16,7 +16,6 @@ const defaults: Record<string, string> = {
   DB_HOST: '127.0.0.1',
   DB_PORT: '3306',
   PORT: '3000',
-  REDIS_URL: 'redis://127.0.0.1:6379',
   INTERNAL_SERVICE_KEY: 'test-internal-service-key',
   LOKI_HOST: 'http://127.0.0.1:3100',
   LOG_LEVEL: 'error',

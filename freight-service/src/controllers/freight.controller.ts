@@ -1,11 +1,4 @@
 import { Request, Response } from 'express';
-import {
-  buildFreightDetailCacheKey,
-  buildFreightListCacheKey,
-  buildFreightUserOngoingCacheKey,
-  getCached,
-  setCached,
-} from '../cache/freightCache';
 import { idParamSchema } from '../schemas/common.schemas';
 import { createFreightSchema, freightListPaginatedQuerySchema, updateFreightSchema } from '../schemas/freight.schemas';
 import {
@@ -78,48 +71,23 @@ export const getAllFreights = async (req: Request, res: Response) => {
   try {
     if (usePagination) {
       const query = freightListPaginatedQuerySchema.parse(req.query);
-      const cacheKey = buildFreightListCacheKey(req.user, {
-        paginated: true,
-        page: query.page,
-        limit: query.limit,
-      });
-      const cached = await getCached<{
-        items: unknown[];
-        total: number;
-        page: number;
-        limit: number;
-        hasMore: boolean;
-      }>(cacheKey);
-      if (cached) {
-        return res.status(200).json(cached);
-      }
-
       const result = await listFreights(req.user, query, true);
       if (!result.paginated) {
         return sendError(res, 500, 'FREIGHT.GET_ALL_FAILED', locale);
       }
 
       const items = await enrichFreightsWithCompany(result.items, ctx);
-      const response = {
+      return res.status(200).json({
         items,
         total: result.total,
         page: result.page,
         limit: result.limit,
         hasMore: result.hasMore,
-      };
-      await setCached(cacheKey, response);
-      return res.status(200).json(response);
-    }
-
-    const cacheKey = buildFreightListCacheKey(req.user, { paginated: false });
-    const cached = await getCached<unknown[]>(cacheKey);
-    if (cached) {
-      return res.status(200).json(cached);
+      });
     }
 
     const result = await listFreights(req.user);
     const freights = await enrichFreightsWithCompany(result.items, ctx);
-    await setCached(cacheKey, freights);
     return res.status(200).json(freights);
   } catch (error) {
     if (await handleZodError(error, locale, res)) return;
@@ -131,12 +99,6 @@ export const getFreightById = async (req: Request, res: Response) => {
   const locale = getLocaleFromRequest(req);
   try {
     const params = idParamSchema.parse(req.params);
-    const cacheKey = buildFreightDetailCacheKey(params.id, req.user);
-    const cached = await getCached<unknown>(cacheKey);
-    if (cached) {
-      return res.status(200).json(cached);
-    }
-
     const freight = await getFreightByIdRecord(params.id);
 
     if (!freight) {
@@ -146,7 +108,6 @@ export const getFreightById = async (req: Request, res: Response) => {
     assertCompanyCanViewFreight(freight, req.user);
 
     const enriched = await enrichFreightWithCompany(freight, getEnrichmentContext(req));
-    await setCached(cacheKey, enriched);
     return res.status(200).json(enriched);
   } catch (error) {
     if (error instanceof FreightForbiddenError) {
@@ -161,19 +122,11 @@ export const getFreightByUserId = async (req: Request, res: Response) => {
   const locale = getLocaleFromRequest(req);
   try {
     const userId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-    const cacheKey = buildFreightUserOngoingCacheKey(userId);
-    const cached = await getCached<unknown | null>(cacheKey);
-    if (cached !== undefined) {
-      return res.status(200).json(cached);
-    }
-
     const freight = await getFreightByUserIdRecord(userId);
     if (!freight) {
-      await setCached(cacheKey, null);
       return res.status(200).json(null);
     }
     const enriched = await enrichFreightWithCompany(freight, getEnrichmentContext(req));
-    await setCached(cacheKey, enriched);
     return res.status(200).json(enriched);
   } catch (error) {
     if (await handleZodError(error, locale, res)) return;
