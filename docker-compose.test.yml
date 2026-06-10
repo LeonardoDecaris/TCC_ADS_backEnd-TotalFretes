@@ -40,11 +40,14 @@ services:
     environment:
       JWT_SECRET: test-jwt-secret-totalfretes-suite
       NODE_ENV: test
+      REDIS_URL: redis://redis:6379
       SEED_TEST_DATA: "true"
       SEED_TEST_COMPANY_ID: "1"
       SEED_TEST_DRIVER_IDS: "2,3,4,5"
     depends_on:
       freight-service-database:
+        condition: service_healthy
+      redis:
         condition: service_healthy
       company-service:
         condition: service_healthy

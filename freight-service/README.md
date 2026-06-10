@@ -9,6 +9,7 @@ Microserviço responsável pelo ciclo de vida de **fretes/cargas**: criação pe
 - CRUD de fretes (`/freight`)
 - Propostas de motoristas para cargas (`/proposals`)
 - Tipos de carga e status de frete/proposta
+- Cache Redis de catálogos (`/cargo-type`, `/freight-status-type`)
 - Publicação de eventos de notificação via RabbitMQ
 - Enriquecimento de respostas com dados de empresa, motorista e imagens
 
@@ -21,7 +22,7 @@ Microserviço responsável pelo ciclo de vida de **fretes/cargas**: criação pe
 | Método | Rota | Auth | Descrição |
 |--------|------|------|-----------|
 | `GET` | `/` | Não | Mensagem de status do serviço |
-| `GET` | `/health` | Não | Health check (DB) |
+| `GET` | `/health` | Não | Health check (DB + Redis opcional) |
 | `GET` | `/api-docs` | Não | Spec OpenAPI (JSON) |
 
 ### `/freight`
@@ -104,6 +105,9 @@ MYSQL_ROOT_PASSWORD=root
 MYSQL_DATABASE=freight_db
 MYSQL_ROOT_HOST=%
 
+# Cache (catálogos)
+REDIS_URL=redis://redis:6379
+
 # Mensageria (notificações)
 RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
 NOTIFICATIONS_EXCHANGE=notifications.events
@@ -129,6 +133,7 @@ SEED_TEST_DRIVER_IDS=1,2
 |----------|-------------|-----------|
 | `JWT_SECRET` | Sim | Mesma chave do `authentication-service`. |
 | `DB_*` | Sim | Conexão com o banco MySQL do serviço. |
+| `REDIS_URL` | Não | Habilita cache das listagens de `/cargo-type` e `/freight-status-type`; sem Redis o serviço funciona sem cache. |
 | `RABBITMQ_URL` | Sim | Publica eventos para o `notification-service`. |
 | `AUTH_SERVICE_URL` | Sim | Validação de tokens JWT. |
 | `USER_SERVICE_URL` / `COMPANY_SERVICE_URL` / `STORAGE_SERVICE_URL` | Não | Enriquecimento de respostas com dados relacionados. |

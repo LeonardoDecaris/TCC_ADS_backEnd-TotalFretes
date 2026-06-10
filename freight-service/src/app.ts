@@ -1,8 +1,10 @@
 import cors from 'cors';
 import express from 'express';
 
+import { isCatalogCacheEnabled } from './cache/catalogCache';
 import { apiDocs } from './api-docs';
 import sequelize from './config/database';
+import { checkRedis } from './lib/redisClient';
 import cargoTypeRoutes from './routes/cargoTypes.routes';
 import freightRoutes from './routes/freight.routes';
 import freightStatusTypeRoutes from './routes/freightStatusTypes.routes';
@@ -30,9 +32,17 @@ app.get('/health', async (_req, res) => {
     dbOk = false;
   }
 
-  return res.status(dbOk ? 200 : 503).json({
-    status: dbOk ? 'up' : 'down',
+  let redisStatus: 'connected' | 'disconnected' | 'disabled' = 'disabled';
+  if (isCatalogCacheEnabled()) {
+    redisStatus = (await checkRedis()) ? 'connected' : 'disconnected';
+  }
+
+  const isHealthy = dbOk && (redisStatus === 'connected' || redisStatus === 'disabled');
+
+  return res.status(isHealthy ? 200 : 503).json({
+    status: isHealthy ? 'up' : 'down',
     database: dbOk ? 'connected' : 'disconnected',
+    redis: redisStatus,
     PID: process.pid,
   });
 });
