@@ -1,6 +1,60 @@
 # Microserviço de Autenticação
 
-Microserviço responsável por credenciais, login e emissão de JWT. As credenciais ficam centralizadas aqui (não no `user-service` e `company-service`).
+Microserviço responsável por credenciais, login, emissão de JWT e recuperação de senha. As credenciais ficam centralizadas aqui (não no `user-service` e `company-service`).
+
+**Porta padrão:** `3000`
+
+## Variáveis de ambiente
+
+Copie `.env.example` para `.env` e preencha os valores abaixo:
+
+```env
+# Servidor
+PORT=3000
+JWT_SECRET=sua_chave_secreta_jwt_compartilhada_entre_os_servicos
+NODE_ENV=development
+SERVICE_NAME=authentication-service
+
+# Banco de dados (MySQL)
+DB_HOST=authentication-service-database
+DB_NAME=authentication_db
+DB_USER=auth_user
+DB_PASS=auth_pass
+MYSQL_ROOT_PASSWORD=root
+MYSQL_DATABASE=authentication_db
+MYSQL_ROOT_HOST=%
+
+# Cache e mensageria (recuperação de senha)
+REDIS_URL=redis://redis:6379
+RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+
+# Filas de e-mail (publicação para email-management-service)
+EMAIL_EVENTS_EXCHANGE=email.events
+EMAIL_SEND_QUEUE=email.send
+EMAIL_ROUTING_KEY_PASSWORD_RESET=email.send.password_reset
+EMAIL_DLX_EXCHANGE=email.dlx
+EMAIL_SEND_FAILED_QUEUE=email.send.failed
+
+# Integração com company-service (consultas internas)
+COMPANY_SERVICE_URL=http://company-service:3002
+INTERNAL_SERVICE_KEY=chave_interna_entre_servicos
+
+# Seed opcional de admin (desenvolvimento)
+ADMIN_SEED_ENABLED=true
+ADMIN_SEED_EMAIL=admin@totalfretes.com
+ADMIN_SEED_PASSWORD=Admin@123
+```
+
+| Variável | Obrigatória | Descrição |
+|----------|-------------|-----------|
+| `JWT_SECRET` | Sim | Chave usada para assinar e validar tokens JWT. Deve ser a mesma em todos os microserviços que validam token. |
+| `REDIS_URL` | Sim | Armazena códigos de recuperação de senha (TTL 15 min). |
+| `RABBITMQ_URL` | Sim | Publica eventos de envio de e-mail na fila consumida pelo `email-management-service`. |
+| `COMPANY_SERVICE_URL` | Não | URL do company-service para consultas internas. |
+| `INTERNAL_SERVICE_KEY` | Não | Chave compartilhada para chamadas serviço-a-serviço. |
+| `ADMIN_SEED_*` | Não | Cria conta admin automaticamente na inicialização (útil em dev). |
+
+> As variáveis `SMTP_*` presentes no `.env.example` legado **não são usadas** por este serviço. O envio de e-mail é feito via RabbitMQ pelo `email-management-service`.
 
 ## Modelo de dados
 
@@ -43,6 +97,47 @@ Variáveis opcionais (padrões entre parênteses): `EMAIL_EVENTS_EXCHANGE` (`ema
 
 ## Endpoints
 
+> Rotas marcadas com **Auth** exigem `Authorization: Bearer <token>`.
+
+### Utilitários
+
+| Método | Rota | Auth | Descrição |
+|--------|------|------|-----------|
+| `GET` | `/` | Não | Mensagem de status do serviço |
+| `GET` | `/api-docs` | Não | Spec OpenAPI (JSON) |
+
+### `/auth`
+
+| Método | Rota | Auth | Roles | Descrição |
+|--------|------|------|-------|-----------|
+| `POST` | `/auth/login` | Não | — | Login com e-mail e senha; retorna JWT |
+| `POST` | `/auth/validate` | Não* | — | Valida token (header ou body `{ "token" }`) |
+| `GET` | `/auth/verify-token` | Sim | — | Decodifica e retorna payload do token |
+| `PATCH` | `/auth/change-password` | Sim | — | Altera senha do usuário autenticado |
+| `POST` | `/auth/forgot-password` | Não | — | Solicita código de recuperação (envia e-mail via fila) |
+| `POST` | `/auth/validate-code` | Não | — | Valida código de recuperação |
+| `POST` | `/auth/reset-password` | Não | — | Redefine senha com código válido |
+| `POST` | `/auth/resend-code` | Não | — | Reenvia código de recuperação |
+| `GET` | `/auth/health` | Não | — | Health check (DB + Redis) |
+
+### `/account`
+
+| Método | Rota | Auth | Roles | Descrição |
+|--------|------|------|-------|-----------|
+| `POST` | `/account` | Não | — | Cria conta de autenticação |
+| `POST` | `/account/admin` | Sim | ADMIN | Cria conta de administrador |
+| `GET` | `/account/types` | Não | — | Lista tipos de conta (USER, COMPANY, ADMIN) |
+| `GET` | `/account` | Sim | ADMIN | Lista todas as contas |
+| `GET` | `/account/subject/:subjectId` | Sim | ADMIN | Busca conta pelo subject_id |
+| `GET` | `/account/:id` | Sim | ADMIN | Busca conta por ID |
+| `PATCH` | `/account/:id` | Sim | ADMIN | Atualiza conta |
+| `DELETE` | `/account/:id` | Sim | ADMIN | Remove conta por ID |
+| `DELETE` | `/account/subject/:id` | Sim | owner/admin | Remove conta pelo subject_id |
+
+---
+
+### Detalhes dos endpoints principais
+
 ### `POST /auth/login`
 
 Login com `email` e `password`. Retorna JWT com:
@@ -78,36 +173,6 @@ Response `404`:
   "message": "Account not found for this email"
 }
 ```
-
-### `POST /auth/register`
-
-Cria conta de autenticação.
-
-Payload mínimo:
-
-```json
-{
-  "email": "user@dominio.com",
-  "password": "123456",
-  "subject_id": 10,
-  "account_type": "USER"
-}
-```
-
-Campos opcionais:
-
-- `status`/`status_name` (`ACTIVE`, `BLOCKED`, `DISABLED`) — padrão: `ACTIVE`
-- `account_type_id` e `status_id` (alternativa aos nomes)
-
-### `GET /auth/verify-token`
-
-Validação de token para uso interno (requer header `Authorization: Bearer <token>`). Retorna o usuário decodificado.
-
----
-
-## Contrato: validação para outros microserviços
-
-Os serviços **Caminhoneiro** e **Empresa** devem usar o endpoint abaixo para validar o token em cada requisição protegida. Use o pacote **@totalfretes/auth-client** (pasta `auth-client` na raiz do monorepo) para chamadas com timeout, retry, circuit breaker e cache.
 
 ### `POST /auth/validate`
 

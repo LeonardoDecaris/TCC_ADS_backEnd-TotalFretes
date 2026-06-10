@@ -19,6 +19,8 @@ type MapboxRouteStep = {
 		instruction?: string;
 		modifier?: string;
 		type?: string;
+		location?: Coordinate;
+		bearing_after?: number;
 	};
 	name?: string;
 };
@@ -189,6 +191,9 @@ function pickPrimeiraInstrucao(route: MapboxRoute): {
 	texto: string;
 	modificador: string | null;
 	tipo: string | null;
+	rua: string | null;
+	coordenadas: Coordinate | null;
+	bearing: number | null;
 } | null {
 	const legs = route?.legs;
 	if (!Array.isArray(legs) || legs.length === 0) return null;
@@ -205,11 +210,22 @@ function pickPrimeiraInstrucao(route: MapboxRoute): {
 	const instruction = maneuver.instruction?.trim();
 	const streetName = chosen.name?.trim();
 	const text = instruction || (streetName ? `Em direção a ${streetName}` : 'Siga na rota');
+	const location = maneuver.location;
+	const coordenadas =
+		Array.isArray(location) &&
+		location.length === 2 &&
+		Number.isFinite(location[0]) &&
+		Number.isFinite(location[1])
+			? ([location[0], location[1]] as Coordinate)
+			: null;
 
 	return {
 		texto: text,
 		modificador: maneuver.modifier ?? null,
 		tipo: maneuver.type ?? null,
+		rua: streetName ?? null,
+		coordenadas,
+		bearing: Number.isFinite(maneuver.bearing_after) ? (maneuver.bearing_after as number) : null,
 	};
 }
 
@@ -313,6 +329,9 @@ export async function buildMapBoxRoute(input: RouteInput): Promise<Record<string
 		response.proxima_instrucao = navHint.texto;
 		response.manobra_modificador = navHint.modificador;
 		response.manobra_tipo = navHint.tipo;
+		response.proxima_rua = navHint.rua;
+		response.manobra_coordenadas = navHint.coordenadas;
+		response.manobra_bearing = navHint.bearing;
 	}
 
 	response.trecho_ate_carga = trechoAteCarga;
