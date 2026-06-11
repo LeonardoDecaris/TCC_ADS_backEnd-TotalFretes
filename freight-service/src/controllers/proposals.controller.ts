@@ -13,6 +13,7 @@ import {
 import {
   enrichProposalWithDriver,
   enrichProposalsWithDriver,
+  enrichFreightsCargoImages,
   getEnrichmentContext,
 } from '../services/enrichment.service';
 import { sendError } from '../services/httpResponse';
@@ -42,7 +43,16 @@ export const getProposalFreightSummary = async (req: Request, res: Response) => 
     const query = proposalFreightSummaryQuerySchema.parse(req.query);
     const companyId = req.user?.role === 'COMPANY' ? req.user.id : undefined;
     const result = await fetchProposalFreightSummaryRecord(query, companyId);
-    return res.status(200).json(result);
+    const enrichedFreights = await enrichFreightsCargoImages(
+      result.items.map((item) => item.freight as Record<string, unknown>),
+    );
+    return res.status(200).json({
+      ...result,
+      items: result.items.map((item, index) => ({
+        ...item,
+        freight: enrichedFreights[index] ?? item.freight,
+      })),
+    });
   } catch (error) {
     if (await handleZodError(error, locale, res)) return;
     return sendError(res, 500, 'PROPOSAL.GET_ALL_FAILED', locale, error);

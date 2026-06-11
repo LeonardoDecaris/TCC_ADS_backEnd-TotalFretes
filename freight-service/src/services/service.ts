@@ -99,3 +99,10 @@ export async function getUserImageHttp({ id }: { id: number }) {
     silentStatuses: [404],
   });
 }
+
+export async function getCargoImageHttp({ id }: { id: number }) {
+  return storageClient.get<StorageImageData | null>(`/cargo-images/${id}`, {
+    fallback: null,
+    silentStatuses: [404],
+  });
+}

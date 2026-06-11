@@ -730,6 +730,15 @@ export const apiDocs = {
 					id: { type: 'integer' },
 					name: { type: 'string' },
 					imageCargo_id: { type: 'integer', nullable: true },
+					CargoImage: {
+						type: 'object',
+						nullable: true,
+						properties: {
+							id: { type: 'integer' },
+							url: { type: 'string', nullable: true },
+							originalName: { type: 'string', nullable: true },
+						},
+					},
 					createdAt: { type: 'string', format: 'date-time' },
 					updatedAt: { type: 'string', format: 'date-time' },
 				},

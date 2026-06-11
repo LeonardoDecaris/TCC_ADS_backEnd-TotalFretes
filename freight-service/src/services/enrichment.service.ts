@@ -1,5 +1,5 @@
 import type { Request } from 'express';
-import { getCompanySummaryHttp, getUserSummaryHttp } from './service';
+import { getCargoImageHttp, getCompanySummaryHttp, getUserSummaryHttp, type StorageImageData } from './service';
 
 export type CompanySummary = {
   id: number;
@@ -11,6 +11,13 @@ export type DriverSummary = {
   id: number;
   name: string;
   UserImage?: { url?: string | null } | null;
+};
+
+export type CargoImageSummary = {
+  id: number;
+  path?: string | null;
+  url?: string | null;
+  originalName?: string | null;
 };
 
 export type EnrichmentContext = {
@@ -56,6 +63,132 @@ async function fetchDriverSummary(
   };
 }
 
+function toPlainCargoType(cargoType: unknown): Record<string, unknown> {
+  if (cargoType != null && typeof (cargoType as { toJSON?: () => unknown }).toJSON === 'function') {
+    return (cargoType as { toJSON: () => Record<string, unknown> }).toJSON();
+  }
+  return { ...(cargoType as Record<string, unknown>) };
+}
+
+function toCargoImageSummary(image: StorageImageData | null): CargoImageSummary | null {
+  if (!image?.id) return null;
+  return {
+    id: image.id,
+    path: image.path ?? null,
+    url: image.url ?? null,
+    originalName: image.originalName ?? null,
+  };
+}
+
+async function fetchCargoImageSummary(imageId: number): Promise<CargoImageSummary | null> {
+  const image = await getCargoImageHttp({ id: imageId });
+  return toCargoImageSummary(image);
+}
+
+async function buildCargoImageMap(imageIds: number[]): Promise<Map<number, CargoImageSummary>> {
+  const imageMap = new Map<number, CargoImageSummary>();
+  await Promise.all(
+    imageIds.map(async (id) => {
+      const summary = await fetchCargoImageSummary(id);
+      if (summary) {
+        imageMap.set(id, summary);
+      }
+    }),
+  );
+  return imageMap;
+}
+
+function resolveCargoImageId(cargoType: Record<string, unknown>): number | null {
+  const imageId = Number(cargoType.imageCargo_id);
+  return Number.isFinite(imageId) && imageId > 0 ? imageId : null;
+}
+
+function attachCargoImageToCargoType(
+  cargoType: Record<string, unknown>,
+  imageMap: Map<number, CargoImageSummary>,
+): Record<string, unknown> {
+  const imageId = resolveCargoImageId(cargoType);
+  const CargoImage = imageId != null ? (imageMap.get(imageId) ?? null) : null;
+  return { ...cargoType, CargoImage };
+}
+
+export async function enrichCargoTypeWithImage<T>(cargoType: T): Promise<Record<string, unknown>> {
+  const plain = toPlainCargoType(cargoType);
+  const imageId = resolveCargoImageId(plain);
+  if (imageId == null) {
+    return { ...plain, CargoImage: null };
+  }
+
+  const CargoImage = await fetchCargoImageSummary(imageId);
+  return { ...plain, CargoImage };
+}
+
+export async function enrichCargoTypesWithImages<T>(
+  cargoTypes: T[],
+): Promise<Record<string, unknown>[]> {
+  const plains = cargoTypes.map(toPlainCargoType);
+  const imageIds = [
+    ...new Set(
+      plains
+        .map((cargoType) => resolveCargoImageId(cargoType))
+        .filter((id): id is number => id != null),
+    ),
+  ];
+
+  const imageMap = await buildCargoImageMap(imageIds);
+  return plains.map((cargoType) => attachCargoImageToCargoType(cargoType, imageMap));
+}
+
+function applyCargoImageToFreight(
+  freight: Record<string, unknown>,
+  enrichedCargo: Record<string, unknown>,
+): Record<string, unknown> {
+  const result = { ...freight, cargo: enrichedCargo, CargoType: enrichedCargo };
+  return result;
+}
+
+async function enrichFreightCargoImage(freight: Record<string, unknown>): Promise<Record<string, unknown>> {
+  const cargo = freight.cargo ?? freight.CargoType;
+  if (cargo == null || typeof cargo !== 'object') {
+    return freight;
+  }
+
+  const enrichedCargo = await enrichCargoTypeWithImage(cargo);
+  return applyCargoImageToFreight(freight, enrichedCargo);
+}
+
+export async function enrichFreightsCargoImages(
+  freights: Record<string, unknown>[],
+): Promise<Record<string, unknown>[]> {
+  const cargoTypes = freights
+    .map((freight) => freight.cargo ?? freight.CargoType)
+    .filter((cargo): cargo is Record<string, unknown> => cargo != null && typeof cargo === 'object');
+
+  if (cargoTypes.length === 0) {
+    return freights;
+  }
+
+  const enrichedCargoTypes = await enrichCargoTypesWithImages(cargoTypes);
+  const enrichedById = new Map<number, Record<string, unknown>>();
+  for (const cargoType of enrichedCargoTypes) {
+    const id = Number(cargoType.id);
+    if (Number.isFinite(id) && id > 0) {
+      enrichedById.set(id, cargoType);
+    }
+  }
+
+  return freights.map((freight) => {
+    const cargo = freight.cargo ?? freight.CargoType;
+    if (cargo == null || typeof cargo !== 'object') {
+      return freight;
+    }
+
+    const cargoId = Number((cargo as Record<string, unknown>).id);
+    const enrichedCargo = enrichedById.get(cargoId) ?? cargo;
+    return applyCargoImageToFreight(freight, enrichedCargo as Record<string, unknown>);
+  });
+}
+
 function toPlainFreight(freight: unknown): Record<string, unknown> {
   if (freight != null && typeof (freight as { toJSON?: () => unknown }).toJSON === 'function') {
     return (freight as { toJSON: () => Record<string, unknown> }).toJSON();
@@ -77,16 +210,15 @@ export async function enrichFreightWithCompany<T>(
   const plain = toPlainFreight(freight);
   const companyId = Number(plain.company_id);
 
-  if (!Number.isFinite(companyId) || companyId <= 0) {
-    return plain;
+  let result = plain;
+  if (Number.isFinite(companyId) && companyId > 0) {
+    const company = await fetchCompanySummary(companyId, ctx);
+    if (company) {
+      result = { ...plain, Company: company };
+    }
   }
 
-  const company = await fetchCompanySummary(companyId, ctx);
-  if (!company) {
-    return plain;
-  }
-
-  return { ...plain, Company: company };
+  return enrichFreightCargoImage(result);
 }
 
 export async function enrichFreightsWithCompany<T>(
@@ -111,12 +243,14 @@ export async function enrichFreightsWithCompany<T>(
     }),
   );
 
-  return freights.map((freight) => {
+  const withCompany = freights.map((freight) => {
     const plain = toPlainFreight(freight);
     const companyId = Number(plain.company_id);
     const company = companyMap.get(companyId);
     return company ? { ...plain, Company: company } : plain;
   });
+
+  return enrichFreightsCargoImages(withCompany);
 }
 
 export async function enrichProposalWithDriver<T>(
