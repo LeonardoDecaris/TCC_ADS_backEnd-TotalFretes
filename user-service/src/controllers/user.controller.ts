@@ -10,6 +10,15 @@ import { getLocaleFromRequest } from '../utils/locale';
 import { handleZodError } from '../utils/zodError';
 import { sendError, sendConflictError } from '../services/httpResponse';
 import { Op } from 'sequelize';
+import type { UpdateUserInput } from '../schemas/user.schemas';
+
+const UNIQUE_USER_FIELDS = ['email', 'phoneNumber', 'cnhNumber'] as const;
+
+function buildUniqueUserConflictConditions(body: UpdateUserInput) {
+	return UNIQUE_USER_FIELDS
+		.filter((field) => body[field] !== undefined)
+		.map((field) => ({ [field]: body[field] }));
+}
 
 export const createUser = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
@@ -98,9 +107,15 @@ export const patchUser = async (req: Request, res: Response) => {
 		const user = await User.findByPk(req.params.id as string);
 		if (!user) return sendError(res, 404, 'USER.NOT_FOUND', locale);
 
-		const existingUser = await User.findOne({
-			where: { id: { [Op.ne]: req.params.id }, [Op.or]: body },
-		});
+		const uniqueConditions = buildUniqueUserConflictConditions(body);
+		const existingUser = uniqueConditions.length > 0
+			? await User.findOne({
+				where: {
+					id: { [Op.ne]: req.params.id },
+					[Op.or]: uniqueConditions,
+				},
+			})
+			: null;
 
 		if (existingUser) return sendConflictError(res, 'USER.ALREADY_EXISTS', locale, [{
 			field: 'email',

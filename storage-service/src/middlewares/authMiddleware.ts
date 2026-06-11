@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { translation } from '../utils/i18n';
 import { getLocaleFromRequest } from '../utils/locale';
 import { verifyToken, type JwtRole } from '../utils/jwt';
+import { logger } from '../config/logging';
 
 declare global {
   namespace Express {
@@ -37,17 +38,36 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
 
   const authHeader = req.headers.authorization?.trim();
   if (!authHeader) {
+    logger.warn('Auth rejected: token not provided', {
+      method: req.method,
+      path: req.originalUrl,
+      contentType: req.headers['content-type'],
+      hasAuthorizationHeader: Boolean(req.headers.authorization),
+      xRequestId: req.headers['x-request-id'],
+    });
     return res.status(401).json({ message: await authMessage(req, 'AUTH.TOKEN_NOT_PROVIDED') });
   }
 
   const token = authHeader.split(' ')[1];
   if (!token) {
+    logger.warn('Auth rejected: token malformed', {
+      method: req.method,
+      path: req.originalUrl,
+      authScheme: authHeader.split(' ')[0],
+      xRequestId: req.headers['x-request-id'],
+    });
     return res.status(401).json({ message: await authMessage(req, 'AUTH.TOKEN_NOT_FORMATTED') });
   }
 
   try {
     const decoded = verifyToken(token);
     if (!decoded.id || !decoded.role) {
+      logger.warn('Auth rejected: role denied', {
+        method: req.method,
+        path: req.originalUrl,
+        userId: decoded.id,
+        role: decoded.role,
+      });
       return res.status(403).json({ message: await authMessage(req, 'AUTH.ROLE_DENIED') });
     }
 
@@ -57,7 +77,13 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
       isInternal: false,
     };
     return next();
-  } catch {
+  } catch (error) {
+    logger.warn('Auth rejected: token invalid', {
+      method: req.method,
+      path: req.originalUrl,
+      xRequestId: req.headers['x-request-id'],
+      error: error instanceof Error ? error.message : 'unknown',
+    });
     return res.status(401).json({ message: await authMessage(req, 'AUTH.TOKEN_INVALID') });
   }
 }

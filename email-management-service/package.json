@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "dev": "ts-node-dev --respawn --transpile-only -r @total-fretes/tracing/register src/index.ts",
     "build": "tsc -p config/tsconfig.build.json",
-    "start": "node dist/index.js",
+    "start": "node -r @total-fretes/tracing/register dist/index.js",
     "test": "jest --runInBand",
     "test:unit": "jest --testPathPattern=test/unit",
     "test:watch": "jest --watch",
@@ -20,6 +20,7 @@
   "dependencies": {
     "@total-fretes/logging": "file:../packages/logging",
     "@total-fretes/rpc-contracts": "file:../packages/rpc-contracts",
+    "@total-fretes/tracing": "file:../packages/tracing",
     "amqplib": "^1.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",

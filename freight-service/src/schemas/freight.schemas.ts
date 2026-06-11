@@ -12,7 +12,11 @@ const lngSchema = z.coerce
 
 export const createFreightSchema = z.object({
 	cargoType_id: z.coerce.number().int().positive('VALIDATION.CARGO_TYPE_ID_INVALID'),
-	name: z.string().trim().min(1, 'VALIDATION.FREIGHT_NAME_REQUIRED').max(255, 'VALIDATION.FREIGHT_NAME_MAX'),
+	name: z
+		.string()
+		.trim()
+		.min(7, 'VALIDATION.FREIGHT_NAME_MIN')
+		.max(60, 'VALIDATION.FREIGHT_NAME_MAX'),
 	origin_label: z.string().min(1, 'VALIDATION.ORIGIN_LABEL_REQUIRED'),
 	origin_lat: latSchema,
 	origin_lng: lngSchema,
@@ -70,7 +74,12 @@ export const freightListPaginatedQuerySchema = z
 
 export const updateFreightSchema = z.object({
 	cargoType_id: z.coerce.number().int().positive('VALIDATION.CARGO_TYPE_ID_INVALID').optional(),
-	name: z.string().trim().min(1, 'VALIDATION.FREIGHT_NAME_REQUIRED').max(255, 'VALIDATION.FREIGHT_NAME_MAX').optional(),
+	name: z
+		.string()
+		.trim()
+		.min(7, 'VALIDATION.FREIGHT_NAME_MIN')
+		.max(60, 'VALIDATION.FREIGHT_NAME_MAX')
+		.optional(),
 	origin_label: z.string().min(1, 'VALIDATION.ORIGIN_LABEL_REQUIRED').optional(),
 	origin_lat: latSchema.optional(),
 	origin_lng: lngSchema.optional(),

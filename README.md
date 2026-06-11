@@ -21,7 +21,7 @@ App Mobile (React Native)
         └── freight-service         :3008  — fretes, propostas, status
 ```
 
-Infraestrutura compartilhada: **MySQL** (banco por serviço), **Redis**, **RabbitMQ**, **Grafana/Loki** (observabilidade).
+Infraestrutura compartilhada: **MySQL** (banco por serviço), **Redis**, **RabbitMQ**, **Grafana/Loki/Tempo** (observabilidade — logs + traces).
 
 ## Microserviços
 

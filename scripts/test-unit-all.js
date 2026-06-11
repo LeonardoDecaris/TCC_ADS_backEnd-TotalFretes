@@ -14,6 +14,33 @@ const summaryFile = getSummaryFileArg();
 const resultsDir = getResultsDir(root);
 fs.mkdirSync(resultsDir, { recursive: true });
 
+const DEMO_SEED_DATA_CONSUMERS = [
+  'user-service',
+  'company-service',
+  'storage-service',
+  'freight-service',
+];
+
+function ensureDemoSeedDataPackage() {
+  const pkgDir = path.join(root, 'packages', 'demo-seed-data');
+  const distIndex = path.join(pkgDir, 'dist', 'index.js');
+
+  if (!fs.existsSync(distIndex)) {
+    console.log('\n=== Preparando @total-fretes/demo-seed-data (build) ===');
+    execSync('npm install', { cwd: pkgDir, stdio: 'inherit' });
+  }
+
+  for (const service of DEMO_SEED_DATA_CONSUMERS) {
+    const linkPath = path.join(root, service, 'node_modules', '@total-fretes', 'demo-seed-data');
+    if (!fs.existsSync(linkPath)) {
+      console.log(`\n=== Instalando dependências em ${service} (demo-seed-data ausente) ===`);
+      execSync('npm install', { cwd: path.join(root, service), stdio: 'inherit' });
+    }
+  }
+}
+
+ensureDemoSeedDataPackage();
+
 const services = [
   'authentication-service',
   'user-service',

@@ -55,6 +55,27 @@ services:
       retries: 3
       start_period: 30s
 
+  tempo:
+    image: grafana/tempo:2.7.2
+    container_name: tempo
+    restart: on-failure
+    command: ["-config.file=/etc/tempo/tempo.yml"]
+    ports:
+      - "3200:3200"
+      - "4317:4317"
+      - "4318:4318"
+    volumes:
+      - ./docker/tempo/tempo.yml:/etc/tempo/tempo.yml:ro
+      - tempo-data:/var/tempo
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3200/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
   authentication-service-database:
     image: mysql:8.4
     container_name: authentication-service-database
@@ -178,6 +199,8 @@ services:
     depends_on:
       loki:
         condition: service_started
+      tempo:
+        condition: service_healthy
     ports:
       - "3101:3000"
     environment:
@@ -473,6 +496,7 @@ services:
 volumes:
   rabbitmq-data:
   loki-data:
+  tempo-data:
   grafana-data:
   authentication-service-database-data:
   user-service-database-data:

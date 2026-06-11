@@ -1,7 +1,6 @@
-import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { loginAdmin } from '../lib/auth.js';
-import { BASE_URL, defaultHeaders } from '../lib/http.js';
+import { BASE_URL, tracedGet } from '../lib/http.js';
 import { readThresholds } from '../config/thresholds.js';
 
 export const options = {
@@ -13,6 +12,8 @@ export const options = {
   thresholds: readThresholds,
 };
 
+const SCENARIO = 'freight-read';
+
 export function setup() {
   const token = loginAdmin();
   if (!token) {
@@ -22,8 +23,10 @@ export function setup() {
 }
 
 export default function freightRead(data) {
-  const response = http.get(`${BASE_URL}/api/freight`, {
-    headers: defaultHeaders(data.token),
+  const response = tracedGet(`${BASE_URL}/api/freight`, {
+    token: data.token,
+    scenario: SCENARIO,
+    endpoint: '/api/freight',
     tags: { name: 'freight_list' },
   });
 

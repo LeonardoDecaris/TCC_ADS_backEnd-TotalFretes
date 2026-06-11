@@ -102,6 +102,26 @@ describe('user CRUD routes', () => {
       userModel.findByPk.mockResolvedValueOnce(createMockModelInstance({ id: 1, name: 'Test' }));
       const res = await asUser(app, 1).patch('/user/1').send({ name: 'Novo Nome' });
       expect(res.status).toBe(200);
+      expect(userModel.findOne).not.toHaveBeenCalled();
+    });
+
+    it('não trata campos não únicos como conflito ao atualizar perfil', async () => {
+      userModel.findByPk.mockResolvedValueOnce(createMockModelInstance({ id: 1, name: 'Test' }));
+      const res = await asUser(app, 1).patch('/user/1').send({
+        name: 'Lucas',
+        sex: 'M',
+        isDeficient: false,
+        userImage_id: 3,
+      });
+      expect(res.status).toBe(200);
+      expect(userModel.findOne).not.toHaveBeenCalled();
+    });
+
+    it('retorna 409 quando email já pertence a outro usuário', async () => {
+      userModel.findByPk.mockResolvedValueOnce(createMockModelInstance({ id: 1, name: 'Test' }));
+      userModel.findOne.mockResolvedValueOnce(createMockModelInstance({ id: 2, email: 'outro@email.com' }));
+      const res = await asUser(app, 1).patch('/user/1').send({ email: 'outro@email.com' });
+      expect(res.status).toBe(409);
     });
 
     it('retorna 400 ao tentar atualizar CPF', async () => {

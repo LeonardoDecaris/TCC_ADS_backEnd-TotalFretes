@@ -94,7 +94,7 @@ describe('freight CRUD routes', () => {
     it('retorna 404 quando não encontrado', async () => {
       const err = new freightService.FreightNotFoundError();
       (freightService.updateFreightRecord as jest.Mock).mockRejectedValueOnce(err);
-      const res = await asCompany(app).put('/freight/999').send({ name: 'Novo' });
+      const res = await asCompany(app).put('/freight/999').send({ name: 'Frete Novo' });
       expect(res.status).toBe(404);
     });
 
