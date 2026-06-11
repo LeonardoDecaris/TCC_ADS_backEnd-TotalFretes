@@ -1,76 +1,168 @@
 # Override para suite de testes (integração + carga)
+
 # Uso: docker compose -f docker-compose.yml -f docker-compose.test.yml up -d --wait
 
+
+
 services:
+
   nginx:
+
     volumes:
+
       - ./nginx/nginx.test.conf:/etc/nginx/nginx.conf:ro
+
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
 
+
+
   authentication-service:
+
     environment:
+
       JWT_SECRET: test-jwt-secret-totalfretes-suite
+
       NODE_ENV: test
+
       ADMIN_SEED_ENABLED: "true"
+
       ADMIN_SEED_EMAIL: admin@totalfretes.com.br
+
       ADMIN_SEED_PASSWORD: Admin@123456
 
+
+
   user-service:
+
     environment:
+
       JWT_SECRET: test-jwt-secret-totalfretes-suite
+
       NODE_ENV: test
+
+      INTERNAL_SERVICE_KEY: test-internal-service-key
+
+      DEMO_DATA_SEED_ON_STARTUP: "true"
+
+      DEMO_SEED_DRIVER_PASSWORD: Motorista@123456
+
+
 
   company-service:
+
     environment:
+
       JWT_SECRET: test-jwt-secret-totalfretes-suite
+
       INTERNAL_SERVICE_KEY: test-internal-service-key
+
       NODE_ENV: test
-      COMPANY_SEED_EMAIL: seed.empresa@demo.totalfretes.com.br
-      COMPANY_SEED_PASSWORD: Empresa@123456
+
+      DEMO_DATA_SEED_ON_STARTUP: "true"
+
+      DEMO_SEED_PASSWORD: Empresa@123456
+
     depends_on:
+
       company-service-database:
+
         condition: service_healthy
+
       authentication-service:
+
         condition: service_healthy
+
+      storage-service:
+
+        condition: service_healthy
+
     healthcheck:
+
       start_period: 120s
+
       retries: 10
+
+
 
   freight-service:
+
     environment:
+
       JWT_SECRET: test-jwt-secret-totalfretes-suite
+
       NODE_ENV: test
+
       REDIS_URL: redis://redis:6379
-      SEED_TEST_DATA: "true"
-      SEED_TEST_COMPANY_ID: "1"
-      SEED_TEST_DRIVER_IDS: "2,3,4,5"
+
+      INTERNAL_SERVICE_KEY: test-internal-service-key
+
+      DEMO_DATA_SEED_ON_STARTUP: "true"
+
     depends_on:
+
       freight-service-database:
+
         condition: service_healthy
+
       redis:
+
         condition: service_healthy
+
+      storage-service:
+
+        condition: service_healthy
+
       company-service:
+
         condition: service_healthy
+
       user-service:
+
         condition: service_healthy
+
     healthcheck:
+
       start_period: 120s
+
       retries: 10
 
+
+
   storage-service:
+
     environment:
+
       JWT_SECRET: test-jwt-secret-totalfretes-suite
+
       NODE_ENV: test
+
+      INTERNAL_SERVICE_KEY: test-internal-service-key
+
+      DEMO_DATA_SEED_ON_STARTUP: "true"
+
+
 
   mapbox-service:
+
     environment:
+
       NODE_ENV: test
+
+
 
   swagger-service:
+
     environment:
+
       NODE_ENV: test
 
+
+
   email-management-service:
+
     environment:
+
       NODE_ENV: test
+
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+

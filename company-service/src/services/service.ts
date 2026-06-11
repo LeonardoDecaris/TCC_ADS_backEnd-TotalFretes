@@ -74,11 +74,16 @@ function buildForwardHeaders({ authorization, locale }: ForwardHeaders) {
 }
 
 export async function createAccountHttp(data: CreateAccountData) {
-	const result = await authClient.post<{ ok: boolean }>('/account', data, {
-		fallback: { ok: false },
-		silentStatuses: [409],
-	});
-	return result.ok === true;
+	const baseURL = process.env.AUTH_SERVICE_URL ?? '';
+	try {
+		const response = await axios.post<{ ok?: boolean }>(`${baseURL}/account`, data);
+		return response.data?.ok === true;
+	} catch (error) {
+		if (axios.isAxiosError(error) && error.response?.status === 409) {
+			return true;
+		}
+		return false;
+	}
 }
 
 export async function getAccountTypeIdByName(name: string): Promise<number | null> {
@@ -210,4 +215,31 @@ export async function deleteCompanyImageHttp({
 	);
 
 	return result;
+}
+
+type DemoCompanyImageResponse = {
+	companyImage?: StorageImageData | null;
+};
+
+export async function registerDemoCompanyImageHttp({
+	companyId,
+	logoFile,
+}: {
+	companyId: number;
+	logoFile: string;
+}): Promise<StorageImageData | null> {
+	const internalKey = process.env.INTERNAL_SERVICE_KEY?.trim();
+	if (!internalKey) return null;
+
+	const result = await storageClient.post<DemoCompanyImageResponse>(
+		'/internal/seed/company-images',
+		{ companyId, logoFile },
+		{
+			headers: { 'x-service-key': internalKey },
+			fallback: {},
+			silentStatuses: [400, 404, 500],
+		},
+	);
+
+	return result.companyImage ?? null;
 }

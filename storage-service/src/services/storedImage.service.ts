@@ -5,7 +5,7 @@ import type { StoredImageKindConfig } from '../config/storedImageKinds';
 import type { StoredImageUploadHelpers } from '../utils/storedImageUpload';
 
 export function serializeStoredImage(
-  config: Pick<StoredImageKindConfig, 'uploadSubdir'>,
+  config: Pick<StoredImageKindConfig, 'routeBase'>,
   row: Model,
 ): Record<string, unknown> {
   const json = row.toJSON() as Record<string, unknown>;
@@ -13,13 +13,13 @@ export function serializeStoredImage(
 
   return {
     ...json,
-    url: fileName ? `/api/uploads/${config.uploadSubdir}/${fileName}` : null,
+    url: fileName ? `/api/uploads/${config.routeBase}/${fileName}` : null,
   };
 }
 
 export async function getStoredImageJsonByPk(
   Model: ModelStatic<Model>,
-  config: Pick<StoredImageKindConfig, 'uploadSubdir'>,
+  config: Pick<StoredImageKindConfig, 'routeBase'>,
   id: number,
 ): Promise<Record<string, unknown> | null> {
   const row = await Model.findByPk(id);

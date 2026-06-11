@@ -7,6 +7,7 @@ import cnhRoutes from './routes/cnh.routes';
 import groupVehicleTypeRoutes from './routes/groupVehicleType.routes';
 import vehicleTypeRoutes from './routes/vehicleType.routes';
 import vehicleRoutes from './routes/vehicle.routes';
+import internalSeedRoutes from './routes/internalSeed.routes';
 import { requestIdMiddleware, requestLoggerMiddleware } from './config/logging';
 import { ErrorHandlerMiddleware } from './middlewares/errors';
 
@@ -31,6 +32,7 @@ app.use('/cnh', cnhRoutes);
 app.use('/group-vehicle-type', groupVehicleTypeRoutes);
 app.use('/vehicle-type', vehicleTypeRoutes);
 app.use('/vehicle', vehicleRoutes);
+app.use('/internal/seed', internalSeedRoutes);
 
 app.use(ErrorHandlerMiddleware);
 
