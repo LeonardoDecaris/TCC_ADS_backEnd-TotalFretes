@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { authMiddleware, authorizeRoles } from '../../src/middleware/authMiddleware';
+import { authMiddleware, authorizeRoles } from '../../src/middlewares/authMiddleware';
 import { createTestToken } from '../../../packages/test-utils/src/jwt/createTestToken';
 import { createMockResponse } from '../../../packages/test-utils/src/mocks/express';
 

@@ -14,6 +14,34 @@ const summaryFile = getSummaryFileArg();
 const resultsDir = getResultsDir(root);
 fs.mkdirSync(resultsDir, { recursive: true });
 
+function resolveK6Binary() {
+  if (process.env.K6_BIN) {
+    return process.env.K6_BIN;
+  }
+
+  try {
+    execSync('k6 version', { stdio: 'ignore' });
+    return 'k6';
+  } catch {
+    // PATH pode não incluir k6 logo após instalação via winget/MSI.
+  }
+
+  const candidates = [
+    'C:\\Program Files\\k6\\k6.exe',
+    path.join(process.env.LOCALAPPDATA || '', 'Microsoft', 'WinGet', 'Links', 'k6.exe'),
+  ];
+
+  for (const candidate of candidates) {
+    if (candidate && fs.existsSync(candidate)) {
+      return `"${candidate}"`;
+    }
+  }
+
+  return 'k6';
+}
+
+const k6Binary = resolveK6Binary();
+
 function getPositionalArgs(argv) {
   const positional = [];
   for (let i = 2; i < argv.length; i += 1) {
@@ -91,9 +119,9 @@ function buildK6Env(scenarioKey) {
 }
 
 function buildK6Command(k6SummaryPath, script) {
-  const parts = ['k6 run', `--summary-export "${k6SummaryPath}"`];
+  const parts = [`${k6Binary} run`, `--summary-export "${k6SummaryPath}"`];
   if (withTraces) {
-    parts.push('--out experimental-opentelemetry');
+    parts.push('--out opentelemetry');
   }
   parts.push(`"${script}"`);
   return parts.join(' ');
