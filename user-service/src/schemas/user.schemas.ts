@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { isValidCpf, normalizeCpf } from '../utils/cpf';
+
 const booleanFromInputSchema = z.preprocess((value) => {
 	if (typeof value === 'string') {
 		const normalized = value.trim().toLowerCase();
@@ -13,7 +15,11 @@ const nameSchema = z.string().min(3, { message: 'VALIDATION.NAME_MIN_LENGTH' });
 const emailSchema = z.string().email({ message: 'VALIDATION.EMAIL_INVALID' });
 const birthDateSchema = z.string({ message: 'VALIDATION.BIRTHDATE_INVALID' });
 const phoneSchema = z.string({ message: 'VALIDATION.PHONE_INVALID' });
-const cpfSchema = z.string({ message: 'VALIDATION.CPF_INVALID' });
+const cpfSchema = z
+	.string()
+	.min(1, 'VALIDATION.CPF_REQUIRED')
+	.transform((v) => normalizeCpf(v))
+	.refine((v) => isValidCpf(v), 'VALIDATION.CPF_INVALID');
 const sexSchema = z.string({ message: 'VALIDATION.SEX_INVALID' });
 const cnhNumberSchema = z.string({ message: 'VALIDATION.CNH_NUMBER_INVALID' });
 const cnhTypeSchema = z.coerce.number().positive({ message: 'VALIDATION.CNH_TYPE_INVALID' });

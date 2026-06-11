@@ -5,7 +5,7 @@ const validUser = {
   email: 'motorista@test.com',
   birthDate: '1990-05-10',
   phoneNumber: '11999998888',
-  cpf: '12345678901',
+  cpf: '52998224725',
   sex: 'M',
   useGlasses: 'true',
   isDeficient: '0',
@@ -39,6 +39,19 @@ describe('createUserSchema', () => {
   it('rejeita email inválido', () => {
     const result = createUserSchema.safeParse({ ...validUser, email: 'invalido' });
     expect(result.success).toBe(false);
+  });
+
+  it('rejeita CPF inválido', () => {
+    const result = createUserSchema.safeParse({ ...validUser, cpf: '12345678901' });
+    expect(result.success).toBe(false);
+  });
+
+  it('normaliza CPF formatado para dígitos', () => {
+    const result = createUserSchema.safeParse({ ...validUser, cpf: '529.982.247-25' });
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+
+    expect(result.data.cpf).toBe('52998224725');
   });
 });
 
