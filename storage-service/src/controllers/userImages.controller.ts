@@ -57,7 +57,20 @@ export const uploadUserImage = userImagesUpload.upload;
 export const saveUserImage = async (req: RequestWithFile, res: Response) => {
   const locale = getLocaleFromRequest(req);
   try {
+    logger.info('user-images upload request received', {
+      userId: req.user?.id,
+      role: req.user?.role,
+      hasFile: Boolean(req.file),
+      ownerIdBody: req.body?.ownerId,
+      contentType: req.headers['content-type'],
+      xRequestId: req.headers['x-request-id'],
+    });
+
     if (!req.file) {
+      logger.warn('user-images upload rejected: no file in multipart body', {
+        userId: req.user?.id,
+        contentType: req.headers['content-type'],
+      });
       return res.status(400).json({
         message: await translation('USER_IMAGE.NO_IMAGE_SENT', locale),
       });
