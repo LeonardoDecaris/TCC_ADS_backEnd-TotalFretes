@@ -3,6 +3,7 @@ import sequelize from '../config/database';
 
 class CompanyAddress extends Model {
     id?: number;
+    country?: string;
     cep?: string;
     street?: string;
     district?: string;
@@ -16,6 +17,11 @@ CompanyAddress.init({
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
+    },
+    country: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        defaultValue: 'BR',
     },
     cep: {
         type: DataTypes.STRING,

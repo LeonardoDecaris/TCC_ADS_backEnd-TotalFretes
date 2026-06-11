@@ -1,0 +1,39 @@
+{
+  "name": "notification-service",
+  "version": "1.0.0",
+  "description": "Microserviço de notificações em tempo real via WebSocket e RabbitMQ.",
+  "main": "dist/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "lint": "eslint --no-error-on-unmatched-pattern \"src/**/*.ts\"",
+    "lint:fix": "eslint --no-error-on-unmatched-pattern \"src/**/*.ts\" --fix"
+  },
+  "keywords": ["notifications", "websocket", "rabbitmq", "microservico"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@total-fretes/logging": "file:../packages/logging",
+    "amqplib": "^0.10.9",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.9.7",
+    "sequelize": "^6.37.7",
+    "ws": "^8.18.3",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/amqplib": "^0.10.7",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.5",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^24.10.0",
+    "@types/ws": "^8.18.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}

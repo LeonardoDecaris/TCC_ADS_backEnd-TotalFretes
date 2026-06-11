@@ -1,17 +1,26 @@
-import cors from "cors";
+import cors from 'cors';
 import express from 'express';
 
 import { apiDocs } from './api-docs';
 import authRoutes from './routes/auth.routes';
 import accountRoutes from './routes/account.routes';
+import { requestIdMiddleware, requestLoggerMiddleware } from './config/logging';
+import { ErrorHandlerMiddleware } from './middlewares/errors';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(requestIdMiddleware);
+app.use(requestLoggerMiddleware);
 
-app.get("/", (req, res) => { res.send("Hello World!"); });
+app.get('/', (_req, res) => {
+  res.send('Authentication Service is running');
+});
+
 app.get('/api-docs', (_req, res) => res.json(apiDocs));
 app.use('/auth', authRoutes);
 app.use('/account', accountRoutes);
+
+app.use(ErrorHandlerMiddleware);
 
 export default app;

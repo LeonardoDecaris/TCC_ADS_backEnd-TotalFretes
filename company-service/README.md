@@ -1,100 +1,88 @@
-# Microserviço de Autenticação
+# Microserviço de Empresa
 
-Microserviço responsável por autenticação, emissão de tokens JWT e autorização por roles (caminhoneiro/usuário, empresa, admin). Outros microserviços (ex.: Caminhoneiro, Empresa) podem validar o token via HTTP.
+Microserviço responsável pelo cadastro e gestão de **empresas contratantes**: dados cadastrais, endereços, imagem de perfil e fluxo de pagamento/ativação. Não armazena credenciais de login — isso fica no `authentication-service`.
+
+**Porta padrão:** `3002`
+
+## Responsabilidades
+
+- CRUD de empresas
+- Cadastro completo com criação de conta no auth (`/company/end-account`)
+- Gestão de endereços (`/address`)
+- Upload de imagem da empresa
+- Fluxo de token de pagamento e ativação da conta
+- Consultas internas de status de pagamento para outros serviços
 
 ## Endpoints
 
-### `POST /auth/login`
+> Rotas marcadas com **Auth** exigem `Authorization: Bearer <token>`.
 
-Login com CPF e senha. Retorna um token JWT contendo `id` e `role`.
+### Utilitários
 
-### `POST /auth/register`
+| Método | Rota | Auth | Descrição |
+|--------|------|------|-----------|
+| `GET` | `/` | Não | Mensagem de status do serviço |
+| `GET` | `/health` | Não | Health check |
+| `GET` | `/api-docs` | Não | Spec OpenAPI (JSON) |
 
-Registro de usuário (delega para o serviço de usuário configurado em `USER_SERVICE_URL`).
+### `/company`
 
-### `GET /auth/verify-token`
+| Método | Rota | Auth | Roles | Descrição |
+|--------|------|------|-------|-----------|
+| `POST` | `/company` | Não | — | Cria empresa |
+| `POST` | `/company/end-account` | Não | — | Cria empresa + conta no auth |
+| `POST` | `/company/payment-token/request` | Não | — | Solicita token de pagamento |
+| `PATCH` | `/company/complete-payment` | Token* | — | Conclui pagamento (token de pagamento) |
+| `GET` | `/company/internal/:subjectId/payment-status` | Interno** | — | Status de pagamento (serviço-a-serviço) |
+| `GET` | `/company` | Sim | ADMIN | Lista empresas |
+| `GET` | `/company/:id` | Sim | owner/USER | Busca empresa por ID |
+| `PUT` | `/company/:id` | Sim | owner | Atualiza empresa |
+| `DELETE` | `/company/:id` | Sim | owner | Remove empresa |
+| `DELETE` | `/company/me` | Sim | COMPANY | Remove própria empresa |
+| `POST` | `/company/:id/image` | Sim | owner | Upload de imagem (form-data `image`) |
+| `DELETE` | `/company/:id/image` | Sim | owner | Remove imagem |
 
-Validação de token para uso interno (requer header `Authorization: Bearer <token>`). Retorna o usuário decodificado.
+\* Header/token específico de pagamento, não JWT.  
+\** Requer `INTERNAL_SERVICE_KEY`.
 
----
+### `/address`
 
-## Contrato: validação para outros microserviços
+| Método | Rota | Auth | Roles | Descrição |
+|--------|------|------|-------|-----------|
+| `POST` | `/address` | Sim | COMPANY | Cria endereço |
+| `GET` | `/address` | Sim | COMPANY, ADMIN | Lista endereços |
+| `GET` | `/address/:id` | Sim | COMPANY, ADMIN | Busca endereço por ID |
+| `PUT` | `/address/:id` | Sim | COMPANY, ADMIN | Atualiza endereço |
+| `DELETE` | `/address/:id` | Sim | COMPANY, ADMIN | Remove endereço |
 
-Os serviços **Caminhoneiro** e **Empresa** devem usar o endpoint abaixo para validar o token em cada requisição protegida. Use o pacote **@totalfretes/auth-client** (pasta `auth-client` na raiz do monorepo) para chamadas com timeout, retry, circuit breaker e cache.
+## Variáveis de ambiente
 
-### `POST /auth/validate`
+Copie `.env.example` para `.env` e preencha:
 
-Valida o token e retorna `id` e `role` do usuário. Contrato estável — não alterar campos sem versionar a API.
+```env
+JWT_SECRET=secret
+PORT=3002
 
-**Request**
+DB_NAME=authentication_service
+DB_USER=root
+DB_PASS=123456
+DB_HOST=authentication-service-database
 
-- **Headers**
-  - `Authorization: Bearer <token>` (recomendado)
-  - `Content-Type: application/json`
-- **Body (opcional)**  
-  - `{ "token": "<token>" }` — alternativa ao header
+MYSQL_ROOT_PASSWORD=123456
+MYSQL_DATABASE=authentication_service
+MYSQL_ROOT_HOST=%
 
-**Response 200 — token válido**
-
-```json
-{
-  "valid": true,
-  "user": {
-    "id": 123,
-    "role": "usuario"
-  }
-}
+AUTH_SERVICE_URL=http://authentication-service:3000/
+STORAGE_SERVICE_URL=http://storage-service:3007/
+INTERNAL_SERVICE_KEY=dev-internal-service-key
 ```
 
-- `role`: `"usuario"` (caminhoneiro), `"empresa"` ou `"admin"`.
-
-**Response 401 — token inválido ou ausente**
-
-```json
-{
-  "valid": false,
-  "message": "Token inválido ou expirado."
-}
-```
-
-**Recomendações para clientes**
-
-- Timeout: 3–5 s.
-- Em timeout ou 5xx: tratar como indisponibilidade (ex.: retry com backoff ou responder 503).
-- Não fazer retry em 401.
-
----
-
-### `GET /auth/health`
-
-Health check para load balancer e orquestração.
-
-**Response 200**
-
-```json
-{
-  "status": "up",
-  "database": "connected"
-}
-```
-
-**Response 503**
-
-```json
-{
-  "status": "down",
-  "database": "disconnected"
-}
-```
-
----
-
-## Roles
-
-| Role      | Uso na regra de negócio |
-|-----------|--------------------------|
-| `usuario` | Caminhoneiro             |
-| `empresa` | Empresa                  |
-| `admin`   | Administrador            |
-
-Os microserviços devem aplicar `authorizeRoles('usuario', 'admin')` ou `authorizeRoles('empresa', 'admin')` conforme a rota, após obter `user` via `POST /auth/validate`.
+| Variável | Obrigatória | Descrição |
+|----------|-------------|-----------|
+| `JWT_SECRET` | Sim | Mesma chave do `authentication-service` para validar tokens. |
+| `DB_*` | Sim | Conexão com o banco MySQL do serviço. |
+| `AUTH_SERVICE_URL` | Sim | URL do serviço de autenticação. |
+| `STORAGE_SERVICE_URL` | Não | URL do storage-service para imagens. |
+| `FREIGHT_SERVICE_URL` | Não | URL do freight-service para enriquecimento de dados. |
+| `INTERNAL_SERVICE_KEY` | Não | Chave para rotas internas (`/company/internal/...`). |
+| `COMPANY_SEED_*` | Não | Cria empresa de teste na inicialização (útil em dev). |

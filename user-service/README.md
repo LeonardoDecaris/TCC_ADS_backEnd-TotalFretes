@@ -1,100 +1,107 @@
-# Microserviço de Autenticação
+# Microserviço de Usuário (Caminhoneiro)
 
-Microserviço responsável por autenticação, emissão de tokens JWT e autorização por roles (caminhoneiro/usuário, empresa, admin). Outros microserviços (ex.: Caminhoneiro, Empresa) podem validar o token via HTTP.
+Microserviço responsável pelo cadastro e gestão de **motoristas/caminhoneiros**: dados pessoais, CNH, veículos e tipos de veículo. Não armazena credenciais de login — isso fica no `authentication-service`.
+
+**Porta padrão:** `3001`
+
+## Responsabilidades
+
+- CRUD de usuários (motoristas)
+- Cadastro completo com criação de conta no auth (`/user/end-account`)
+- Gestão de CNH, veículos e tipos de veículo
+- Integração com `authentication-service` (validação de token) e `storage-service` (imagens)
 
 ## Endpoints
 
-### `POST /auth/login`
+> Rotas marcadas com **Auth** exigem `Authorization: Bearer <token>`.
 
-Login com CPF e senha. Retorna um token JWT contendo `id` e `role`.
+### Utilitários
 
-### `POST /auth/register`
+| Método | Rota | Auth | Descrição |
+|--------|------|------|-----------|
+| `GET` | `/` | Não | Mensagem de status do serviço |
+| `GET` | `/health` | Não | Health check |
+| `GET` | `/api-docs` | Não | Spec OpenAPI (JSON) |
 
-Registro de usuário (delega para o serviço de usuário configurado em `USER_SERVICE_URL`).
+### `/user`
 
-### `GET /auth/verify-token`
+| Método | Rota | Auth | Roles | Descrição |
+|--------|------|------|-------|-----------|
+| `POST` | `/user` | Não | — | Cria usuário (motorista) |
+| `POST` | `/user/end-account` | Não | — | Cria usuário + conta no auth |
+| `GET` | `/user` | Sim | ADMIN | Lista todos os usuários |
+| `GET` | `/user/:id` | Sim | owner/COMPANY | Busca usuário por ID |
+| `PATCH` | `/user/:id` | Sim | owner | Atualização parcial |
+| `PUT` | `/user/:id` | Sim | owner | Atualização completa |
+| `DELETE` | `/user/:id` | Sim | owner | Remove usuário |
 
-Validação de token para uso interno (requer header `Authorization: Bearer <token>`). Retorna o usuário decodificado.
+### `/vehicle`
 
----
+| Método | Rota | Auth | Roles | Descrição |
+|--------|------|------|-------|-----------|
+| `POST` | `/vehicle` | Sim | — | Cria veículo |
+| `POST` | `/vehicle/register` | Sim | — | Cria veículo e vincula ao usuário |
+| `GET` | `/vehicle` | Sim | ADMIN | Lista veículos |
+| `GET` | `/vehicle/:id` | Sim | ADMIN, USER, COMPANY | Busca veículo por ID |
+| `PUT` | `/vehicle/:id` | Sim | ADMIN, USER | Atualiza veículo |
+| `DELETE` | `/vehicle/:id` | Sim | ADMIN, USER | Remove veículo |
 
-## Contrato: validação para outros microserviços
+### `/vehicle-type`
 
-Os serviços **Caminhoneiro** e **Empresa** devem usar o endpoint abaixo para validar o token em cada requisição protegida. Use o pacote **@totalfretes/auth-client** (pasta `auth-client` na raiz do monorepo) para chamadas com timeout, retry, circuit breaker e cache.
+| Método | Rota | Auth | Roles | Descrição |
+|--------|------|------|-------|-----------|
+| `POST` | `/vehicle-type` | Sim | ADMIN | Cria tipo de veículo |
+| `GET` | `/vehicle-type` | Sim | — | Lista tipos de veículo |
+| `GET` | `/vehicle-type/:id` | Sim | — | Busca tipo por ID |
+| `PUT` | `/vehicle-type/:id` | Sim | ADMIN | Atualiza tipo |
+| `DELETE` | `/vehicle-type/:id` | Sim | ADMIN | Remove tipo |
 
-### `POST /auth/validate`
+### `/group-vehicle-type`
 
-Valida o token e retorna `id` e `role` do usuário. Contrato estável — não alterar campos sem versionar a API.
+| Método | Rota | Auth | Roles | Descrição |
+|--------|------|------|-------|-----------|
+| `POST` | `/group-vehicle-type` | Sim | ADMIN | Cria grupo de tipo |
+| `GET` | `/group-vehicle-type` | Sim | — | Lista grupos |
+| `GET` | `/group-vehicle-type/:id` | Sim | — | Busca grupo por ID |
+| `PUT` | `/group-vehicle-type/:id` | Sim | ADMIN | Atualiza grupo |
+| `DELETE` | `/group-vehicle-type/:id` | Sim | ADMIN | Remove grupo |
 
-**Request**
+### `/cnh` (tipos de CNH)
 
-- **Headers**
-  - `Authorization: Bearer <token>` (recomendado)
-  - `Content-Type: application/json`
-- **Body (opcional)**  
-  - `{ "token": "<token>" }` — alternativa ao header
+| Método | Rota | Auth | Roles | Descrição |
+|--------|------|------|-------|-----------|
+| `POST` | `/cnh` | Sim | ADMIN | Cria tipo de CNH |
+| `GET` | `/cnh` | Sim | ADMIN | Lista tipos de CNH |
+| `GET` | `/cnh/:id` | Sim | ADMIN | Busca tipo por ID |
+| `PUT` | `/cnh/:id` | Sim | ADMIN | Atualiza tipo |
+| `DELETE` | `/cnh/:id` | Sim | ADMIN | Remove tipo |
 
-**Response 200 — token válido**
+## Variáveis de ambiente
 
-```json
-{
-  "valid": true,
-  "user": {
-    "id": 123,
-    "role": "usuario"
-  }
-}
+Copie `.env.example` para `.env` e preencha:
+
+```env
+JWT_SECRET=secret
+PORT=3001
+
+DB_NAME=authentication_service
+DB_USER=root
+DB_PASS=123456
+DB_HOST=authentication-service-database
+
+MYSQL_ROOT_PASSWORD=123456
+MYSQL_DATABASE=authentication_service
+MYSQL_ROOT_HOST=%
+
+AUTH_SERVICE_URL=http://authentication-service:3000
+STORAGE_SERVICE_URL=http://storage-service:3007
+
+REDIS_URL=redis://redis:6379
 ```
 
-- `role`: `"usuario"` (caminhoneiro), `"empresa"` ou `"admin"`.
-
-**Response 401 — token inválido ou ausente**
-
-```json
-{
-  "valid": false,
-  "message": "Token inválido ou expirado."
-}
-```
-
-**Recomendações para clientes**
-
-- Timeout: 3–5 s.
-- Em timeout ou 5xx: tratar como indisponibilidade (ex.: retry com backoff ou responder 503).
-- Não fazer retry em 401.
-
----
-
-### `GET /auth/health`
-
-Health check para load balancer e orquestração.
-
-**Response 200**
-
-```json
-{
-  "status": "up",
-  "database": "connected"
-}
-```
-
-**Response 503**
-
-```json
-{
-  "status": "down",
-  "database": "disconnected"
-}
-```
-
----
-
-## Roles
-
-| Role      | Uso na regra de negócio |
-|-----------|--------------------------|
-| `usuario` | Caminhoneiro             |
-| `empresa` | Empresa                  |
-| `admin`   | Administrador            |
-
-Os microserviços devem aplicar `authorizeRoles('usuario', 'admin')` ou `authorizeRoles('empresa', 'admin')` conforme a rota, após obter `user` via `POST /auth/validate`.
+| Variável | Obrigatória | Descrição |
+|----------|-------------|-----------|
+| `JWT_SECRET` | Sim | Mesma chave do `authentication-service` para validar tokens. |
+| `DB_*` | Sim | Conexão com o banco MySQL do serviço. |
+| `AUTH_SERVICE_URL` | Sim | URL do serviço de autenticação. |
+| `STORAGE_SERVICE_URL` | Não | URL do storage-service para imagens de perfil. |

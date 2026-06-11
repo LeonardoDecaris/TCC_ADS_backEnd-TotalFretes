@@ -1,0 +1,112 @@
+import { Response } from 'express';
+import { translation } from '../utils/i18n';
+import { buildErrorResponseFields } from '../utils/errorResponse';
+
+export type ValidationIssue = {
+  field: string;
+  message: string;
+};
+
+export type ConflictDetail = {
+  field: string;
+  message: string;
+};
+
+type BaseErrorBody = {
+  status: number;
+  code: string;
+  message: string;
+  requestId: string;
+  errorId: string;
+};
+
+type PlainErrorBody = BaseErrorBody & { type: 'plain' };
+type ValidationErrorBody = BaseErrorBody & { type: 'validation'; issues: ValidationIssue[] };
+type ConflictErrorBody = BaseErrorBody & { type: 'conflict'; conflicts: ConflictDetail[] };
+
+export type ErrorBody = PlainErrorBody | ValidationErrorBody | ConflictErrorBody;
+
+function resolveErrorId(value?: unknown): string | undefined {
+  return typeof value === 'string' ? value : undefined;
+}
+
+export const sendError = async (
+  res: Response,
+  status: number,
+  code: string,
+  locale: string,
+  errorOrErrorId?: unknown,
+) => {
+  const { requestId, errorId: resolvedErrorId } = buildErrorResponseFields(
+    res,
+    resolveErrorId(errorOrErrorId),
+  );
+  const body: PlainErrorBody = {
+    type: 'plain',
+    status,
+    code,
+    message: await translation(code, locale),
+    requestId,
+    errorId: resolvedErrorId,
+  };
+  return res.status(status).json(body);
+};
+
+export const sendValidationError = async (
+  res: Response,
+  code: string,
+  locale: string,
+  issues: ValidationIssue[],
+  errorOrErrorId?: unknown,
+) => {
+  const { requestId, errorId: resolvedErrorId } = buildErrorResponseFields(
+    res,
+    resolveErrorId(errorOrErrorId),
+  );
+  const body: ValidationErrorBody = {
+    type: 'validation',
+    status: 400,
+    code,
+    message: await translation(code, locale),
+    issues,
+    requestId,
+    errorId: resolvedErrorId,
+  };
+  return res.status(400).json(body);
+};
+
+export const sendConflictError = async (
+  res: Response,
+  code: string,
+  locale: string,
+  conflicts: ConflictDetail[],
+  errorOrErrorId?: unknown,
+) => {
+  const { requestId, errorId: resolvedErrorId } = buildErrorResponseFields(
+    res,
+    resolveErrorId(errorOrErrorId),
+  );
+  const body: ConflictErrorBody = {
+    type: 'conflict',
+    status: 409,
+    code,
+    message: await translation(code, locale),
+    conflicts,
+    requestId,
+    errorId: resolvedErrorId,
+  };
+  return res.status(409).json(body);
+};
+
+export const sendSuccess = async (
+  res: Response,
+  status: number,
+  code: string,
+  locale: string,
+  data: Record<string, unknown> = {},
+) => {
+  return res.status(status).json({
+    message: await translation(code, locale),
+    ...data,
+  });
+};

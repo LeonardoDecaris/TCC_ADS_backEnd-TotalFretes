@@ -1,5 +1,18 @@
 import { z } from "zod";
 import validator from "validator";
+import { isValidCnpjInRfb2229, normalizeCnpj } from "../utils/cnpjInRfb2229";
+
+const normalizePhoneNumber = (value: string) => value.replace(/\D/g, "");
+
+const isValidInternationalPhoneNumber = (value: string) => {
+	const digits = normalizePhoneNumber(value);
+
+	if (!/^\d{8,15}$/.test(digits)) {
+		return false;
+	}
+
+	return true;
+};
 
 const nameSchema = z
 	.string()
@@ -18,21 +31,29 @@ const birthFundationSchema = z
 const phoneNumberSchema = z
 	.string()
 	.min(1, "VALIDATION.PHONE_REQUIRED")
+	.transform((v) => normalizePhoneNumber(v))
 	.refine(
-		(v) => validator.isMobilePhone(v, "pt-BR"),
+		(v) => isValidInternationalPhoneNumber(v),
 		"VALIDATION.PHONE_INVALID"
 	);
 
 const websiteSchema = z
-	.string()
-	.url("VALIDATION.WEBSITE_INVALID")
+	.union([
+		z.string().url("VALIDATION.WEBSITE_INVALID"),
+		z.literal(""),
+		z.null(),
+	])
 	.optional()
-	.or(z.literal("").transform(() => undefined));
+	.transform((value) => {
+		if (value === undefined) return undefined;
+		return value && value.length > 0 ? value : null;
+	});
 
 const cnpjSchema = z
 	.string()
 	.min(1, "VALIDATION.CNPJ_REQUIRED")
-	.refine((v) => v.length >= 14, "VALIDATION.CNPJ_INVALID");
+	.transform((v) => normalizeCnpj(v))
+	.refine((v) => isValidCnpjInRfb2229(v), "VALIDATION.CNPJ_INVALID");
 
 const companyImageIdSchema = z
 	.number()
@@ -57,11 +78,22 @@ const baseCompanyFields = {
 	companyAddress_id: companyAddressIdSchema,
 };
 
+const updateCompanyFields = {
+	name: nameSchema,
+	email: emailSchema,
+	birthFundation: birthFundationSchema,
+	phoneNumber: phoneNumberSchema,
+	website: websiteSchema,
+	company_image_id: companyImageIdSchema,
+	companyAddress_id: companyAddressIdSchema,
+};
+
 export const createCompanySchema = z.object(baseCompanyFields);
 
-export const updateCompanySchema = z.object(baseCompanyFields).partial();
+export const updateCompanySchema = z.object(updateCompanyFields).partial().strict();
 
 export const createCompanyAddressSchema = z.object({
+	country: z.string().min(1, "VALIDATION.COUNTRY_REQUIRED"),
 	cep: z.string().min(1, "VALIDATION.CEP_REQUIRED"),
 	street: z.string().min(1, "VALIDATION.STREET_REQUIRED"),
 	district: z.string().min(1, "VALIDATION.DISTRICT_REQUIRED"),
@@ -71,3 +103,18 @@ export const createCompanyAddressSchema = z.object({
 });
 
 export const updateCompanyAddressSchema = createCompanyAddressSchema.partial();
+
+/** Cadastro completo: dados da empresa + endereço + senha + tipo de conta (POST /company/end-account). */
+export const createCompanyEndAccountSchema = createCompanySchema
+	.omit({ companyAddress_id: true })
+	.merge(createCompanyAddressSchema)
+	.extend({
+		password: z.string().min(1, "VALIDATION.PASSWORD_REQUIRED"),
+		account_type_id: z.coerce
+			.number()
+			.positive("VALIDATION.ACCOUNT_TYPE_INVALID"),
+	});
+
+export const paymentTokenRequestSchema = z.object({
+	email: emailSchema,
+});

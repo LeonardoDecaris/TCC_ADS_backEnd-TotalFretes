@@ -1,8 +1,14 @@
 import app from './app';
 import dotenv from 'dotenv';
 import sequelize from './config/database';
+import { ensureCompanyAddressCountryColumn } from './database/ensureCompanyAddressCountryColumn';
+import { seedDemoCompanies } from './config/seedDemoCompanies';
+import { isDemoSeedOnStartupEnabled, loadSharedProjectEnv } from '@total-fretes/demo-seed-data';
+import { logger } from './config/logging';
+import { logError } from '@total-fretes/logging';
 
 dotenv.config();
+loadSharedProjectEnv();
 
 const PORT = process.env.PORT;
 if (!PORT) {
@@ -12,12 +18,24 @@ if (!PORT) {
 (async () => {
   try {
     await sequelize.authenticate();
-    console.log('Database authenticated successfully');
+    logger.info('Database authenticated successfully');
+
     await sequelize.sync({ alter: false });
-    console.log('Database synchronized successfully');
-    app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+    logger.info('Database synchronized successfully');
+
+    await ensureCompanyAddressCountryColumn();
+    logger.info('Company address country column ensured successfully');
+
+    if (isDemoSeedOnStartupEnabled()) {
+      await seedDemoCompanies();
+      logger.info('Demo companies seed completed successfully');
+    } else {
+      logger.info('Demo companies seed skipped (DEMO_DATA_SEED_ON_STARTUP=false)');
+    }
+
+    app.listen(PORT, () => logger.info(`Server is running on port ${PORT}`));
   } catch (err) {
-    console.error('error to start the server:', err);
+    logError(logger, 'error to start the server', err);
     process.exit(1);
   }
 })();

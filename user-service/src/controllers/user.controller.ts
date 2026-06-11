@@ -1,207 +1,212 @@
-import axios from "axios";
-import User from "../models/user.model";
-import CnhType from "../models/cnh.model";
-import { Request, Response } from "express";
-import { validateBody, validateParams, idParamSchema } from "../utils/validate";
-import { createUserSchema, updateUserSchema, createUserEndAccountSchema } from "../schemas/user.schemas";
-import { translation } from "../utils/i18n";
-import { getLocaleFromRequest } from "../utils/locale";
+import User from '../models/user.model';
+import CnhType from '../models/cnh.model';
+import Vehicle from '../models/vehicle.model';
+import VehicleType from '../models/vehicleType.model';
+import { createAccountHttp, getUserImageHttp, deleteAccountHttp } from '../services/service';
+import { Request, Response } from 'express';
+import { createUserSchema, updateUserSchema, createUserEndAccountSchema } from '../schemas/user.schemas';
+import { translation } from '../utils/i18n';
+import { getLocaleFromRequest } from '../utils/locale';
+import { handleZodError } from '../utils/zodError';
+import { sendError, sendConflictError } from '../services/httpResponse';
+import { Op } from 'sequelize';
+import type { UpdateUserInput } from '../schemas/user.schemas';
 
-const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
-const STORAGE_SERVICE_URL = process.env.STORAGE_SERVICE_URL ?? "http://storage-service:3007";
+const UNIQUE_USER_FIELDS = ['email', 'phoneNumber', 'cnhNumber'] as const;
+
+function buildUniqueUserConflictConditions(body: UpdateUserInput) {
+	return UNIQUE_USER_FIELDS
+		.filter((field) => body[field] !== undefined)
+		.map((field) => ({ [field]: body[field] }));
+}
 
 export const createUser = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
-	const body = await validateBody(req, res, createUserSchema);
-	if (!body) return;
-
 	try {
-		const user = await User.create(body);
-		return res.status(201).json({
-			message: await translation("USER.CREATED_SUCCESSFULLY", locale),
-			user,
+		const body = createUserSchema.parse(req.body);
+
+		const existingUser = await User.findOne({
+			where: {
+				[Op.or]: [
+					{ email: body.email },
+					{ phoneNumber: body.phoneNumber },
+					{ cpf: body.cpf },
+					{ cnhNumber: body.cnhNumber },
+				],
+			},
 		});
+
+		if (existingUser) return sendConflictError(res, 'USER.ALREADY_EXISTS', locale, [{
+			field: 'email',
+			message: await translation('USER.EMAIL_ALREADY_EXISTS', locale),
+		}, {
+			field: 'phoneNumber',
+			message: await translation('USER.PHONE_ALREADY_EXISTS', locale),
+		}, {
+			field: 'cpf',
+			message: await translation('USER.CPF_ALREADY_EXISTS', locale),
+		}, {
+			field: 'cnhNumber',
+			message: await translation('USER.CNH_NUMBER_ALREADY_EXISTS', locale),
+		}]);
+
+		await User.create(body);
+		return res.status(201).json({ message: await translation('USER.CREATED_SUCCESSFULLY', locale) });
 	} catch (error) {
-		console.error(error);
-		return res.status(500).json({
-			message: await translation("USER.CREATE_FAILED", locale),
-		});
+		if (await handleZodError(error, locale, res)) return;
+		return sendError(res, 500, 'USER.CREATE_FAILED', locale, error);
 	}
 };
 
 export const getUserById = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
-	const params = await validateParams(req, res, idParamSchema);
-	if (!params) return;
-
 	try {
 		const user = await User.findOne({
-			where: { id: params.id },
-			include: [{
-				model: CnhType,
-				required: false,
-			}],
+			where: { id: req.params.id },
+			include: [
+				{ model: CnhType, required: false },
+				{
+					model: Vehicle,
+					required: false,
+					include: [{ model: VehicleType, required: false }],
+				},
+			],
 		});
 
-		if (!user) {
-			return res.status(404).json({
-				message: await translation("USER.NOT_FOUND", locale),
-			});
-		}
+		if (!user) return sendError(res, 404, 'USER.NOT_FOUND', locale);
 
-		const userData = user.toJSON() as Record<string, unknown> & { userImage_id?: number };
-		let userImage: unknown = null;
+		const userImage = user.userImage_id ? await getUserImageHttp({ id: user.userImage_id }) : null;
 
-		if (userData.userImage_id) {
-			try {
-				const { data } = await axios.get( `${STORAGE_SERVICE_URL}/user-images/${userData.userImage_id}`,
-					{ timeout: 3000, headers: { "accept-language": locale } });
-				userImage = data;
-			} catch (imageError) {
-				console.error("Error fetching user image from storage-service:", imageError);
-			}
-		}
-		return res.status(200).json({
-			...userData,
-			UserImage: userImage,
-		});
+		return res.status(200).json({ ...user.toJSON(), UserImage: userImage });
 	} catch (error) {
-		console.error(error);
-		return res.status(500).json({
-			message: await translation("USER.GET_BY_ID_FAILED", locale),
-		});
+		return sendError(res, 500, 'USER.GET_BY_ID_FAILED', locale, error);
 	}
 };
 
 export const getAllUsers = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
 	try {
-		const user = await User.findAll({
-			include: [{
-				model: CnhType,
-				attributes: ['id', 'name']
-			}],
+		const users = await User.findAll({
+			include: [{ model: CnhType, attributes: ['id', 'name'] }],
 		});
-
-		return res.status(200).json(user);
+		return res.status(200).json(users);
 	} catch (error) {
-		console.error(error);
-		return res.status(500).json({
-			message: await translation("USER.GET_ALL_FAILED", locale),
-		});
+		return sendError(res, 500, 'USER.GET_ALL_FAILED', locale, error);
 	}
 };
 
 export const patchUser = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
-	const params = await validateParams(req, res, idParamSchema);
-	if (!params) return;
-	const body = await validateBody(req, res, updateUserSchema);
-	if (!body) return;
-
 	try {
-		const user = await User.findByPk(params.id);
-		if (!user) {
-			return res.status(404).json({
-				message: await translation("USER.NOT_FOUND", locale),
-			});
+		if (Object.prototype.hasOwnProperty.call(req.body, 'cpf')) {
+			return sendError(res, 400, 'USER.CPF_UPDATE_NOT_ALLOWED', locale);
 		}
+
+		const body = updateUserSchema.parse(req.body);
+
+		const user = await User.findByPk(req.params.id as string);
+		if (!user) return sendError(res, 404, 'USER.NOT_FOUND', locale);
+
+		const uniqueConditions = buildUniqueUserConflictConditions(body);
+		const existingUser = uniqueConditions.length > 0
+			? await User.findOne({
+				where: {
+					id: { [Op.ne]: req.params.id },
+					[Op.or]: uniqueConditions,
+				},
+			})
+			: null;
+
+		if (existingUser) return sendConflictError(res, 'USER.ALREADY_EXISTS', locale, [{
+			field: 'email',
+			message: await translation('USER.EMAIL_ALREADY_EXISTS', locale),
+		}, {
+			field: 'phoneNumber',
+			message: await translation('USER.PHONE_ALREADY_EXISTS', locale),
+		}, {
+			field: 'cpf',
+			message: await translation('USER.CPF_ALREADY_EXISTS', locale),
+		}, {
+			field: 'cnhNumber',
+			message: await translation('USER.CNH_NUMBER_ALREADY_EXISTS', locale),
+		}]);
+
 		await user.update(body);
-		return res.status(200).json({
-			message: await translation("USER.UPDATED_SUCCESSFULLY", locale),
-			user,
-		});
+		return res.status(200).json({ message: await translation('USER.UPDATED_SUCCESSFULLY', locale) });
 	} catch (error) {
-		console.error(error);
-		return res.status(500).json({
-			message: await translation("USER.UPDATE_FAILED", locale),
-		});
+		if (await handleZodError(error, locale, res)) return;
+		return sendError(res, 500, 'USER.UPDATE_FAILED', locale, error);
 	}
 };
 
-export const updateUser = async (req: Request, res: Response) => {
-	const locale = getLocaleFromRequest(req);
-	const params = await validateParams(req, res, idParamSchema);
-	if (!params) return;
-	const body = await validateBody(req, res, updateUserSchema);
-	if (!body) return;
-
-	try {
-		const user = await User.findByPk(params.id);
-		if (!user) {
-			return res.status(404).json({
-				message: await translation("USER.NOT_FOUND", locale),
-			});
-		}
-		await user.update(body);
-		return res.status(200).json({
-			message: await translation("USER.UPDATED_SUCCESSFULLY", locale),
-			user,
-		});
-	} catch (error) {
-		console.error(error);
-		return res.status(500).json({
-			message: await translation("USER.UPDATE_FAILED", locale),
-		});
-	}
-};
+export const updateUser = patchUser;
 
 export const deleteUser = async (req: Request, res: Response) => {
 	const locale = getLocaleFromRequest(req);
-	const params = await validateParams(req, res, idParamSchema);
-	if (!params) return;
-
 	try {
-		const user = await User.findByPk(params.id);
+		const user = await User.findByPk(req.params.id as string);
+		if (!user) return sendError(res, 404, 'USER.NOT_FOUND', locale);
 
-		if (!user) {
-			return res.status(404).json({
-				message: await translation("USER.NOT_FOUND", locale),
-			});
-		}
-
+		await deleteAccountHttp({ id: user.id! });
 		await user.destroy();
-		return res.status(200).json({
-			message: await translation("USER.DELETED_SUCCESSFULLY", locale),
-		});
+
+		return res.status(200).json({ message: await translation('USER.DELETED_SUCCESSFULLY', locale) });
 	} catch (error) {
-		console.error(error);
-		return res.status(500).json({
-			message: await translation("USER.DELETE_FAILED", locale),
-		});
+		return sendError(res, 500, 'USER.DELETE_FAILED', locale, error);
 	}
 };
 
 export const createUserEndAccount = async (req: Request, res: Response) => {
-	
 	const locale = getLocaleFromRequest(req);
-	const body = await validateBody(req, res, createUserEndAccountSchema);
-
 	try {
-		const user = await User.create(body);
-		
-		const respondeAccount = await axios.post(`${AUTH_SERVICE_URL}/account`, {
-			email: body?.email,
-			password: body?.password,
-			subject_id: user.id,
-			account_type_id: body?.account_type_id,
-		});
+		const body = createUserEndAccountSchema.parse(req.body);
 
-		if (!respondeAccount.data.ok) {
+		const existingUser = await User.findOne({
+			where: {
+				[Op.or]: [
+					{ email: body.email },
+					{ phoneNumber: body.phoneNumber },
+					{ cpf: body.cpf },
+					{ cnhNumber: body.cnhNumber },
+				],
+			},
+		});
+		if (existingUser) return sendConflictError(res, 'USER.ALREADY_EXISTS', locale, [{
+			field: 'email',
+			message: await translation('USER.EMAIL_ALREADY_EXISTS', locale),
+		}, {
+			field: 'phoneNumber',
+			message: await translation('USER.PHONE_ALREADY_EXISTS', locale),
+		}, {
+			field: 'cpf',
+			message: await translation('USER.CPF_ALREADY_EXISTS', locale),
+		}, {
+			field: 'cnhNumber',
+			message: await translation('USER.CNH_NUMBER_ALREADY_EXISTS', locale),
+		}]);
+
+		const user = await User.create(body);
+
+		if (!user.id) {
 			await user.destroy();
-			return res.status(500).json({
-				message: await translation("USER.ACCOUNT_CREATE_FAILED", locale),
-			});
+			return sendError(res, 500, 'USER.CREATE_FAILED', locale);
 		}
 
-		return res.status(201).json({
-			message: await translation("USER.CREATED_WITH_ACCOUNT_SUCCESSFULLY", locale),
-			user,
+		const accountCreated = await createAccountHttp({
+			email: body.email,
+			password: body.password,
+			subject_id: user.id,
+			account_type_id: body.account_type_id,
 		});
+
+		if (!accountCreated) {
+			await user.destroy();
+			return sendError(res, 500, 'USER.CREATE_FAILED', locale);
+		}
+
+		return res.status(201).json({ message: await translation('USER.CREATED_WITH_ACCOUNT_SUCCESSFULLY', locale) });
 	} catch (error) {
-		console.error(error);
-		return res.status(500).json({
-			message: await translation("USER.CREATE_FAILED", locale),
-		});
+		if (await handleZodError(error, locale, res)) return;
+		return sendError(res, 500, 'USER.CREATE_FAILED', locale, error);
 	}
 };

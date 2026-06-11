@@ -7,16 +7,16 @@ import {
 	updateVehicle,
 	deleteVehicle,
 } from '../controllers/vehicle.controller';
-import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
+import { authMiddleware, authorizeRoles } from '../middlewares/authMiddleware';
 
 const router = express.Router();
 
 router.post('/', authMiddleware, createVehicle);
 router.post('/register', authMiddleware, createVehicleAndAttachToUser);
 router.get('/', authMiddleware, authorizeRoles('ADMIN'), getAllVehicles);
-router.get('/:id', authMiddleware, getVehicleById);
-router.put('/:id', authMiddleware, authorizeRoles('ADMIN'), updateVehicle);
-router.delete('/:id', authMiddleware, authorizeRoles('ADMIN'), deleteVehicle);
+router.get('/:id', authMiddleware, authorizeRoles('ADMIN', 'USER', 'COMPANY'), getVehicleById);
+router.put('/:id', authMiddleware, authorizeRoles('ADMIN', 'USER'), updateVehicle);
+router.delete('/:id', authMiddleware, authorizeRoles('ADMIN', "USER"), deleteVehicle);
 
 export default router;
 

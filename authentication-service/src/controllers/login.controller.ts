@@ -5,65 +5,57 @@ import AccountType from '../models/accounts_types.model';
 import { generateToken, verifyToken, type JwtRole } from '../utils/jwt';
 import { translation } from '../utils/i18n';
 import { getLocaleFromRequest } from '../utils/locale';
-
-const normalizeRole = (name?: string): 'USER' | 'COMPANY' | 'ADMIN' => {
-  const normalized = (name || '').trim().toUpperCase();
-  if (normalized === 'COMPANY' || normalized === 'EMPRESA') return 'COMPANY';
-  if (normalized === 'ADMIN' || normalized === 'ADMINISTRADOR') return 'ADMIN';
-  return 'USER';
-};
+import { loginSchema } from '../schemas/login.schemas';
+import { findAccountByTokenClaims, resolveTokenSubjectId } from '../services/accountToken.service';
+import { getCompanyPaymentStatus } from '../services/companyService';
+import { sendError } from '../utils/httpResponse';
+import { handleZodError } from '../utils/zodError';
 
 export const login = async (req: Request, res: Response) => {
   const locale = getLocaleFromRequest(req);
   try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({
-        message: await translation('AUTH.EMAIL_AND_PASSWORD_REQUIRED', locale),
-      });
-    }
+    const body = loginSchema.parse(req.body);
 
     const account = await Account.findOne({
-      where: { email },
-      include: [{ model: AccountType, attributes: ['name'] }],
+      where: { email: body.email },
+      include: [{
+        model: AccountType,
+        attributes: ['name']
+      }],
     });
 
     if (!account) {
-      return res.status(404).json({
-        message: await translation('ACCOUNT.NOT_FOUND', locale),
-      });
+      return sendError(res, 404, await translation('ACCOUNT.NOT_FOUND', locale));
     }
 
-    const validPassword = await bcrypt.compare(password, account.password || '');
-
+    const validPassword = await bcrypt.compare(body.password, account.password || '');
     if (!validPassword) {
-      return res.status(401).json({
-        message: await translation('AUTH.INVALID_PASSWORD', locale),
-      });
+      return sendError(res, 401, await translation('AUTH.INVALID_PASSWORD', locale));
     }
 
-    const accountType = account.AccountType?.name;
-    const role = normalizeRole(accountType);
+    const accountTypeName = account.AccountType?.name;
 
-    const token = generateToken({
-      id: String(account.subject_id),
-      role,
-    });
+    if (accountTypeName === 'COMPANY' && account.subject_id != null) {
+      const isPaid = await getCompanyPaymentStatus(Number(account.subject_id));
+
+      if (isPaid === false) {
+        return sendError(res, 403, await translation('AUTH.PAYMENT_PENDING', locale), {
+          code: 'PAYMENT_PENDING',
+        });
+      }
+    }
+
+    const tokenSubjectId = resolveTokenSubjectId(account, accountTypeName);
+    const token = generateToken({ id: tokenSubjectId, role: accountTypeName as JwtRole });
 
     return res.status(200).json({
       message: await translation('AUTH.LOGIN_SUCCESSFUL', locale),
       token,
-      user: {
-        id: account.subject_id,
-        role,
-      },
     });
   } catch (error) {
-    return res.status(500).json({
-      message: await translation('AUTH.LOGIN_FAILED', locale),
-      error,
-    });
+    const zodError = await handleZodError(error, locale, res);
+    if (zodError) return res.status(zodError.status).json(zodError.body);
+    return sendError(res, 500, await translation('AUTH.LOGIN_FAILED', locale), error);
   }
 };
 
@@ -75,41 +67,29 @@ export const validateToken = async (req: Request, res: Response) => {
     const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : bodyToken;
 
     if (!token) {
-      return res.status(401).json({
-        valid: false,
-        message: await translation('AUTH.TOKEN_INVALID_OR_MISSING', locale),
-      });
+      return sendError(res, 401, await translation('AUTH.TOKEN_INVALID_OR_MISSING', locale), { valid: false });
     }
 
     const decoded = verifyToken(token) as { id?: number | string; role?: JwtRole };
     if (!decoded?.id || !decoded?.role) {
-      return res.status(401).json({
-        valid: false,
-        message: await translation('AUTH.TOKEN_INVALID_OR_EXPIRED', locale),
-      });
+      return sendError(res, 401, await translation('AUTH.TOKEN_INVALID_OR_EXPIRED', locale), { valid: false });
     }
 
-    const subjectId = Number(decoded.id);
-    const account = await Account.findOne({ where: { subject_id: subjectId } });
+    const account = await findAccountByTokenClaims({
+      id: Number(decoded.id),
+      role: decoded.role,
+    });
     if (!account) {
-      return res.status(401).json({
-        valid: false,
-        message: await translation('AUTH.TOKEN_INVALID_OR_EXPIRED', locale),
-      });
+      return sendError(res, 401, await translation('AUTH.TOKEN_INVALID_OR_EXPIRED', locale), { valid: false });
     }
 
     return res.status(200).json({
       valid: true,
-      user: {
-        id: subjectId,
-        role: decoded.role,
-      },
+      ok: true,
     });
   } catch (error) {
-    return res.status(401).json({
+    return sendError(res, 401, await translation('AUTH.TOKEN_INVALID_OR_EXPIRED', locale), error, {
       valid: false,
-      message: await translation('AUTH.TOKEN_INVALID_OR_EXPIRED', locale),
-      error: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 };

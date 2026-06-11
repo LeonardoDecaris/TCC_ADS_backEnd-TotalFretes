@@ -1,0 +1,148 @@
+import { generateCpf } from '../utils/generateCpf';
+
+export type DemoDriverSpec = {
+	index: number;
+	name: string;
+	cpf: string;
+	cnhNumber: string;
+	cnhType_id: number;
+	phoneNumber: string;
+	sex: string;
+	birthDate: string;
+	vehicleTypeName: string;
+	groupVehicleTypeName: string;
+	plateNumber: string;
+};
+
+export const DEMO_DRIVERS: DemoDriverSpec[] = [
+	{
+		index: 1,
+		name: 'Carlos Eduardo Silva',
+		cpf: generateCpf(101),
+		cnhNumber: '10123456701',
+		cnhType_id: 5,
+		phoneNumber: '5511990001001',
+		sex: 'M',
+		birthDate: '1985-03-12',
+		vehicleTypeName: 'Carreta 5 eixos',
+		groupVehicleTypeName: 'Carreta',
+		plateNumber: 'ABC1D01',
+	},
+	{
+		index: 2,
+		name: 'Roberto Almeida Santos',
+		cpf: generateCpf(102),
+		cnhNumber: '10123456702',
+		cnhType_id: 5,
+		phoneNumber: '5511990001002',
+		sex: 'M',
+		birthDate: '1980-07-25',
+		vehicleTypeName: 'Bitrem 7 eixos',
+		groupVehicleTypeName: 'Bitrem',
+		plateNumber: 'DEF2G02',
+	},
+	{
+		index: 3,
+		name: 'Marcos Pereira Lima',
+		cpf: generateCpf(103),
+		cnhNumber: '10123456703',
+		cnhType_id: 5,
+		phoneNumber: '5511990001003',
+		sex: 'M',
+		birthDate: '1978-11-08',
+		vehicleTypeName: 'Carreta 6 eixos',
+		groupVehicleTypeName: 'Carreta',
+		plateNumber: 'GHI3J03',
+	},
+	{
+		index: 4,
+		name: 'Fernando Costa Oliveira',
+		cpf: generateCpf(104),
+		cnhNumber: '10123456704',
+		cnhType_id: 3,
+		phoneNumber: '5511990001004',
+		sex: 'M',
+		birthDate: '1990-01-19',
+		vehicleTypeName: 'Prancha 4 eixos',
+		groupVehicleTypeName: 'Prancha',
+		plateNumber: 'JKL4M04',
+	},
+	{
+		index: 5,
+		name: 'Paulo Henrique Souza',
+		cpf: generateCpf(105),
+		cnhNumber: '10123456705',
+		cnhType_id: 5,
+		phoneNumber: '5511990001005',
+		sex: 'M',
+		birthDate: '1987-09-30',
+		vehicleTypeName: 'Cegonha 6 eixos',
+		groupVehicleTypeName: 'Cegonha',
+		plateNumber: 'MNO5P05',
+	},
+	{
+		index: 6,
+		name: 'Ricardo Mendes Ferreira',
+		cpf: generateCpf(106),
+		cnhNumber: '10123456706',
+		cnhType_id: 5,
+		phoneNumber: '5511990001006',
+		sex: 'M',
+		birthDate: '1983-05-14',
+		vehicleTypeName: 'Bitrem 9 eixos',
+		groupVehicleTypeName: 'Bitrem',
+		plateNumber: 'PQR6S06',
+	},
+	{
+		index: 7,
+		name: 'André Luiz Barbosa',
+		cpf: generateCpf(107),
+		cnhNumber: '10123456707',
+		cnhType_id: 5,
+		phoneNumber: '5511990001007',
+		sex: 'M',
+		birthDate: '1975-12-03',
+		vehicleTypeName: 'Carreta 4 eixos',
+		groupVehicleTypeName: 'Carreta',
+		plateNumber: 'STU7V07',
+	},
+	{
+		index: 8,
+		name: 'João Victor Rocha',
+		cpf: generateCpf(108),
+		cnhNumber: '10123456708',
+		cnhType_id: 3,
+		phoneNumber: '5511990001008',
+		sex: 'M',
+		birthDate: '1992-08-22',
+		vehicleTypeName: 'Caminhão 3 eixos',
+		groupVehicleTypeName: 'Caminhão',
+		plateNumber: 'VWX8Y08',
+	},
+	{
+		index: 9,
+		name: 'Lucas Martins Dias',
+		cpf: generateCpf(109),
+		cnhNumber: '10123456709',
+		cnhType_id: 5,
+		phoneNumber: '5511990001009',
+		sex: 'M',
+		birthDate: '1988-04-17',
+		vehicleTypeName: 'Carreta 7 eixos',
+		groupVehicleTypeName: 'Carreta',
+		plateNumber: 'YZA9B09',
+	},
+	{
+		index: 10,
+		name: 'Diego Ramos Nunes',
+		cpf: generateCpf(110),
+		cnhNumber: '10123456710',
+		cnhType_id: 5,
+		phoneNumber: '5511990001010',
+		sex: 'M',
+		birthDate: '1981-06-28',
+		vehicleTypeName: 'Bitrem 6 eixos',
+		groupVehicleTypeName: 'Bitrem',
+		plateNumber: 'BCD0E10',
+	},
+];

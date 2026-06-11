@@ -1,13 +1,41 @@
 import express from 'express';
-import { createCompany, getCompanyById, getAllCompanies, updateCompany, deleteCompany } from '../controllers/company.controller';
+import {
+	createCompany,
+	createCompanyEndAccount,
+	completeCompanyPayment,
+	deleteCompanyImage,
+	deleteOwnCompany,
+	getCompanyById,
+	getAllCompanies,
+	getCompanyPaymentStatusBySubject,
+	requestCompanyPaymentToken,
+	upsertCompanyImage,
+	updateCompany,
+	deleteCompany,
+} from '../controllers/company.controller';
 import { allowOwnerOrRoles, authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
+import { internalServiceMiddleware } from '../middleware/internalServiceMiddleware';
+import { paymentTokenMiddleware } from '../middleware/paymentTokenMiddleware';
+import { handleCompanyImageUploadError, uploadCompanyImage } from '../utils/uploadCompanyImage';
 
 const router = express.Router();
 
+router.post('/end-account', createCompanyEndAccount);
+router.post('/payment-token/request', requestCompanyPaymentToken);
+router.patch('/complete-payment', paymentTokenMiddleware, completeCompanyPayment);
+router.get(
+	'/internal/:subjectId/payment-status',
+	internalServiceMiddleware,
+	getCompanyPaymentStatusBySubject,
+);
 router.post('/', createCompany);
-router.get('/:id', authMiddleware, allowOwnerOrRoles(), getCompanyById); 
+router.delete('/me', authMiddleware, authorizeRoles('COMPANY'), deleteOwnCompany);
+router.get('/:id', authMiddleware, allowOwnerOrRoles('COMPANY', 'USER'), getCompanyById); 
 router.get('/', authMiddleware, authorizeRoles('ADMIN'), getAllCompanies);
+router.post('/:id/image', authMiddleware, allowOwnerOrRoles(), uploadCompanyImage.single('image'), upsertCompanyImage);
+router.delete('/:id/image', authMiddleware, allowOwnerOrRoles(), deleteCompanyImage);
 router.put('/:id', authMiddleware, allowOwnerOrRoles(), updateCompany);
 router.delete('/:id', authMiddleware, allowOwnerOrRoles(), deleteCompany);
+router.use(handleCompanyImageUploadError);
 
 export default router;

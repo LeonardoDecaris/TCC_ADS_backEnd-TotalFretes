@@ -1,21 +1,17 @@
-import axios from 'axios';
 import bcrypt from 'bcrypt';
 import { Request, Response } from 'express';
 import Account from '../models/accounts.model';
 import { generateResetToken, verifyResetToken } from '../utils/jwt';
 import { setResetCode, getAndConsumeResetCode } from '../store/resetCodes.store';
+import { publishPasswordResetEmail } from '../messaging/email.publisher';
 import { translation } from '../utils/i18n';
 import { getLocaleFromRequest } from '../utils/locale';
+import { sendError } from '../utils/httpResponse';
+import { logger } from '../config/logging';
+import { logError } from '@total-fretes/logging';
 
-const EMAIL_MANAGEMENT_SERVICE_URL = process.env.EMAIL_MANAGEMENT_SERVICE_URL;
-const EMAIL_SERVICE_TIMEOUT_MS = 10_000;
-
-const dispatchResetEmail = (email: string, code: string) =>
-  axios.post(
-    `${EMAIL_MANAGEMENT_SERVICE_URL}/enviar-codigo`,
-    { email, codigo: code },
-    { timeout: EMAIL_SERVICE_TIMEOUT_MS }
-  );
+const dispatchResetEmail = (email: string, codigo: string) =>
+  publishPasswordResetEmail({ email, codigo });
 
 export const forgotPassword = async (req: Request, res: Response) => {
   const locale = getLocaleFromRequest(req);
@@ -23,9 +19,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
     const { email } = req.body;
 
     if (!email || typeof email !== 'string') {
-      return res.status(400).json({
-        message: await translation('PASSWORD_RESET.EMAIL_REQUIRED', locale),
-      });
+      return sendError(res, 400, await translation('PASSWORD_RESET.EMAIL_REQUIRED', locale));
     }
 
     const normalizedEmail = email.trim().toLowerCase();
@@ -37,10 +31,10 @@ export const forgotPassword = async (req: Request, res: Response) => {
       });
     }
 
-    const code = setResetCode(normalizedEmail);
+    const code = await setResetCode(normalizedEmail);
 
     void dispatchResetEmail(normalizedEmail, code).catch((error) => {
-      console.error('Erro ao chamar email-management-service:', error);
+      logError(logger, 'Erro ao publicar e-mail de recuperação na fila', error);
     });
 
     return res.status(200).json({
@@ -48,10 +42,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
     });
 
   } catch (error) {
-    console.error('forgotPassword error:', error);
-    return res.status(500).json({
-      message: await translation('PASSWORD_RESET.PROCESS_REQUEST_FAILED', locale),
-    });
+    return sendError(res, 500, await translation('PASSWORD_RESET.PROCESS_REQUEST_FAILED', locale), error);
   }
 };
 
@@ -60,18 +51,14 @@ export const validateResetCode = async (req: Request, res: Response) => {
   try {
     const { email, code } = req.body;
     if (!email || !code) {
-      return res.status(400).json({
-        message: await translation('PASSWORD_RESET.EMAIL_AND_CODE_REQUIRED', locale),
-      });
+      return sendError(res, 400, await translation('PASSWORD_RESET.EMAIL_AND_CODE_REQUIRED', locale));
     }
 
     const normalizedEmail = String(email).trim().toLowerCase();
     const normalizedCode = String(code).trim();
-    const isValid = getAndConsumeResetCode(normalizedEmail, normalizedCode);
+    const isValid = await getAndConsumeResetCode(normalizedEmail, normalizedCode);
     if (!isValid) {
-      return res.status(400).json({
-        message: await translation('PASSWORD_RESET.CODE_INVALID_OR_EXPIRED', locale),
-      });
+      return sendError(res, 400, await translation('PASSWORD_RESET.CODE_INVALID_OR_EXPIRED', locale));
     }
 
     const resetToken = generateResetToken({ email: normalizedEmail });
@@ -81,10 +68,7 @@ export const validateResetCode = async (req: Request, res: Response) => {
       resetToken,
     });
   } catch (error) {
-    console.error('validateResetCode error:', error);
-    return res.status(500).json({
-      message: await translation('PASSWORD_RESET.VALIDATION_FAILED', locale),
-    });
+    return sendError(res, 500, await translation('PASSWORD_RESET.VALIDATION_FAILED', locale), error);
   }
 };
 
@@ -93,31 +77,23 @@ export const resetPassword = async (req: Request, res: Response) => {
   try {
     const { resetToken, password } = req.body;
     if (!resetToken || !password) {
-      return res.status(400).json({
-        message: await translation('PASSWORD_RESET.TOKEN_AND_PASSWORD_REQUIRED', locale),
-      });
+      return sendError(res, 400, await translation('PASSWORD_RESET.TOKEN_AND_PASSWORD_REQUIRED', locale));
     }
 
     if (typeof password !== 'string' || password.length < 8) {
-      return res.status(400).json({
-        message: await translation('PASSWORD_RESET.PASSWORD_MIN_LENGTH', locale),
-      });
+      return sendError(res, 400, await translation('PASSWORD_RESET.PASSWORD_MIN_LENGTH', locale));
     }
 
     let payload: { email: string };
     try {
       payload = verifyResetToken(resetToken);
     } catch {
-      return res.status(400).json({
-        message: await translation('PASSWORD_RESET.TOKEN_INVALID_OR_EXPIRED', locale),
-      });
+      return sendError(res, 400, await translation('PASSWORD_RESET.TOKEN_INVALID_OR_EXPIRED', locale));
     }
 
     const account = await Account.findOne({ where: { email: payload.email } });
     if (!account) {
-      return res.status(404).json({
-        message: await translation('PASSWORD_RESET.ACCOUNT_NOT_FOUND', locale),
-      });
+      return sendError(res, 404, await translation('PASSWORD_RESET.ACCOUNT_NOT_FOUND', locale));
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -127,10 +103,7 @@ export const resetPassword = async (req: Request, res: Response) => {
       message: await translation('PASSWORD_RESET.PASSWORD_CHANGED_SUCCESSFULLY', locale),
     });
   } catch (error) {
-    console.error('resetPassword error:', error);
-    return res.status(500).json({
-      message: await translation('PASSWORD_RESET.RESET_FAILED', locale),
-    });
+    return sendError(res, 500, await translation('PASSWORD_RESET.RESET_FAILED', locale), error);
   }
 };
 
@@ -139,9 +112,7 @@ export const resendCode = async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
     if (!email || typeof email !== 'string') {
-      return res.status(400).json({
-        message: await translation('PASSWORD_RESET.EMAIL_REQUIRED', locale),
-      });
+      return sendError(res, 400, await translation('PASSWORD_RESET.EMAIL_REQUIRED', locale));
     }
     const normalizedEmail = email.trim().toLowerCase();
     const account = await Account.findOne({ where: { email: normalizedEmail } });
@@ -151,18 +122,15 @@ export const resendCode = async (req: Request, res: Response) => {
       });
     }
 
-    const code = setResetCode(normalizedEmail);
+    const code = await setResetCode(normalizedEmail);
     void dispatchResetEmail(normalizedEmail, code).catch((error) => {
-      console.error('Erro ao chamar email-management-service:', error);
+      logError(logger, 'Erro ao publicar e-mail de recuperação na fila', error);
     });
     return res.status(200).json({
       message: await translation('PASSWORD_RESET.REQUEST_ACCEPTED_GENERIC', locale),
     });
   }
   catch (error) {
-    console.error('resendCode error:', error);
-    return res.status(500).json({
-      message: await translation('PASSWORD_RESET.PROCESS_REQUEST_FAILED', locale),
-    });
+    return sendError(res, 500, await translation('PASSWORD_RESET.PROCESS_REQUEST_FAILED', locale), error);
   }
 };

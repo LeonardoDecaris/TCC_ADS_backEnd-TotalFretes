@@ -17,22 +17,21 @@
             "path": "./email-management-service"
         },
         {
-            "name": "Swagger-service",
-            "path": "./swagger-service"
+            "name": "freight-service",
+            "path": "./freight-service"
         },
         {
             "name": "mapbox-service",
             "path": "./mapbox-service"
         },
         {
-            "name": "nginx",
-            "path": "./nginx"
+            "name": "storage-service",
+            "path": "./storage-service"
         },
         {
-            "name": "i18n-translation-service",
-            "path": "./i18n-translation-service"
-        }
-    ],
+            "name": "swagger-service",
+            "path": "./swagger-service"
+        }    ],
    
     "settings": {
         "files.exclude": {
@@ -43,6 +42,9 @@
             "**/.git": true
         },
         "editor.formatOnSave": true,
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "[typescript]": {
+            "editor.defaultFormatter": "vscode.typescript-language-features"
+        }
     }
 }

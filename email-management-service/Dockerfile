@@ -1,13 +1,26 @@
 FROM node:22-slim
 
-WORKDIR /app
+WORKDIR /app/packages/rpc-contracts
+COPY packages/rpc-contracts/package.json packages/rpc-contracts/tsconfig.json ./
+COPY packages/rpc-contracts/src ./src
+RUN npm install && npm run build
 
-COPY package*.json ./
-COPY tsconfig.json ./
+WORKDIR /app/packages/logging
+COPY packages/logging/package.json packages/logging/tsconfig.json ./
+COPY packages/logging/src ./src
+RUN npm install && npm run build
 
+WORKDIR /app/packages/tracing
+COPY packages/tracing/package.json packages/tracing/tsconfig.json ./
+COPY packages/tracing/src ./src
+RUN npm install && npm run build
+
+WORKDIR /app/email-management-service
+COPY email-management-service/package*.json ./
+COPY email-management-service/tsconfig.json ./
 RUN npm install
 
-COPY src ./src
+COPY email-management-service/src ./src
 
 EXPOSE 3003
 

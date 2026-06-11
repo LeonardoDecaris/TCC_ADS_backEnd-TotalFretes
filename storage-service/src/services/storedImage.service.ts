@@ -1,0 +1,36 @@
+import type { Model, ModelStatic } from 'sequelize';
+import type { Request } from 'express';
+
+import type { StoredImageKindConfig } from '../config/storedImageKinds';
+import type { StoredImageUploadHelpers } from '../utils/storedImageUpload';
+
+export function serializeStoredImage(
+  config: Pick<StoredImageKindConfig, 'routeBase'>,
+  row: Model,
+): Record<string, unknown> {
+  const json = row.toJSON() as Record<string, unknown>;
+  const fileName = typeof json.fileName === 'string' ? json.fileName : '';
+
+  return {
+    ...json,
+    url: fileName ? `/api/uploads/${config.routeBase}/${fileName}` : null,
+  };
+}
+
+export async function getStoredImageJsonByPk(
+  Model: ModelStatic<Model>,
+  config: Pick<StoredImageKindConfig, 'routeBase'>,
+  id: number,
+): Promise<Record<string, unknown> | null> {
+  const row = await Model.findByPk(id);
+  return row ? serializeStoredImage(config, row) : null;
+}
+
+export type StoredImageControllerDeps = {
+  Model: ModelStatic<Model>;
+  config: StoredImageKindConfig;
+  upload: StoredImageUploadHelpers;
+  resolveCreatePayload?: (
+    req: Request,
+  ) => Promise<Record<string, unknown> | null> | Record<string, unknown> | null;
+};
