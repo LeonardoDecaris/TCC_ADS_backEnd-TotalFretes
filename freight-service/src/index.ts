@@ -2,12 +2,14 @@ import app from './app';
 import dotenv from 'dotenv';
 import sequelize from './config/database';
 import './models/associations';
+import { loadSharedProjectEnv } from '@total-fretes/demo-seed-data';
 import { runDatabaseSeeds } from './config/runDatabaseSeeds';
 import { logger } from './config/logging';
 import { logError } from '@total-fretes/logging';
 import { startNotificationPublisher } from './messaging/rabbitmq';
 
 dotenv.config();
+loadSharedProjectEnv();
 
 const PORT = process.env.PORT;
 if (!PORT) {
@@ -21,7 +23,7 @@ if (!PORT) {
     await sequelize.sync({ alter: false });
     logger.info('Database synchronized successfully');
     await runDatabaseSeeds();
-    logger.info('Database seeds completed successfully (catalogs + test freights/proposals)');
+    logger.info('Database seeds completed successfully');
 
     try {
       await startNotificationPublisher();

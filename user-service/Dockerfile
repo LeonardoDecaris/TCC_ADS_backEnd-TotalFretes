@@ -5,6 +5,11 @@ COPY packages/logging/package.json packages/logging/tsconfig.json ./
 COPY packages/logging/src ./src
 RUN npm install && npm run build
 
+WORKDIR /app/packages/demo-seed-data
+COPY packages/demo-seed-data/package.json packages/demo-seed-data/tsconfig.json ./
+COPY packages/demo-seed-data/src ./src
+RUN npm install && npm run build
+
 WORKDIR /app/user-service
 COPY user-service/package.json user-service/tsconfig.json ./
 COPY user-service/src ./src

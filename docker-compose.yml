@@ -330,6 +330,7 @@ services:
     container_name: user-service
     restart: always
     env_file:
+      - .env
       - ./user-service/.env
     depends_on:
       user-service-database:
@@ -350,6 +351,7 @@ services:
     container_name: company-service
     restart: always
     env_file:
+      - .env
       - ./company-service/.env
     depends_on:
       company-service-database:
@@ -370,6 +372,7 @@ services:
     container_name: storage-service
     restart: always
     env_file:
+      - .env
       - ./storage-service/.env
     depends_on:
       storage-service-database:
@@ -377,8 +380,7 @@ services:
     networks:
       - app-network
     volumes:
-      - storage-service-uploads:/app/uploads
-      - ./uploads:/backup/uploads
+      - ./uploads:/app/uploads
     healthcheck:
       test: ["CMD-SHELL", "node -e \"require('http').get('http://127.0.0.1:3007/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))\""]
       interval: 15s
@@ -393,6 +395,7 @@ services:
     container_name: freight-service
     restart: always
     env_file:
+      - .env
       - ./freight-service/.env
     depends_on:
       freight-service-database:
@@ -475,7 +478,6 @@ volumes:
   user-service-database-data:
   company-service-database-data:
   storage-service-database-data:
-  storage-service-uploads:
   freight-service-database-data:
   notification-service-database-data:
   mapbox-service-database-data:
