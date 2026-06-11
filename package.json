@@ -19,6 +19,7 @@
     "test:all": "node scripts/test-all.js",
     "test:all:local": "node scripts/test-all.js --skip-stack",
     "test:all:ci": "node scripts/test-all.js --teardown",
-    "test": "npm run test:unit"
+    "test": "npm run test:unit",
+    "seed:demo": "node scripts/run-demo-seed.js"
   }
 }

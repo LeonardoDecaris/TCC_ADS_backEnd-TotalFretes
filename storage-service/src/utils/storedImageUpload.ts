@@ -5,6 +5,12 @@ import path from 'path';
 const rootDir = process.cwd();
 const imageMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
+export function resolveUploadsRoot(): string {
+  const configured = process.env.UPLOADS_ROOT?.trim();
+  if (configured) return configured;
+  return path.join(rootDir, 'uploads');
+}
+
 const backupDir: string | null =
   process.env.BACKUP_UPLOAD_DIR != null && String(process.env.BACKUP_UPLOAD_DIR).trim() !== ''
     ? String(process.env.BACKUP_UPLOAD_DIR).trim()
@@ -24,10 +30,11 @@ export type StoredImageUploadHelpers = {
 };
 
 export function createStoredImageUpload(uploadSubdir: string): StoredImageUploadHelpers {
+  const uploadsRoot = resolveUploadsRoot();
   const uploadDir =
-    process.env.UPLOAD_DIR && uploadSubdir === 'user-images'
-      ? process.env.UPLOAD_DIR
-      : path.join(rootDir, 'uploads', uploadSubdir);
+    process.env.UPLOAD_DIR?.trim() && uploadSubdir === 'user-images'
+      ? process.env.UPLOAD_DIR.trim()
+      : path.join(uploadsRoot, uploadSubdir);
 
   if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });

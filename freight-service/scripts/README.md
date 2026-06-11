@@ -4,23 +4,38 @@
 
 Ao subir o serviço (`npm run dev` ou container Docker), após `sequelize.sync`, roda automaticamente:
 
-1. Tipos de carga  
-2. Status de frete  
-3. Status de proposta  
-4. Fretes/propostas de teste (`TF-TEST-*`), se `SEED_TEST_DATA` não for `false`
+1. Status de frete
+2. Status de proposta
+3. **Demo** (`DEMO-*`), somente se `DEMO_DATA_SEED_ON_STARTUP=true` no `.env` **raiz** do backend
 
-Configure no `.env`:
+As flags `DEMO_DATA_SEED_ENABLED` e `DEMO_DATA_SEED_ON_STARTUP` ficam **somente** no `.env` na raiz do monorepo (não nos `.env` dos serviços).
 
 | Variável | Padrão | Descrição |
 |----------|--------|-----------|
-| `SEED_TEST_COMPANY_ID` | `1` | `company_id` dos fretes de teste |
-| `SEED_TEST_DRIVER_IDS` | `2,3,4,5` | IDs de motoristas (mín. 4) |
-| `SEED_TEST_DATA` | (ativo) | Defina `false` para não criar TF-TEST-* no startup |
+| `DEMO_DATA_SEED_ENABLED` | `false` | Habilita execução da seed demo (script manual e rotas internas) |
+| `DEMO_DATA_SEED_ON_STARTUP` | `false` | Roda seed demo automaticamente ao subir o container |
+| `INTERNAL_SERVICE_KEY` | — | Chave para rotas internas entre serviços |
 
-## Rodar só os seeds (sem API)
+## Popular dados demo (manual)
+
+Na raiz do backend, com a stack em execução:
+
+```bash
+npm run seed:demo
+```
+
+Isso popula storage, empresas, motoristas e fretes demo sem reiniciar os containers.
+
+**Pré-requisito:** PNGs em `uploads/cargo-images/` e `uploads/company-images/` na raiz do backend (ver manifestos em `packages/demo-seed-data`).
+
+Somente freight-service (tipos de carga + fretes demo, com stack já populada):
+
+```bash
+npm run seed:demo
+```
+
+Legado TF-TEST:
 
 ```bash
 npm run seed:test
 ```
-
-Útil após ajustar `SEED_TEST_*` sem reiniciar o servidor inteiro.

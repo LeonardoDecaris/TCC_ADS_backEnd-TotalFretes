@@ -10,6 +10,11 @@ COPY packages/tracing/package.json packages/tracing/tsconfig.json ./
 COPY packages/tracing/src ./src
 RUN npm install && npm run build
 
+WORKDIR /app/packages/demo-seed-data
+COPY packages/demo-seed-data/package.json packages/demo-seed-data/tsconfig.json ./
+COPY packages/demo-seed-data/src ./src
+RUN npm install && npm run build
+
 WORKDIR /app/company-service
 COPY company-service/package.json company-service/tsconfig.json ./
 COPY company-service/src ./src

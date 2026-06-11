@@ -716,8 +716,20 @@ O arquivo `docker-compose.test.yml` aplica overrides sem alterar o compose princ
 
 - `JWT_SECRET` e `INTERNAL_SERVICE_KEY` fixos para todos os serviços stateful
 - `ADMIN_SEED_ENABLED=true` no authentication-service
-- `SEED_TEST_DATA=true` no freight-service (dados `TF-TEST-*`)
+- `DEMO_DATA_SEED_ON_STARTUP=true` via `docker-compose.test.yml` (sobrescreve o `.env` raiz; popula demo na subida da stack de teste)
 - Nginx com `nginx.test.conf` (rate limits relaxados para integração e K6)
+
+### Seed demo (desenvolvimento / apresentação)
+
+Em desenvolvimento local, configure `DEMO_DATA_SEED_ENABLED=true` e `DEMO_DATA_SEED_ON_STARTUP=false` (padrão) **somente no `.env` na raiz do backend** (junto com `INTERNAL_SERVICE_KEY`, senhas demo, etc.). Os serviços leem esse arquivo automaticamente via Docker Compose e em `npm run dev`. A seed demo **não** roda ao reiniciar containers — execute manualmente após subir a stack:
+
+```bash
+npm run seed:demo
+```
+
+Isso popula 22 empresas com logos, ~65 tipos de carga, 10 motoristas e ~88 fretes com propostas. Senhas padrão: `DEMO_SEED_PASSWORD` (empresas) e `DEMO_SEED_DRIVER_PASSWORD` (motoristas). Reexecutar `npm run seed:demo` faz upsert nos registros demo existentes.
+
+Antes da primeira seed, coloque os PNGs demo em `uploads/cargo-images/` (tipos de carga) e `uploads/company-images/` (logos das empresas). A pasta `uploads/` é montada no container do `storage-service` via Docker Compose.
 
 ---
 

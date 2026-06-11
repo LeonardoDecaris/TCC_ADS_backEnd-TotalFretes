@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import userImagesRoutes from './routes/userImages.routes';
+import internalSeedRoutes from './routes/internalSeed.routes';
 import {
   cargoImagesRoutes,
   companyImagesRoutes,
@@ -53,6 +54,7 @@ if (publicKinds.has('cargo')) {
 app.use('/user-images', userImagesRoutes);
 app.use('/company-images', companyImagesRoutes);
 app.use('/cargo-images', cargoImagesRoutes);
+app.use('/internal/seed', internalSeedRoutes);
 
 app.use(handleStoredImageUploadError);
 app.use(ErrorHandlerMiddleware);

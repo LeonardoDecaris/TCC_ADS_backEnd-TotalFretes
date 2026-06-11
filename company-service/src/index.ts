@@ -2,11 +2,13 @@ import app from './app';
 import dotenv from 'dotenv';
 import sequelize from './config/database';
 import { ensureCompanyAddressCountryColumn } from './database/ensureCompanyAddressCountryColumn';
-import { seedDefaultCompany } from './config/seedDefaultCompany';
+import { seedDemoCompanies } from './config/seedDemoCompanies';
+import { isDemoSeedOnStartupEnabled, loadSharedProjectEnv } from '@total-fretes/demo-seed-data';
 import { logger } from './config/logging';
 import { logError } from '@total-fretes/logging';
 
 dotenv.config();
+loadSharedProjectEnv();
 
 const PORT = process.env.PORT;
 if (!PORT) {
@@ -24,8 +26,12 @@ if (!PORT) {
     await ensureCompanyAddressCountryColumn();
     logger.info('Company address country column ensured successfully');
 
-    await seedDefaultCompany();
-    logger.info('Default company account verified successfully');
+    if (isDemoSeedOnStartupEnabled()) {
+      await seedDemoCompanies();
+      logger.info('Demo companies seed completed successfully');
+    } else {
+      logger.info('Demo companies seed skipped (DEMO_DATA_SEED_ON_STARTUP=false)');
+    }
 
     app.listen(PORT, () => logger.info(`Server is running on port ${PORT}`));
   } catch (err) {

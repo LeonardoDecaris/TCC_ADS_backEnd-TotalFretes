@@ -1,0 +1,19 @@
+{
+  "name": "@total-fretes/demo-seed-data",
+  "version": "1.0.0",
+  "description": "Manifests e utilitários para seed demo do TotalFretes",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.9.3"
+  },
+  "files": ["dist"]
+}

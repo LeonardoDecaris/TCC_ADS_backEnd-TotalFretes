@@ -15,6 +15,7 @@
     "lint:fix": "eslint --no-error-on-unmatched-pattern \"src/**/*.ts\" \"test/**/*.ts\" --fix"
   },
   "dependencies": {
+    "@total-fretes/demo-seed-data": "file:../packages/demo-seed-data",
     "@total-fretes/logging": "file:../packages/logging",
     "@total-fretes/tracing": "file:../packages/tracing",
     "@types/amqplib": "^0.10.8",

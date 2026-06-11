@@ -6,9 +6,9 @@
   "type": "commonjs",
   "scripts": {
     "build": "tsc",
-    "start": "node -r @total-fretes/tracing/register dist/index.js",
-    "dev": "ts-node -r @total-fretes/tracing/register src/index.ts",
-    "seed:test": "ts-node src/scripts/runTestSeed.ts",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "seed:demo": "ts-node src/scripts/runDemoSeed.ts",
     "test": "jest --runInBand",
     "test:unit": "jest --testPathPattern=test/unit",
     "test:watch": "jest --watch",
@@ -23,6 +23,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@total-fretes/demo-seed-data": "file:../packages/demo-seed-data",
     "@total-fretes/logging": "file:../packages/logging",
     "@total-fretes/tracing": "file:../packages/tracing",
     "amqplib": "^0.10.9",

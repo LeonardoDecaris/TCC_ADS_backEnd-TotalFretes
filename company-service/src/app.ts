@@ -4,6 +4,7 @@ import express from 'express';
 import { apiDocs } from './api-docs';
 import companyRoutes from './routes/company.routes';
 import addressRoutes from './routes/address.routes';
+import internalSeedRoutes from './routes/internalSeed.routes';
 import { requestIdMiddleware, requestLoggerMiddleware } from './config/logging';
 import { ErrorHandlerMiddleware } from './middlewares/errors';
 
@@ -25,6 +26,7 @@ app.get('/api-docs', (_req, res) => res.json(apiDocs));
 
 app.use('/company', companyRoutes);
 app.use('/address', addressRoutes);
+app.use('/internal/seed', internalSeedRoutes);
 
 app.use(ErrorHandlerMiddleware);
 

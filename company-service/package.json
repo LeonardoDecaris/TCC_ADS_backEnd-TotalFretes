@@ -22,6 +22,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@total-fretes/demo-seed-data": "file:../packages/demo-seed-data",
     "@total-fretes/logging": "file:../packages/logging",
     "@total-fretes/tracing": "file:../packages/tracing",
     "axios": "^1.13.5",
