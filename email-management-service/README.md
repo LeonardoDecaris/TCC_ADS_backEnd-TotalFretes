@@ -29,24 +29,13 @@ Este serviço **não expõe API REST de negócio** — opera como consumidor Rab
 Copie `.env.example` para `.env` e preencha:
 
 ```env
-# Servidor
 PORT=3003
-NODE_ENV=development
-SERVICE_NAME=email-management-service
+SMTP_HOST=
+SMTP_PORT=
+SMTP_USER=
+SMTP_PASS=
 
-# SMTP (envio de e-mails)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=seu_email@gmail.com
-SMTP_PASS=sua_senha_de_app_ou_smtp
-
-# Mensageria
 RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
-EMAIL_EVENTS_EXCHANGE=email.events
-EMAIL_SEND_QUEUE=email.send
-EMAIL_ROUTING_KEY_PASSWORD_RESET=email.send.password_reset
-EMAIL_DLX_EXCHANGE=email.dlx
-EMAIL_SEND_FAILED_QUEUE=email.send.failed
 ```
 
 | Variável | Obrigatória | Descrição |

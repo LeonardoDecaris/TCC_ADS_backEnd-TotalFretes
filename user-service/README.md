@@ -81,24 +81,22 @@ Microserviço responsável pelo cadastro e gestão de **motoristas/caminhoneiros
 Copie `.env.example` para `.env` e preencha:
 
 ```env
-# Servidor
+JWT_SECRET=secret
 PORT=3001
-JWT_SECRET=sua_chave_secreta_jwt_compartilhada_entre_os_servicos
-NODE_ENV=development
-SERVICE_NAME=user-service
 
-# Banco de dados (MySQL)
-DB_HOST=user-service-database
-DB_NAME=user_db
-DB_USER=user_user
-DB_PASS=user_pass
-MYSQL_ROOT_PASSWORD=root
-MYSQL_DATABASE=user_db
+DB_NAME=authentication_service
+DB_USER=root
+DB_PASS=123456
+DB_HOST=authentication-service-database
+
+MYSQL_ROOT_PASSWORD=123456
+MYSQL_DATABASE=authentication_service
 MYSQL_ROOT_HOST=%
 
-# Integração com outros serviços
 AUTH_SERVICE_URL=http://authentication-service:3000
 STORAGE_SERVICE_URL=http://storage-service:3007
+
+REDIS_URL=redis://redis:6379
 ```
 
 | Variável | Obrigatória | Descrição |

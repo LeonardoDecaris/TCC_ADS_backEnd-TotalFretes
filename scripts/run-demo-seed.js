@@ -101,6 +101,7 @@ fetch('http://127.0.0.1:${port}/internal/seed/run', {
 	method: 'POST',
 	headers,
 	body: '{}',
+	signal: AbortSignal.timeout(400000),
 }).then(async (response) => {
 	const text = await response.text();
 	if (!response.ok) {
@@ -120,6 +121,7 @@ fetch('http://127.0.0.1:${port}/internal/seed/run', {
 		encoding: 'utf8',
 		stdio: ['pipe', 'pipe', 'pipe'],
 		env: process.env,
+		timeout: 410000,
 	});
 
 	const trimmed = output.trim();
@@ -174,11 +176,19 @@ async function main() {
 	for (let index = 0; index < SEED_STEPS.length; index += 1) {
 		const step = SEED_STEPS[index];
 		console.log(`${index + 1}/4 ${step.label}...`);
-		console.log(await postJson(step, mode));
+		try {
+			console.log(await postJson(step, mode));
+		} catch (error) {
+			console.error(`[erro] ${step.label} falhou (continuando):`, error?.message ?? error);
+		}
 	}
 
 	console.log('4/4 freight-service tipos de carga + fretes + propostas...');
-	runFreightSeed(mode);
+	try {
+		runFreightSeed(mode);
+	} catch (error) {
+		console.error('[erro] freight-service seed falhou:', error?.message ?? error);
+	}
 
 	console.log('Seed demo concluída.');
 }

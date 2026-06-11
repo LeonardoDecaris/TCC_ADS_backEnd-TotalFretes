@@ -9,40 +9,29 @@ Microserviço responsável por credenciais, login, emissão de JWT e recuperaç�
 Copie `.env.example` para `.env` e preencha os valores abaixo:
 
 ```env
-# Servidor
+JWT_SECRET=secret
 PORT=3000
-JWT_SECRET=sua_chave_secreta_jwt_compartilhada_entre_os_servicos
-NODE_ENV=development
-SERVICE_NAME=authentication-service
 
-# Banco de dados (MySQL)
+DB_NAME=authentication_service
+DB_USER=root
+DB_PASS=123456
 DB_HOST=authentication-service-database
-DB_NAME=authentication_db
-DB_USER=auth_user
-DB_PASS=auth_pass
-MYSQL_ROOT_PASSWORD=root
-MYSQL_DATABASE=authentication_db
+
+MYSQL_ROOT_PASSWORD=123456
+MYSQL_DATABASE=authentication_service
 MYSQL_ROOT_HOST=%
 
-# Cache e mensageria (recuperação de senha)
 REDIS_URL=redis://redis:6379
 RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
 
-# Filas de e-mail (publicação para email-management-service)
 EMAIL_EVENTS_EXCHANGE=email.events
-EMAIL_SEND_QUEUE=email.send
-EMAIL_ROUTING_KEY_PASSWORD_RESET=email.send.password_reset
-EMAIL_DLX_EXCHANGE=email.dlx
-EMAIL_SEND_FAILED_QUEUE=email.send.failed
 
-# Integração com company-service (consultas internas)
-COMPANY_SERVICE_URL=http://company-service:3002
-INTERNAL_SERVICE_KEY=chave_interna_entre_servicos
-
-# Seed opcional de admin (desenvolvimento)
-ADMIN_SEED_ENABLED=true
-ADMIN_SEED_EMAIL=admin@totalfretes.com
-ADMIN_SEED_PASSWORD=Admin@123
+SMTP_HOST=smtp.mailtrap.io
+SMTP_PORT=2525
+SMTP_USER=root@gmail.com
+SMTP_PASS=123456
+SMTP_FROM=root@gmail.com
+SMTP_SECURE=true
 ```
 
 | Variável | Obrigatória | Descrição |

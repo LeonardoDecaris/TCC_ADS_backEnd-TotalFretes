@@ -42,31 +42,26 @@ Microserviço responsável por **geocodificação, rotas e telemetria** usando a
 Copie `.env.example` para `.env` e preencha:
 
 ```env
-# Servidor
 PORT=3004
-NODE_ENV=development
-SERVICE_NAME=mapbox-service
-LOG_LEVEL=info
-
-# Mapbox
-MAPBOX_SECRET_TOKEN=sk.seu_token_secreto_mapbox
+MAPBOX_SECRET_TOKEN=
 MAPBOX_ALLOW_SELF_SIGNED_TLS=false
 
-# Autenticação
-JWT_SECRET=sua_chave_secreta_jwt_compartilhada_entre_os_servicos
+JWT_SECRET=secret
+DB_NAME=authentication_service
+DB_USER=root
+DB_PASS=123456
+DB_HOST=authentication-service-database
 
-# Banco de dados (MySQL — telemetria)
-DB_HOST=mapbox-service-database
-DB_PORT=3306
-DB_NAME=mapbox_db
-DB_USER=mapbox_user
-DB_PASS=mapbox_pass
-MYSQL_ROOT_PASSWORD=root
-MYSQL_DATABASE=mapbox_db
+MYSQL_ROOT_PASSWORD=123456
+MYSQL_DATABASE=mapbox_service
 MYSQL_ROOT_HOST=%
 
-# Integração
-FREIGHT_SERVICE_URL=http://freight-service:3008
+FREIGHT_SERVICE_URL=http://freight-service:3008/
+
+SERVICE_NAME=mapbox-service
+LOKI_HOST=http://loki:3100/
+LOG_LEVEL=info
+NODE_ENV=development
 ```
 
 | Variável | Obrigatória | Descrição |

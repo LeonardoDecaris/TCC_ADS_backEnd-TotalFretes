@@ -68,38 +68,23 @@ Microserviço para **upload e persistência de metadados de arquivos** (imagens 
 Copie `.env.example` para `.env` e preencha:
 
 ```env
-# Servidor
 PORT=3007
-NODE_ENV=development
-SERVICE_NAME=storage-service
+JWT_SECRET=secret
 
-# Banco de dados (MySQL)
-DB_HOST=storage-service-database
-DB_NAME=storage_db
-DB_USER=storage_user
-DB_PASS=storage_pass
-MYSQL_ROOT_PASSWORD=root
-MYSQL_DATABASE=storage_db
+DB_NAME=authentication_service
+DB_USER=root
+DB_PASS=123456
+DB_HOST=authentication-service-database
+
+MYSQL_ROOT_PASSWORD=123456
+MYSQL_DATABASE=authentication_service
 MYSQL_ROOT_HOST=%
 
-# Armazenamento de arquivos
-UPLOAD_DIR=/app/uploads
-BACKUP_UPLOAD_DIR=/backup/uploads
-PUBLIC_IMAGE_KINDS=user,company,cargo
+UPLOADS_ROOT=/app/uploads
+UPLOAD_DIR=/app/uploads/user-images
 
-# Autenticação
-JWT_SECRET=sua_chave_secreta_jwt_compartilhada_entre_os_servicos
-INTERNAL_SERVICE_TOKEN=token_interno_entre_servicos
-
-# Mensageria (eventos de imagem)
-RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
-STORAGE_EVENTS_EXCHANGE=storage.events
-STORAGE_EVENTS_ROUTING_KEY_PREFIX=storage.image
-
-# Jobs em background
-IMAGE_OUTBOX_PUBLISH_INTERVAL_MS=3000
-STORAGE_RECONCILIATION_INTERVAL_MS=300000
-ORPHAN_FILE_RETENTION_HOURS=24
+INTERNAL_SERVICE_TOKEN=local-internal-shared-token
+INTERNAL_SERVICE_KEY=dev-internal-service-key
 ```
 
 | Variável | Obrigatória | Descrição |

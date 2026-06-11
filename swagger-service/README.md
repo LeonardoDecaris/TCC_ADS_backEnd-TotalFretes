@@ -37,16 +37,13 @@ Repassa requisições para os microserviços correspondentes:
 Copie `.env.example` para `.env` e preencha:
 
 ```env
-# Servidor
-PORT=3005
-NODE_ENV=development
+AUTH_SERVICE_URL=http://authentication-service:3000/
+COMPANY_SERVICE_URL=http://company-service:3002/
+USER_SERVICE_URL=http://user-service:3001/
+STORAGE_SERVICE_URL=http://storage-service:3007/
+FREIGHT_SERVICE_URL=http://freight-service:3008/
 
-# URLs dos microserviços (nomes Docker Compose)
-AUTH_SERVICE_URL=http://authentication-service:3000
-USER_SERVICE_URL=http://user-service:3001
-COMPANY_SERVICE_URL=http://company-service:3002
-STORAGE_SERVICE_URL=http://storage-service:3007
-FREIGHT_SERVICE_URL=http://freight-service:3008
+PORT=3005
 ```
 
 | Variável | Obrigatória | Descrição |

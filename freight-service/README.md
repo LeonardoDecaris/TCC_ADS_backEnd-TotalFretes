@@ -88,45 +88,32 @@ Microserviço responsável pelo ciclo de vida de **fretes/cargas**: criação pe
 Copie `.env.example` para `.env` e preencha:
 
 ```env
-# Servidor
+JWT_SECRET=secret
 PORT=3008
-JWT_SECRET=sua_chave_secreta_jwt_compartilhada_entre_os_servicos
-NODE_ENV=development
-SERVICE_NAME=freight-service
-LOG_LEVEL=info
 
-# Banco de dados (MySQL)
-DB_HOST=freight-service-database
-DB_PORT=3306
-DB_NAME=freight_db
-DB_USER=freight_user
-DB_PASS=freight_pass
-MYSQL_ROOT_PASSWORD=root
-MYSQL_DATABASE=freight_db
+AUTH_SERVICE_URL=http://authentication-service:3000/
+STORAGE_SERVICE_URL=http://storage-service:3007/
+COMPANY_SERVICE_URL=http://company-service:3002/
+USER_SERVICE_URL=http://user-service:3001/
+INTERNAL_SERVICE_KEY=dev-internal-service-key
+
+DB_NAME=authentication_service
+DB_USER=root
+DB_PASS=123456
+DB_HOST=authentication-service-database
+
+MYSQL_ROOT_PASSWORD=123456
+MYSQL_DATABASE=authentication_service
 MYSQL_ROOT_HOST=%
 
-# Cache (catálogos)
-REDIS_URL=redis://redis:6379
+INTERNAL_SERVICE_TOKEN=local-internal-shared-token
 
-# Mensageria (notificações)
 RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
-NOTIFICATIONS_EXCHANGE=notifications.events
 NOTIFICATIONS_QUEUE=notifications.queue
-NOTIFICATIONS_ROUTING_KEY=notification.send
 NOTIFICATIONS_DLX=notifications.dlx
 NOTIFICATIONS_FAILED_QUEUE=notifications.failed
-
-# Integração com outros serviços
-AUTH_SERVICE_URL=http://authentication-service:3000
-STORAGE_SERVICE_URL=http://storage-service:3007
-USER_SERVICE_URL=http://user-service:3001
-COMPANY_SERVICE_URL=http://company-service:3002
-INTERNAL_SERVICE_TOKEN=token_interno_entre_servicos
-
-# Seed de dados de teste (opcional)
-SEED_TEST_DATA=true
-SEED_TEST_COMPANY_ID=1
-SEED_TEST_DRIVER_IDS=1,2
+NOTIFICATIONS_EXCHANGE=notifications.events
+NOTIFICATIONS_ROUTING_KEY=notification.send
 ```
 
 | Variável | Obrigatória | Descrição |

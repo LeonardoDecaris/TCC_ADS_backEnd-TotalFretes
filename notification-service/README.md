@@ -39,31 +39,30 @@ Copie `.env.example` para `.env` e preencha:
 ```env
 # Servidor
 PORT=3006
-JWT_SECRET=sua_chave_secreta_jwt_compartilhada_entre_os_servicos
-JWT_EXPIRES_IN=24h
-NODE_ENV=development
+JWT_SECRET=secret
+JWT_EXPIRES_IN=1d
 SERVICE_NAME=notification-service
+LOKI_HOST=http://loki:3100/
 LOG_LEVEL=info
+NODE_ENV=development
 
-# Banco de dados (MySQL)
-DB_HOST=notification-service-database
-DB_PORT=3306
-DB_NAME=notification_db
-DB_USER=notification_user
-DB_PASS=notification_pass
-MYSQL_ROOT_PASSWORD=root
-MYSQL_DATABASE=notification_db
-MYSQL_ROOT_HOST=%
-
-# Mensageria
 RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
-NOTIFICATIONS_EXCHANGE=notifications.events
 NOTIFICATIONS_QUEUE=notifications.queue
-NOTIFICATIONS_ROUTING_KEY=notification.send
 NOTIFICATIONS_DLX=notifications.dlx
 NOTIFICATIONS_FAILED_QUEUE=notifications.failed
+NOTIFICATIONS_EXCHANGE=notifications.events
+NOTIFICATIONS_ROUTING_KEY=notification.send
 
-# Cache (opcional)
+DB_HOST=notification-service-database
+DB_PORT=3306
+DB_NAME=notification_service
+DB_USER=root
+DB_PASS=123456
+
+MYSQL_ROOT_PASSWORD=123456
+MYSQL_DATABASE=notification_service
+MYSQL_ROOT_HOST=%
+
 REDIS_URL=redis://redis:6379
 ```
 

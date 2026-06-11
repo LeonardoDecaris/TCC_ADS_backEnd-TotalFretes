@@ -60,33 +60,21 @@ Microserviço responsável pelo cadastro e gestão de **empresas contratantes**:
 Copie `.env.example` para `.env` e preencha:
 
 ```env
-# Servidor
+JWT_SECRET=secret
 PORT=3002
-JWT_SECRET=sua_chave_secreta_jwt_compartilhada_entre_os_servicos
-NODE_ENV=development
-SERVICE_NAME=company-service
 
-# Banco de dados (MySQL)
-DB_HOST=company-service-database
-DB_NAME=company_db
-DB_USER=company_user
-DB_PASS=company_pass
-MYSQL_ROOT_PASSWORD=root
-MYSQL_DATABASE=company_db
+DB_NAME=authentication_service
+DB_USER=root
+DB_PASS=123456
+DB_HOST=authentication-service-database
+
+MYSQL_ROOT_PASSWORD=123456
+MYSQL_DATABASE=authentication_service
 MYSQL_ROOT_HOST=%
 
-# Integração com outros serviços
-AUTH_SERVICE_URL=http://authentication-service:3000
-STORAGE_SERVICE_URL=http://storage-service:3007
-FREIGHT_SERVICE_URL=http://freight-service:3008
-INTERNAL_SERVICE_KEY=chave_interna_entre_servicos
-
-# Seed opcional de empresa (desenvolvimento)
-COMPANY_SEED_ENABLED=true
-COMPANY_SEED_EMAIL=empresa@totalfretes.com
-COMPANY_SEED_PASSWORD=Empresa@123
-COMPANY_SEED_CNPJ=12345678000199
-COMPANY_SEED_NAME=Empresa Teste LTDA
+AUTH_SERVICE_URL=http://authentication-service:3000/
+STORAGE_SERVICE_URL=http://storage-service:3007/
+INTERNAL_SERVICE_KEY=dev-internal-service-key
 ```
 
 | Variável | Obrigatória | Descrição |

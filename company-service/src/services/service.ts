@@ -74,9 +74,9 @@ function buildForwardHeaders({ authorization, locale }: ForwardHeaders) {
 }
 
 export async function createAccountHttp(data: CreateAccountData) {
-	const baseURL = process.env.AUTH_SERVICE_URL ?? '';
+	const baseURL = (process.env.AUTH_SERVICE_URL ?? '').replace(/\/$/, '');
 	try {
-		const response = await axios.post<{ ok?: boolean }>(`${baseURL}/account`, data);
+		const response = await axios.post<{ ok?: boolean }>(`${baseURL}/account`, data, { timeout: 5000 });
 		return response.data?.ok === true;
 	} catch (error) {
 		if (axios.isAxiosError(error) && error.response?.status === 409) {
