@@ -2,7 +2,6 @@ import {
 	DEMO_CARGO_TYPE_NAMES,
 	DEMO_CARGO_IMAGES,
 	getCargoImageFileByCargoName,
-	isDemoSeedEnabled,
 } from '@total-fretes/demo-seed-data';
 
 import CargoType from '../models/cargoTypes.model';
@@ -49,10 +48,5 @@ async function seedDemoCargoTypes(): Promise<void> {
 }
 
 export const seedCargoTypes = async (): Promise<void> => {
-	if (!isDemoSeedEnabled()) {
-		logger.info('Demo cargo types seed skipped (DEMO_DATA_SEED_ENABLED=false)');
-		return;
-	}
-
 	await seedDemoCargoTypes();
 };

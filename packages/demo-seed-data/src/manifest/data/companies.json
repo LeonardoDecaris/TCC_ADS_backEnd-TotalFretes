@@ -1,0 +1,116 @@
+[
+  {
+    "slug": "coamo",
+    "name": "Coamo Cooperativa Agroindustrial",
+    "cnpj": "00000000010154",
+    "logoFile": "01 - coamo-logo.png",
+    "phoneNumber": "554432211000",
+    "website": "https://www.coamo.com.br",
+    "birthFundation": "1970-03-15",
+    "address": {
+      "country": "BR",
+      "cep": "87300000",
+      "street": "Av. Brasil",
+      "district": "Centro",
+      "number": "100",
+      "city": "Campo Mourão",
+      "state": "PR"
+    },
+    "preferredCargoNames": ["Soja", "Milho", "Trigo", "Grãos"]
+  },
+  {
+    "slug": "cargill",
+    "name": "Cargill Agrícola S.A.",
+    "cnpj": "00000000010235",
+    "logoFile": "02 - cargil-logo.png",
+    "phoneNumber": "551130045000",
+    "website": "https://www.cargill.com.br",
+    "birthFundation": "1965-08-20",
+    "address": {
+      "country": "BR",
+      "cep": "04578910",
+      "street": "Av. das Nações Unidas",
+      "district": "Brooklin",
+      "number": "100",
+      "city": "São Paulo",
+      "state": "SP"
+    },
+    "preferredCargoNames": ["Soja", "Milho", "Farelo de Soja"]
+  },
+  {
+    "slug": "copacol",
+    "name": "Copacol Cooperativa Agroindustrial",
+    "cnpj": "00000000010316",
+    "logoFile": "03 - copacol-logo.png",
+    "phoneNumber": "554532345600",
+    "website": "https://www.copacol.com.br",
+    "birthFundation": "1963-11-10",
+    "address": {
+      "country": "BR",
+      "cep": "85415000",
+      "street": "Rod. PR-482",
+      "district": "Industrial",
+      "number": "100",
+      "city": "Cafelândia",
+      "state": "PR"
+    },
+    "preferredCargoNames": ["Congelados", "Carnes Frigorificadas"]
+  },
+  {
+    "slug": "seara",
+    "name": "Seara Alimentos Ltda",
+    "cnpj": "00000000010405",
+    "logoFile": "04 - seara-logo.png",
+    "phoneNumber": "554733456700",
+    "website": "https://www.seara.com.br",
+    "birthFundation": "1959-05-01",
+    "address": {
+      "country": "BR",
+      "cep": "88301001",
+      "street": "Rua Hercílio Luz",
+      "district": "Centro",
+      "number": "100",
+      "city": "Itajaí",
+      "state": "SC"
+    },
+    "preferredCargoNames": ["Congelados", "Carnes Frigorificadas", "Sorvete"]
+  },
+  {
+    "slug": "jbs",
+    "name": "JBS S.A.",
+    "cnpj": "00000000010588",
+    "logoFile": "05 - jbs-logo.png",
+    "phoneNumber": "556233144400",
+    "website": "https://www.jbs.com.br",
+    "birthFundation": "1953-12-12",
+    "address": {
+      "country": "BR",
+      "cep": "74230010",
+      "street": "Av. T-4",
+      "district": "Setor Bueno",
+      "number": "100",
+      "city": "Goiânia",
+      "state": "GO"
+    },
+    "preferredCargoNames": ["Congelados", "Carnes Frigorificadas", "Bovinos"]
+  },
+  {
+    "slug": "raizen",
+    "name": "Raízen Combustíveis S.A.",
+    "cnpj": "00000000011550",
+    "logoFile": "15 - raizen-logo.png",
+    "phoneNumber": "551130048800",
+    "website": "https://www.raizen.com.br",
+    "birthFundation": "2011-06-30",
+    "address": {
+      "country": "BR",
+      "cep": "04538132",
+      "street": "Av. Brigadeiro Faria Lima",
+      "district": "Itaim Bibi",
+      "number": "100",
+      "city": "São Paulo",
+      "state": "SP"
+    },
+    "preferredCargoNames": ["Etanol Hidratado", "Cana-de-açúcar", "Diesel S10"]
+  }
+]

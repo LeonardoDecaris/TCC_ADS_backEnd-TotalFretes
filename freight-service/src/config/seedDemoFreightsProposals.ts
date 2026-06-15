@@ -27,31 +27,10 @@ const getStatusIdByName = async (
 	return row.id;
 };
 
-const buildHistoryDates = (length: number, anchorDate?: Date): Date[] => {
-	if (length <= 0) return [];
-
-	if (anchorDate) {
-		const start = new Date(anchorDate);
-		start.setDate(start.getDate() - Math.max(length - 1, 1));
-
-		return Array.from({ length }, (_, index) => {
-			const occurredAt = new Date(start);
-			occurredAt.setDate(start.getDate() + index);
-			occurredAt.setHours(8 + (index % 6) * 2, (index * 11) % 60, 0, 0);
-			return occurredAt;
-		});
-	}
-
-	const now = new Date();
-	const oldest = new Date(now);
-	oldest.setDate(oldest.getDate() - Math.max(length, 2));
-
-	return Array.from({ length }, (_, index) => {
-		const occurredAt = new Date(oldest);
-		occurredAt.setHours(oldest.getHours() + index * 12);
-		return occurredAt;
-	});
-};
+const parseHistoryDates = (values: string[]): Date[] =>
+	values
+		.map((value) => new Date(value))
+		.filter((date) => !Number.isNaN(date.getTime()));
 
 const resolveDriverId = (drivers: DemoDriverRow[], index: number): number => {
 	const driver = drivers.find((row) => row.index === index);
@@ -172,20 +151,15 @@ async function upsertDemoFreight(
 	await FreightStatusHistory.destroy({ where: { freight_id: freight.id! } });
 
 	const historyStatusIds = spec.historyPath
-		.map((statusName) => freightStatusIds.get(statusName))
-		.filter((statusId): statusId is number => statusId != null);
+		.map((statusName: DemoFreightSpec['freightStatus']) => freightStatusIds.get(statusName))
+		.filter((statusId: number | undefined): statusId is number => statusId != null);
 
-	const anchorDate =
-		spec.timelineAnchorDaysAgo != null
-			? (() => {
-					const date = new Date();
-					date.setDate(date.getDate() - spec.timelineAnchorDaysAgo);
-					date.setHours(18, 0, 0, 0);
-					return date;
-				})()
-			: undefined;
-
-	const historyDates = buildHistoryDates(historyStatusIds.length, anchorDate);
+	const historyDates = parseHistoryDates(spec.historyOccurredAt ?? []);
+	if (historyDates.length !== historyStatusIds.length) {
+		throw new Error(
+			`Histórico inválido para "${spec.name}": historyPath=${historyStatusIds.length}, historyOccurredAt=${historyDates.length}.`,
+		);
+	}
 
 	for (let index = 0; index < historyStatusIds.length; index += 1) {
 		await FreightStatusHistory.create({

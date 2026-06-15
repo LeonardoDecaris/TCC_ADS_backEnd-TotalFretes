@@ -4,5 +4,6 @@ export * from './manifest/cargoTypes';
 export * from './manifest/companies';
 export * from './manifest/drivers';
 export * from './manifest/freights';
+export * from './manifest/telemetryTrails';
 export * from './utils/generateCnpj';
 export * from './utils/generateCpf';
