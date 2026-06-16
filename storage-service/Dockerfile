@@ -11,6 +11,8 @@ RUN npm install && npm run build
 WORKDIR /app/packages/demo-seed-data
 COPY packages/demo-seed-data/package.json packages/demo-seed-data/tsconfig.json ./
 COPY packages/demo-seed-data/src ./src
+COPY packages/demo-seed-data/scripts ./scripts
+COPY packages/demo-seed-data/assets ./assets
 RUN npm install && npm run build
 
 WORKDIR /app/packages/tracing

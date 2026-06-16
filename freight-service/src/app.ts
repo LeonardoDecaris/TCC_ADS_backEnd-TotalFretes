@@ -10,6 +10,7 @@ import freightRoutes from './routes/freight.routes';
 import freightStatusTypeRoutes from './routes/freightStatusTypes.routes';
 import proposalRoutes from './routes/proposals.routes';
 import proposalStatusTypeRoutes from './routes/proposalsStatusTypes.routes';
+import internalSeedRoutes from './routes/internalSeed.routes';
 import { requestIdMiddleware, requestLoggerMiddleware } from './config/logging';
 import { ErrorHandlerMiddleware } from './middlewares/errors';
 
@@ -54,6 +55,7 @@ app.use('/freight', freightRoutes);
 app.use('/freight-status-type', freightStatusTypeRoutes);
 app.use('/proposal', proposalRoutes);
 app.use('/proposal-status-type', proposalStatusTypeRoutes);
+app.use('/internal/seed', internalSeedRoutes);
 
 app.use(ErrorHandlerMiddleware);
 

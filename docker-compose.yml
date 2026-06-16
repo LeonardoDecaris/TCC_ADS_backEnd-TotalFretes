@@ -268,6 +268,7 @@ services:
     container_name: mapbox-service
     restart: always
     env_file:
+      - .env
       - ./mapbox-service/.env
     depends_on:
       mapbox-service-database:

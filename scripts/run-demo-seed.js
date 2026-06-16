@@ -14,6 +14,7 @@
  *   STORAGE_SERVICE_URL (default http://127.0.0.1:3007)
  *   COMPANY_SERVICE_URL (default http://127.0.0.1:3002)
  *   USER_SERVICE_URL (default http://127.0.0.1:3001)
+ *   MAPBOX_SERVICE_URL (default http://127.0.0.1:3004)
  */
 const { execSync } = require('child_process');
 const path = require('path');
@@ -31,11 +32,13 @@ const headers = internalKey
 const storageUrl = process.env.STORAGE_SERVICE_URL?.trim() || 'http://127.0.0.1:3007';
 const companyUrl = process.env.COMPANY_SERVICE_URL?.trim() || 'http://127.0.0.1:3002';
 const userUrl = process.env.USER_SERVICE_URL?.trim() || 'http://127.0.0.1:3001';
+const mapboxUrl = process.env.MAPBOX_SERVICE_URL?.trim() || 'http://127.0.0.1:3004';
 
 const SEED_STEPS = [
 	{ label: 'storage-service cargo images', service: 'storage-service', port: 3007, url: storageUrl },
 	{ label: 'company-service empresas demo', service: 'company-service', port: 3002, url: companyUrl },
 	{ label: 'user-service motoristas demo', service: 'user-service', port: 3001, url: userUrl },
+	{ label: 'mapbox-service telemetrias demo', service: 'mapbox-service', port: 3004, url: mapboxUrl },
 ];
 
 function parseSeedViaDockerMode() {
@@ -93,6 +96,10 @@ async function postJsonHost(url, body = {}) {
 }
 
 function postJsonDocker(serviceName, port) {
+	if (!isComposeServiceRunning(serviceName)) {
+		throw new Error(`Service "${serviceName}" is not running in Docker Compose`);
+	}
+
 	const script = `
 const key = process.env.INTERNAL_SERVICE_KEY || '';
 const headers = { 'Content-Type': 'application/json' };
@@ -135,9 +142,37 @@ async function postJson(step, mode) {
 	return postJsonHost(step.url);
 }
 
+async function sleep(ms) {
+	return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function postJsonWithRetry(step, mode, { attempts = 1, delayMs = 2000 } = {}) {
+	let lastError;
+
+	for (let attempt = 1; attempt <= attempts; attempt += 1) {
+		try {
+			return await postJson(step, mode);
+		} catch (error) {
+			lastError = error;
+			if (attempt < attempts) {
+				console.warn(
+					`[warn] ${step.label} indisponível na tentativa ${attempt}/${attempts}. Nova tentativa em ${Math.round(delayMs / 1000)}s...`,
+				);
+				await sleep(delayMs);
+			}
+		}
+	}
+
+	throw lastError;
+}
+
 function runFreightSeed(mode) {
 	if (mode === 'docker') {
-		execSync('docker compose exec -T freight-service npm run seed:demo', {
+		if (!isComposeServiceRunning('freight-service')) {
+			throw new Error('Service "freight-service" is not running in Docker Compose');
+		}
+
+		execSync(`docker compose exec -T -e INTERNAL_SERVICE_KEY=${internalKey} freight-service npm run seed:demo`, {
 			cwd: projectRoot,
 			stdio: 'inherit',
 			env: {
@@ -161,7 +196,8 @@ function runFreightSeed(mode) {
 
 async function main() {
 	if (!internalKey) {
-		console.warn('[warn] INTERNAL_SERVICE_KEY não definido; rotas internas podem retornar 403.');
+		console.error('[erro] INTERNAL_SERVICE_KEY não definido. Defina a chave no .env raiz e nos serviços antes de rodar seed:demo.');
+		process.exit(1);
 	}
 
 	if (process.env.DEMO_DATA_SEED_ENABLED?.trim().toLowerCase() === 'false') {
@@ -173,9 +209,9 @@ async function main() {
 		console.log('[info] Serviços acessíveis via Docker Compose (portas não expostas no host).');
 	}
 
-	for (let index = 0; index < SEED_STEPS.length; index += 1) {
+	for (let index = 0; index < 3; index += 1) {
 		const step = SEED_STEPS[index];
-		console.log(`${index + 1}/4 ${step.label}...`);
+		console.log(`${index + 1}/5 ${step.label}...`);
 		try {
 			console.log(await postJson(step, mode));
 		} catch (error) {
@@ -183,11 +219,19 @@ async function main() {
 		}
 	}
 
-	console.log('4/4 freight-service tipos de carga + fretes + propostas...');
+	console.log('4/5 freight-service fretes + propostas...');
 	try {
 		runFreightSeed(mode);
 	} catch (error) {
 		console.error('[erro] freight-service seed falhou:', error?.message ?? error);
+	}
+
+	const telemetryStep = SEED_STEPS[3];
+	console.log(`5/5 ${telemetryStep.label}...`);
+	try {
+		console.log(await postJsonWithRetry(telemetryStep, mode, { attempts: 8, delayMs: 3000 }));
+	} catch (error) {
+		console.error(`[erro] ${telemetryStep.label} falhou (continuando):`, error?.message ?? error);
 	}
 
 	console.log('Seed demo concluída.');

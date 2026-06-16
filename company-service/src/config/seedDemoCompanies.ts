@@ -1,10 +1,11 @@
 import {
-	DEMO_COMPANIES,
 	DEFAULT_DEMO_COMPANY_PASSWORD,
 	demoCompanyEmail,
 	isDemoCompanyEmail,
 	isDemoSeedEnabled,
 } from '@total-fretes/demo-seed-data';
+
+import { DEMO_COMPANIES } from './companies.constants';
 
 import Company from '../models/company.model';
 import CompanyAddress from '../models/address.model';

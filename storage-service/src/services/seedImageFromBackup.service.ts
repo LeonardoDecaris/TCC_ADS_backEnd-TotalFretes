@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 import type { Model, ModelStatic } from 'sequelize';
+import { getCatalogCargoImagesAssetsDir } from '@total-fretes/demo-seed-data';
 
 import type { StoredImageUploadHelpers } from '../utils/storedImageUpload';
 import { resolveUploadsRoot } from '../utils/storedImageUpload';
@@ -86,8 +87,26 @@ function ensureCargoImageFileOnDisk(
 		return destPath;
 	}
 
+	const assetPath = path.join(getCatalogCargoImagesAssetsDir(), fileName);
+	if (fs.existsSync(assetPath)) {
+		fs.mkdirSync(path.dirname(destPath), { recursive: true });
+		fs.copyFileSync(assetPath, destPath);
+		return destPath;
+	}
+
 	if (fileName === SEED_FALLBACK_CARGO_IMAGE) {
 		return ensureSeedFallbackCargoImage(destPath);
+	}
+
+	const fallbackPath = upload.getStoredFullPath(SEED_FALLBACK_CARGO_IMAGE);
+	if (!fs.existsSync(fallbackPath)) {
+		ensureSeedFallbackCargoImage(fallbackPath);
+	}
+
+	if (fs.existsSync(fallbackPath)) {
+		fs.mkdirSync(path.dirname(destPath), { recursive: true });
+		fs.copyFileSync(fallbackPath, destPath);
+		return destPath;
 	}
 
 	return null;

@@ -6,20 +6,20 @@ import { seedFreightStatusTypes } from './seedFreightStatusTypes';
 import { seedProposalStatusTypes } from './seedProposalStatusTypes';
 import { seedDemoFreightsProposals } from './seedDemoFreightsProposals';
 
-/** Catálogos obrigatórios (status de frete e proposta). */
+/** Catálogos obrigatórios (status de frete/proposta e tipos de carga). */
 export const runCatalogSeeds = async (): Promise<void> => {
 	await seedFreightStatusTypes();
 	await seedProposalStatusTypes();
+	await seedCargoTypes();
 };
 
-/** Tipos de carga demo + fretes/propostas (requer `DEMO_DATA_SEED_ENABLED=true`). */
+/** Fretes/propostas demo (requer `DEMO_DATA_SEED_ENABLED=true`). */
 export const runDemoSeeds = async (): Promise<void> => {
 	if (!isDemoSeedEnabled()) {
 		logger.info('Demo freights seed skipped (DEMO_DATA_SEED_ENABLED=false)');
 		return;
 	}
 
-	await seedCargoTypes();
 	await seedDemoFreightsProposals();
 };
 
