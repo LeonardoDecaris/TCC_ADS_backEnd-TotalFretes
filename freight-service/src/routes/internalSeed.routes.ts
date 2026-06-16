@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { Op } from 'sequelize';
-import { DEMO_FREIGHT_NAME_PREFIX } from '@total-fretes/demo-seed-data';
+import { DEMO_FREIGHT_NAME_PREFIX } from '../config/freights.constants';
 
 import Freight from '../models/freight.model';
 import { internalServiceMiddleware } from '../middlewares/internalServiceMiddleware';

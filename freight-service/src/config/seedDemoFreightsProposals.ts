@@ -1,6 +1,5 @@
-import { DEMO_FREIGHTS, type DemoFreightSpec } from '@total-fretes/demo-seed-data';
-
 import { FreightStatusSlug, ProposalStatusSlug } from './statusTypes.constants';
+import { DEMO_FREIGHTS, type DemoFreightSpec } from './freights.constants';
 import CargoType from '../models/cargoTypes.model';
 import Freight from '../models/freight.model';
 import FreightStatusHistory from '../models/freightStatusHistory.model';
@@ -27,7 +26,7 @@ const getStatusIdByName = async (
 	return row.id;
 };
 
-const parseHistoryDates = (values: string[]): Date[] =>
+const parseHistoryDates = (values: readonly string[]): Date[] =>
 	values
 		.map((value) => new Date(value))
 		.filter((date) => !Number.isNaN(date.getTime()));
@@ -151,7 +150,7 @@ async function upsertDemoFreight(
 	await FreightStatusHistory.destroy({ where: { freight_id: freight.id! } });
 
 	const historyStatusIds = spec.historyPath
-		.map((statusName: DemoFreightSpec['freightStatus']) => freightStatusIds.get(statusName))
+		.map((statusName) => freightStatusIds.get(statusName))
 		.filter((statusId: number | undefined): statusId is number => statusId != null);
 
 	const historyDates = parseHistoryDates(spec.historyOccurredAt ?? []);

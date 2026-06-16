@@ -11,8 +11,8 @@ import { logger } from './config/logging';
 import { logError } from '@total-fretes/logging';
 import { startImageOutboxPublisher, stopImageOutboxPublisher } from './messaging/imageOutbox.publisher';
 import { startStorageReconciliationJob, stopStorageReconciliationJob } from './jobs/storageReconciliation.job';
-import { isDemoSeedOnStartupEnabled, loadSharedProjectEnv } from '@total-fretes/demo-seed-data';
-import { seedDemoCargoImages } from './config/seedDemoImages';
+import { loadSharedProjectEnv } from '@total-fretes/demo-seed-data';
+import { seedCatalogCargoImages } from './config/seedDemoImages';
 
 dotenv.config();
 loadSharedProjectEnv();
@@ -30,12 +30,7 @@ if (!PORT) {
     logger.info('Database synchronized successfully');
     await ensureUserImageOwnershipColumns();
     logger.info('User image ownership columns ensured successfully');
-    if (isDemoSeedOnStartupEnabled()) {
-      await seedDemoCargoImages();
-      logger.info('Demo cargo images seed completed');
-    } else {
-      logger.info('Demo cargo images seed skipped (DEMO_DATA_SEED_ON_STARTUP=false)');
-    }
+    await seedCatalogCargoImages();
     await startImageOutboxPublisher();
     startStorageReconciliationJob();
     app.listen(PORT, () => logger.info(`Storage service is running on port ${PORT}`));

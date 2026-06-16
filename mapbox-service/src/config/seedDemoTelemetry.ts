@@ -1,5 +1,6 @@
 import axios from 'axios';
-import { DEMO_TELEMETRY_TRAILS } from '@total-fretes/demo-seed-data';
+
+import { DEMO_TELEMETRY_TRAILS } from './telemetry.constants';
 
 import DriverLocation from '../models/driverLocation.model';
 import { logger } from './logging';
