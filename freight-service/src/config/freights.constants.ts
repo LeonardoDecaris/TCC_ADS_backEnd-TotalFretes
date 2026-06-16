@@ -40,6 +40,10 @@ export type DemoFreightSpec = {
 	weight: number;
 	daysLimit?: number;
 	assignedDriverIndex?: number;
+	/** Data de criação/publicação do frete (relatórios e listagens). */
+	createdAt: string;
+	/** Última movimentação do frete (último status do histórico). */
+	updatedAt: string;
 	historyPath: readonly DemoFreightStatusName[];
 	historyOccurredAt: readonly string[];
 	proposals: readonly DemoFreightProposalSpec[];
@@ -288,14 +292,61 @@ function pickOtherDrivers(primary: number, count: number, seed: number): number[
 	return result;
 }
 
-function buildHistoryDates(pathLength: number, baseDayOffset: number): string[] {
-	const dates: string[] = [];
-	for (let index = 0; index < pathLength; index += 1) {
-		const day = baseDayOffset + index;
-		const hour = 8 + index * 3;
-		dates.push(new Date(Date.UTC(2026, 0, 5 + day, hour, 0, 0)).toISOString());
+/** 1 jan 2026 — 30 jun 2026 (UTC). */
+const HISTORY_PERIOD_START_MS = Date.UTC(2026, 0, 1);
+const HISTORY_PERIOD_END_MS = Date.UTC(2026, 5, 30, 23, 59, 59);
+
+function seededRandom(seed: number): () => number {
+	let state = seed >>> 0;
+	return () => {
+		state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+		return state / 0x1_0000_0000;
+	};
+}
+
+function buildFreightDateSeed(companySlug: string, seq: number): number {
+	let hash = seq * 997;
+	for (const char of companySlug) {
+		hash = Math.imul(hash, 31) + char.charCodeAt(0);
 	}
-	return dates;
+	return hash >>> 0;
+}
+
+/** Datas pseudo-aleatórias em 2026 (jan–jun): criação, histórico e updatedAt coerentes. */
+function buildFreightTimestamps(
+	pathLength: number,
+	seed: number,
+): { createdAt: string; updatedAt: string; historyOccurredAt: string[] } {
+	const random = seededRandom(seed);
+	const maxHistorySpanMs = pathLength > 0 ? (pathLength - 1) * 48 * 60 * 60 * 1000 + 12 * 60 * 60 * 1000 : 0;
+	const latestCreatedMs = HISTORY_PERIOD_END_MS - maxHistorySpanMs;
+	const createdRangeMs = Math.max(1, latestCreatedMs - HISTORY_PERIOD_START_MS);
+	const createdAtMs = HISTORY_PERIOD_START_MS + Math.floor(random() * createdRangeMs);
+
+	if (pathLength === 0) {
+		const iso = new Date(createdAtMs).toISOString();
+		return { createdAt: iso, updatedAt: iso, historyOccurredAt: [] };
+	}
+
+	const historyOccurredAt: string[] = [];
+	let currentMs = createdAtMs + (1 + Math.floor(random() * 11)) * 60 * 60 * 1000;
+
+	for (let index = 0; index < pathLength; index += 1) {
+		if (index > 0) {
+			const gapHours = 4 + Math.floor(random() * 44);
+			currentMs += gapHours * 60 * 60 * 1000;
+		}
+		if (currentMs > HISTORY_PERIOD_END_MS) {
+			currentMs = HISTORY_PERIOD_END_MS - (pathLength - index - 1) * 60 * 60 * 1000;
+		}
+		historyOccurredAt.push(new Date(currentMs).toISOString());
+	}
+
+	return {
+		createdAt: new Date(createdAtMs).toISOString(),
+		updatedAt: historyOccurredAt[historyOccurredAt.length - 1]!,
+		historyOccurredAt,
+	};
 }
 
 function buildProposals(
@@ -354,7 +405,11 @@ function buildCompanyFreights(config: CompanyFreightConfig): DemoFreightSpec[] {
 			? (acceptedProposal?.driverIndex ?? pickDriver(seed))
 			: undefined;
 		const historyPath = scenario.historyPath;
-		const historyOccurredAt = buildHistoryDates(historyPath.length, seq * 2);
+		const dateSeed = buildFreightDateSeed(config.slug, seq);
+		const { createdAt, updatedAt, historyOccurredAt } = buildFreightTimestamps(
+			historyPath.length,
+			dateSeed,
+		);
 		const hasFinalValue =
 			scenario.freightStatus !== FreightStatusSlug.DISPONIVEL &&
 			scenario.freightStatus !== FreightStatusSlug.CANCELADO;
@@ -372,6 +427,8 @@ function buildCompanyFreights(config: CompanyFreightConfig): DemoFreightSpec[] {
 			weight,
 			daysLimit: 2 + (seq % 4),
 			assignedDriverIndex,
+			createdAt,
+			updatedAt,
 			historyPath,
 			historyOccurredAt,
 			proposals,

@@ -108,7 +108,13 @@ async function upsertDemoFreight(
 	const assignedDriver_id =
 		spec.assignedDriverIndex != null ? resolveDriverId(drivers, spec.assignedDriverIndex) : null;
 
-	const [freight, freightCreated] = await Freight.findOrCreate({
+	const freightCreatedAt = new Date(spec.createdAt);
+	const freightUpdatedAt = new Date(spec.updatedAt);
+	if (Number.isNaN(freightCreatedAt.getTime()) || Number.isNaN(freightUpdatedAt.getTime())) {
+		throw new Error(`Datas inválidas para "${spec.name}".`);
+	}
+
+	const [freight] = await Freight.findOrCreate({
 		where: { company_id: companyId, name: spec.name },
 		defaults: {
 			company_id: companyId,
@@ -126,11 +132,13 @@ async function upsertDemoFreight(
 			originalValue: spec.originalValue,
 			finalValue: spec.finalValue ?? null,
 			weight: spec.weight,
+			createdAt: freightCreatedAt,
+			updatedAt: freightUpdatedAt,
 		},
 	});
 
-	if (!freightCreated) {
-		await freight.update({
+	await freight.update(
+		{
 			cargoType_id: cargo.id,
 			origin_label: spec.origin.label,
 			origin_lat: spec.origin.lat,
@@ -144,8 +152,11 @@ async function upsertDemoFreight(
 			originalValue: spec.originalValue,
 			finalValue: spec.finalValue ?? null,
 			weight: spec.weight,
-		});
-	}
+			createdAt: freightCreatedAt,
+			updatedAt: freightUpdatedAt,
+		},
+		{ silent: true },
+	);
 
 	await FreightStatusHistory.destroy({ where: { freight_id: freight.id! } });
 
@@ -168,18 +179,20 @@ async function upsertDemoFreight(
 		});
 	}
 
-	if (historyDates.length > 0) {
-		const createdAt = historyDates[0]!;
-		const updatedAt = historyDates[historyDates.length - 1]!;
-		await freight.update({ createdAt, updatedAt }, { silent: true });
-	}
+	const proposalSpanMs = Math.max(freightUpdatedAt.getTime() - freightCreatedAt.getTime(), 60 * 60 * 1000);
 
-	for (const proposalSpec of spec.proposals) {
+	for (let proposalIndex = 0; proposalIndex < spec.proposals.length; proposalIndex += 1) {
+		const proposalSpec = spec.proposals[proposalIndex]!;
 		const driver_id = resolveDriverId(drivers, proposalSpec.driverIndex);
 		const status_id = proposalStatusIds.get(proposalSpec.status);
 		if (status_id == null) {
 			throw new Error(`Status de proposta "${proposalSpec.status}" não encontrado.`);
 		}
+
+		const proposalCreatedAt = new Date(
+			freightCreatedAt.getTime() +
+				Math.floor((proposalSpanMs / (spec.proposals.length + 1)) * (proposalIndex + 1)),
+		);
 
 		const [, proposalCreated] = await Proposal.findOrCreate({
 			where: { freight_id: freight.id!, driver_id },
@@ -188,14 +201,21 @@ async function upsertDemoFreight(
 				driver_id,
 				status_id,
 				value: proposalSpec.value,
+				createdAt: proposalCreatedAt,
+				updatedAt: proposalCreatedAt,
 			},
 		});
 
-		if (!proposalCreated) {
-			await Proposal.update(
-				{ status_id, value: proposalSpec.value },
-				{ where: { freight_id: freight.id!, driver_id } },
-			);
-		}
+		await Proposal.update(
+			{
+				status_id,
+				value: proposalSpec.value,
+				createdAt: proposalCreatedAt,
+				updatedAt: proposalCreatedAt,
+			},
+			{ where: { freight_id: freight.id!, driver_id }, silent: true },
+		);
+
+		void proposalCreated;
 	}
 }
