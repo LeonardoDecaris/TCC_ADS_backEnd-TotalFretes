@@ -5,6 +5,7 @@ export type CompanySummary = {
   id: number;
   name: string;
   city?: string | null;
+  phoneNumber?: string | null;
 };
 
 export type DriverSummary = {
@@ -43,6 +44,7 @@ async function fetchCompanySummary(
     id: company.id,
     name: company.name?.trim() || '',
     city: company.CompanyAddress?.city ?? null,
+    phoneNumber: company.phoneNumber?.trim() || null,
   };
 }
 
@@ -300,6 +302,53 @@ export async function enrichProposalsWithDriver<T>(
     const driver = driverMap.get(driverId);
     return driver ? { ...plain, Driver: driver } : plain;
   });
+}
+
+function resolveProposalFreightKey(plain: Record<string, unknown>): 'Freight' | 'freight' | null {
+  if (plain.Freight != null && typeof plain.Freight === 'object') return 'Freight';
+  if (plain.freight != null && typeof plain.freight === 'object') return 'freight';
+  return null;
+}
+
+export async function enrichProposalsFreightWithCompany<T>(
+  proposals: T[],
+  ctx: EnrichmentContext,
+): Promise<Record<string, unknown>[]> {
+  const plains = proposals.map(toPlainProposal);
+  const freights = plains
+    .map((plain) => plain.Freight ?? plain.freight)
+    .filter((freight): freight is Record<string, unknown> => freight != null && typeof freight === 'object');
+
+  if (freights.length === 0) {
+    return plains;
+  }
+
+  const enrichedFreights = await enrichFreightsWithCompany(freights, ctx);
+  const enrichedById = new Map<number, Record<string, unknown>>();
+  for (const freight of enrichedFreights) {
+    const id = Number(freight.id);
+    if (Number.isFinite(id) && id > 0) {
+      enrichedById.set(id, freight);
+    }
+  }
+
+  return plains.map((plain) => {
+    const freightKey = resolveProposalFreightKey(plain);
+    if (!freightKey) return plain;
+
+    const freight = plain[freightKey] as Record<string, unknown>;
+    const freightId = Number(freight.id);
+    const enriched = enrichedById.get(freightId) ?? freight;
+    return { ...plain, [freightKey]: enriched };
+  });
+}
+
+export async function enrichProposalFreightWithCompany<T>(
+  proposal: T,
+  ctx: EnrichmentContext,
+): Promise<Record<string, unknown>> {
+  const [enriched] = await enrichProposalsFreightWithCompany([proposal], ctx);
+  return enriched;
 }
 
 export { getEnrichmentContext };

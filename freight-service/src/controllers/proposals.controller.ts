@@ -13,6 +13,8 @@ import {
 import {
   enrichProposalWithDriver,
   enrichProposalsWithDriver,
+  enrichProposalFreightWithCompany,
+  enrichProposalsFreightWithCompany,
   enrichFreightsCargoImages,
   getEnrichmentContext,
 } from '../services/enrichment.service';
@@ -86,7 +88,8 @@ export const getAllProposals = async (req: Request, res: Response) => {
     const result = await listProposals(query, req.user);
 
     if (result.paginated) {
-      const items = await enrichProposalsWithDriver(result.items, ctx);
+      const withDriver = await enrichProposalsWithDriver(result.items, ctx);
+      const items = await enrichProposalsFreightWithCompany(withDriver, ctx);
       return res.status(200).json({
         items,
         total: result.total,
@@ -97,7 +100,8 @@ export const getAllProposals = async (req: Request, res: Response) => {
       });
     }
 
-    const proposals = await enrichProposalsWithDriver(result.items, ctx);
+    const withDriver = await enrichProposalsWithDriver(result.items, ctx);
+    const proposals = await enrichProposalsFreightWithCompany(withDriver, ctx);
     return res.status(200).json(proposals);
   } catch (error) {
     if (await handleZodError(error, locale, res)) return;
@@ -117,7 +121,9 @@ export const getProposalById = async (req: Request, res: Response) => {
 
     assertCanViewProposal(proposal as Proposal & { Freight?: Freight | null }, req.user);
 
-    const enriched = await enrichProposalWithDriver(proposal, getEnrichmentContext(req));
+    const ctx = getEnrichmentContext(req);
+    const withDriver = await enrichProposalWithDriver(proposal, ctx);
+    const enriched = await enrichProposalFreightWithCompany(withDriver, ctx);
     return res.status(200).json(enriched);
   } catch (error) {
     if (error instanceof ProposalForbiddenError) {

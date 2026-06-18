@@ -17,6 +17,8 @@ jest.mock('../../src/services/enrichment.service', () => ({
   enrichCargoTypesWithImages: jest.fn(async (data: unknown) => data),
   enrichProposalWithDriver: jest.fn(async (data: unknown) => data),
   enrichProposalsWithDriver: jest.fn(async (data: unknown) => data),
+  enrichProposalFreightWithCompany: jest.fn(async (data: unknown) => data),
+  enrichProposalsFreightWithCompany: jest.fn(async (data: unknown) => data),
   getEnrichmentContext: jest.fn(() => ({})),
 }));
 
