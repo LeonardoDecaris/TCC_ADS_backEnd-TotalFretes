@@ -42,6 +42,7 @@ export type StorageImageData = {
 export type CompanyHttpResponse = {
   id: number;
   name?: string | null;
+  phoneNumber?: string | null;
   CompanyAddress?: {
     city?: string | null;
     state?: string | null;

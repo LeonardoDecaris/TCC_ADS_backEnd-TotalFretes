@@ -76,6 +76,74 @@ services:
       retries: 5
       start_period: 15s
 
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: cadvisor
+    restart: on-failure
+    privileged: true
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: prometheus
+    restart: on-failure
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    depends_on:
+      cadvisor:
+        condition: service_healthy
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:9090/-/healthy"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  docker-stats-exporter:
+    image: node:22-alpine
+    container_name: docker-stats-exporter
+    restart: on-failure
+    user: "0:0"
+    command: ["node", "/app/docker-stats-exporter.mjs"]
+    volumes:
+      - ./docker/metrics/docker-stats-exporter.mjs:/app/docker-stats-exporter.mjs:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "9404:9404"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:9404/metrics"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
   authentication-service-database:
     image: mysql:8.4
     container_name: authentication-service-database
@@ -201,6 +269,8 @@ services:
         condition: service_started
       tempo:
         condition: service_healthy
+      prometheus:
+        condition: service_healthy
     ports:
       - "3101:3000"
     environment:
@@ -268,6 +338,7 @@ services:
     container_name: mapbox-service
     restart: always
     env_file:
+      - .env
       - ./mapbox-service/.env
     depends_on:
       mapbox-service-database:
@@ -497,6 +568,7 @@ volumes:
   rabbitmq-data:
   loki-data:
   tempo-data:
+  prometheus-data:
   grafana-data:
   authentication-service-database-data:
   user-service-database-data:

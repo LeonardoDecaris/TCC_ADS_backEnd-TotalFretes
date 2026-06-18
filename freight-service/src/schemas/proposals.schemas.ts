@@ -1,8 +1,20 @@
 import { z } from 'zod';
 
+const latSchema = z.coerce
+	.number()
+	.min(-90, 'VALIDATION.LAT_INVALID')
+	.max(90, 'VALIDATION.LAT_INVALID');
+
+const lngSchema = z.coerce
+	.number()
+	.min(-180, 'VALIDATION.LNG_INVALID')
+	.max(180, 'VALIDATION.LNG_INVALID');
+
 export const createProposalSchema = z.object({
 	freight_id: z.coerce.number().int().positive('VALIDATION.FREIGHT_ID_INVALID'),
 	value: z.coerce.number().nonnegative('VALIDATION.PROPOSAL_VALUE_INVALID'),
+	submitted_lat: latSchema,
+	submitted_lng: lngSchema,
 });
 
 export const updateProposalSchema = z.object({

@@ -52,6 +52,8 @@ export const validCargoTypeCreate = {
 export const validProposalCreate = {
   freight_id: 1,
   value: 1200,
+  submitted_lat: -23.5505,
+  submitted_lng: -46.6333,
 };
 
 export const validStatusTypeCreate = {

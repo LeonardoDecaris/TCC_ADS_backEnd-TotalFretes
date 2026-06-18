@@ -1,5 +1,5 @@
 import {
-	DEMO_CARGO_IMAGES,
+	CATALOG_CARGO_IMAGES,
 	isDemoSeedEnabled,
 } from '@total-fretes/demo-seed-data';
 
@@ -11,16 +11,11 @@ import {
 } from '../services/seedImageFromBackup.service';
 import { cargoImagesUpload } from '../routes/catalogImages.routes';
 
-export async function seedDemoCargoImages(): Promise<{ created: number; existing: number }> {
-	if (!isDemoSeedEnabled()) {
-		logger.info('Demo cargo images seed skipped (DEMO_DATA_SEED_ENABLED=false)');
-		return { created: 0, existing: 0 };
-	}
-
+async function registerCatalogCargoImages(): Promise<{ created: number; existing: number }> {
 	let created = 0;
 	let existing = 0;
 
-	for (const spec of DEMO_CARGO_IMAGES) {
+	for (const spec of CATALOG_CARGO_IMAGES) {
 		const result = await registerImageFromUploads({
 			fileName: spec.imageFile,
 			originalName: spec.imageFile,
@@ -29,7 +24,7 @@ export async function seedDemoCargoImages(): Promise<{ created: number; existing
 		});
 
 		if (!result) {
-			logger.warn(`Demo cargo image not found in uploads: ${spec.imageFile}`);
+			logger.warn(`Catalog cargo image not found: ${spec.imageFile}`);
 			continue;
 		}
 
@@ -37,8 +32,24 @@ export async function seedDemoCargoImages(): Promise<{ created: number; existing
 		else existing += 1;
 	}
 
-	logger.info(`Demo cargo images seed completed (created=${created}, existing=${existing})`);
 	return { created, existing };
+}
+
+/** Seed obrigatório de imagens de tipos de carga (catálogo). Roda sempre no startup. */
+export async function seedCatalogCargoImages(): Promise<{ created: number; existing: number }> {
+	const result = await registerCatalogCargoImages();
+	logger.info(`Catalog cargo images seed completed (created=${result.created}, existing=${result.existing})`);
+	return result;
+}
+
+/** Reexecuta seed de imagens de carga via rota interna demo (requer DEMO_DATA_SEED_ENABLED). */
+export async function seedDemoCargoImages(): Promise<{ created: number; existing: number }> {
+	if (!isDemoSeedEnabled()) {
+		logger.info('Demo cargo images seed skipped (DEMO_DATA_SEED_ENABLED=false)');
+		return { created: 0, existing: 0 };
+	}
+
+	return registerCatalogCargoImages();
 }
 
 export async function getDemoCargoImagesCatalog(): Promise<Array<{ id: number; originalName: string }>> {

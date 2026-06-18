@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import mapBox from './routes/mapBox.routes';
 import telemetry from './routes/telemetry.routes';
+import internalSeedRoutes from './routes/internalSeed.routes';
 import { requestIdMiddleware, requestLoggerMiddleware } from './config/logging';
 import { ErrorHandlerMiddleware } from './middlewares/errors';
 import { logger } from './config/logging';
@@ -17,6 +18,7 @@ app.get('/health', (_req, res) => res.status(200).json({ status: 'OK' }));
 
 app.use(mapBox);
 app.use(telemetry);
+app.use('/internal/seed', internalSeedRoutes);
 
 app.use(ErrorHandlerMiddleware);
 

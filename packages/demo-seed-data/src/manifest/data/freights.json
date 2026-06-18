@@ -1,0 +1,178 @@
+[
+  {
+    "companySlug": "coamo",
+    "seq": 1,
+    "name": "DEMO-COAMO-001",
+    "cargoName": "Soja",
+    "origin": { "label": "Campo Mourão, PR", "lat": -24.0433, "lng": -52.3781 },
+    "destination": { "label": "Santos, SP", "lat": -23.9608, "lng": -46.3332 },
+    "freightStatus": "Disponivel",
+    "originalValue": 4200,
+    "finalValue": null,
+    "weight": 18000,
+    "daysLimit": 4,
+    "historyPath": ["Disponivel"],
+    "historyOccurredAt": ["2026-05-28T08:00:00.000Z"],
+    "proposals": [
+      { "driverIndex": 1, "value": 3900, "status": "Enviada" },
+      { "driverIndex": 2, "value": 3950, "status": "Enviada" }
+    ]
+  },
+  {
+    "companySlug": "coamo",
+    "seq": 2,
+    "name": "DEMO-COAMO-002",
+    "cargoName": "Milho",
+    "origin": { "label": "Londrina, PR", "lat": -23.3045, "lng": -51.1696 },
+    "destination": { "label": "Campinas, SP", "lat": -22.9099, "lng": -47.0626 },
+    "freightStatus": "Concluido",
+    "originalValue": 5100,
+    "finalValue": 4850,
+    "weight": 22000,
+    "daysLimit": 5,
+    "assignedDriverIndex": 3,
+    "historyPath": ["Disponivel", "Vinculado", "Em Transito", "Entregue", "Concluido"],
+    "historyOccurredAt": [
+      "2026-05-10T08:00:00.000Z",
+      "2026-05-11T10:00:00.000Z",
+      "2026-05-12T12:00:00.000Z",
+      "2026-05-13T15:00:00.000Z",
+      "2026-05-14T18:00:00.000Z"
+    ],
+    "proposals": [
+      { "driverIndex": 3, "value": 4850, "status": "Aceita" },
+      { "driverIndex": 2, "value": 4920, "status": "Nao Selecionada" }
+    ]
+  },
+  {
+    "companySlug": "cargill",
+    "seq": 1,
+    "name": "DEMO-CARGILL-001",
+    "cargoName": "Farelo de Soja",
+    "origin": { "label": "São Paulo, SP", "lat": -23.5505, "lng": -46.6333 },
+    "destination": { "label": "Ribeirão Preto, SP", "lat": -21.1775, "lng": -47.8103 },
+    "freightStatus": "Vinculado",
+    "originalValue": 3800,
+    "finalValue": 3600,
+    "weight": 14500,
+    "daysLimit": 3,
+    "assignedDriverIndex": 1,
+    "historyPath": ["Disponivel", "Vinculado"],
+    "historyOccurredAt": ["2026-05-20T09:00:00.000Z", "2026-05-21T11:00:00.000Z"],
+    "proposals": [
+      { "driverIndex": 1, "value": 3600, "status": "Aceita" },
+      { "driverIndex": 4, "value": 3680, "status": "Nao Selecionada" }
+    ]
+  },
+  {
+    "companySlug": "copacol",
+    "seq": 1,
+    "name": "DEMO-COPACOL-001",
+    "cargoName": "Congelados",
+    "origin": { "label": "Cafelândia, PR", "lat": -24.6195, "lng": -53.3229 },
+    "destination": { "label": "Curitiba, PR", "lat": -25.4284, "lng": -49.2733 },
+    "freightStatus": "Em Transito",
+    "originalValue": 4700,
+    "finalValue": 4500,
+    "weight": 16000,
+    "daysLimit": 4,
+    "assignedDriverIndex": 5,
+    "historyPath": ["Disponivel", "Vinculado", "Em Transito"],
+    "historyOccurredAt": [
+      "2026-05-18T08:00:00.000Z",
+      "2026-05-19T10:30:00.000Z",
+      "2026-05-20T14:30:00.000Z"
+    ],
+    "proposals": [
+      { "driverIndex": 5, "value": 4500, "status": "Aceita" }
+    ]
+  },
+  {
+    "companySlug": "seara",
+    "seq": 1,
+    "name": "DEMO-SEARA-001",
+    "cargoName": "Carnes Frigorificadas",
+    "origin": { "label": "Itajaí, SC", "lat": -26.9083, "lng": -48.6705 },
+    "destination": { "label": "São Paulo, SP", "lat": -23.5505, "lng": -46.6333 },
+    "freightStatus": "Entregue",
+    "originalValue": 5600,
+    "finalValue": 5320,
+    "weight": 19500,
+    "daysLimit": 4,
+    "assignedDriverIndex": 6,
+    "historyPath": ["Disponivel", "Vinculado", "Em Transito", "Entregue"],
+    "historyOccurredAt": [
+      "2026-05-06T08:00:00.000Z",
+      "2026-05-07T10:30:00.000Z",
+      "2026-05-08T13:00:00.000Z",
+      "2026-05-09T17:00:00.000Z"
+    ],
+    "proposals": [
+      { "driverIndex": 6, "value": 5320, "status": "Aceita" },
+      { "driverIndex": 1, "value": 5400, "status": "Nao Selecionada" }
+    ]
+  },
+  {
+    "companySlug": "jbs",
+    "seq": 1,
+    "name": "DEMO-JBS-001",
+    "cargoName": "Bovinos",
+    "origin": { "label": "Goiânia, GO", "lat": -16.6869, "lng": -49.2648 },
+    "destination": { "label": "Belo Horizonte, MG", "lat": -19.9167, "lng": -43.9345 },
+    "freightStatus": "Cancelado",
+    "originalValue": 3900,
+    "finalValue": null,
+    "weight": 12000,
+    "daysLimit": 2,
+    "historyPath": ["Disponivel", "Cancelado"],
+    "historyOccurredAt": ["2026-05-15T08:00:00.000Z", "2026-05-16T09:30:00.000Z"],
+    "proposals": [
+      { "driverIndex": 2, "value": 3700, "status": "Recusada" },
+      { "driverIndex": 3, "value": 3720, "status": "Recusada" }
+    ]
+  },
+  {
+    "companySlug": "raizen",
+    "seq": 1,
+    "name": "DEMO-RAIZEN-001",
+    "cargoName": "Etanol Hidratado",
+    "origin": { "label": "São Paulo, SP", "lat": -23.5505, "lng": -46.6333 },
+    "destination": { "label": "Santos, SP", "lat": -23.9608, "lng": -46.3332 },
+    "freightStatus": "Em Rota de Entrega",
+    "originalValue": 6100,
+    "finalValue": 5800,
+    "weight": 25000,
+    "daysLimit": 3,
+    "assignedDriverIndex": 4,
+    "historyPath": ["Disponivel", "Vinculado", "Em Transito", "Em Rota de Entrega"],
+    "historyOccurredAt": [
+      "2026-05-22T08:00:00.000Z",
+      "2026-05-22T12:00:00.000Z",
+      "2026-05-23T09:00:00.000Z",
+      "2026-05-23T16:00:00.000Z"
+    ],
+    "proposals": [
+      { "driverIndex": 4, "value": 5800, "status": "Aceita" },
+      { "driverIndex": 5, "value": 5900, "status": "Nao Selecionada" }
+    ]
+  },
+  {
+    "companySlug": "raizen",
+    "seq": 2,
+    "name": "DEMO-RAIZEN-002",
+    "cargoName": "Diesel S10",
+    "origin": { "label": "Paulínia, SP", "lat": -22.7611, "lng": -47.1543 },
+    "destination": { "label": "Rio de Janeiro, RJ", "lat": -22.9068, "lng": -43.1729 },
+    "freightStatus": "Disponivel",
+    "originalValue": 6400,
+    "finalValue": null,
+    "weight": 28000,
+    "daysLimit": 4,
+    "historyPath": ["Disponivel"],
+    "historyOccurredAt": ["2026-05-26T08:00:00.000Z"],
+    "proposals": [
+      { "driverIndex": 2, "value": 6100, "status": "Enviada" },
+      { "driverIndex": 6, "value": 6200, "status": "Enviada" }
+    ]
+  }
+]

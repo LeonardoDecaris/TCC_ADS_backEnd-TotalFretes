@@ -919,6 +919,20 @@ export const apiDocs = {
 						nullable: true,
 						description: 'Comentário da empresa ao recusar (opcional)',
 					},
+					submitted_lat: {
+						type: 'number',
+						minimum: -90,
+						maximum: 90,
+						nullable: true,
+						description: 'Latitude do motorista no envio da proposta',
+					},
+					submitted_lng: {
+						type: 'number',
+						minimum: -180,
+						maximum: 180,
+						nullable: true,
+						description: 'Longitude do motorista no envio da proposta',
+					},
 					createdAt: { type: 'string', format: 'date-time' },
 					updatedAt: { type: 'string', format: 'date-time' },
 					Freight: { $ref: '#/components/schemas/Freight', nullable: true },
@@ -927,10 +941,12 @@ export const apiDocs = {
 			},
 			ProposalCreate: {
 				type: 'object',
-				required: ['freight_id', 'value'],
+				required: ['freight_id', 'value', 'submitted_lat', 'submitted_lng'],
 				properties: {
 					freight_id: { type: 'integer', minimum: 1 },
 					value: { type: 'number', minimum: 0 },
+					submitted_lat: { type: 'number', minimum: -90, maximum: 90 },
+					submitted_lng: { type: 'number', minimum: -180, maximum: 180 },
 				},
 			},
 			ProposalUpdate: {

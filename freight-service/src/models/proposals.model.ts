@@ -10,6 +10,9 @@ export class Proposal extends Model {
     status_id: number | undefined;
     value: number | undefined;
     rejection_comment: string | null | undefined;
+    /** Coordenadas do motorista no momento do envio da proposta. */
+    submitted_lat: number | null | undefined;
+    submitted_lng: number | null | undefined;
 }
 
 Proposal.init({
@@ -36,6 +39,14 @@ Proposal.init({
     },
     rejection_comment: {
         type: DataTypes.STRING(500),
+        allowNull: true,
+    },
+    submitted_lat: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+    },
+    submitted_lng: {
+        type: DataTypes.FLOAT,
         allowNull: true,
     },
 }, {

@@ -1,10 +1,11 @@
 import {
-	DEMO_DRIVERS,
 	DEFAULT_DEMO_DRIVER_PASSWORD,
 	demoDriverEmail,
 	isDemoDriverEmail,
 	isDemoSeedEnabled,
 } from '@total-fretes/demo-seed-data';
+
+import { DEMO_DRIVERS } from './drivers.constants';
 
 import User from '../models/user.model';
 import Vehicle from '../models/vehicle.model';
@@ -125,6 +126,14 @@ export async function seedDemoDrivers(): Promise<{ created: number; existing: nu
 
 			created += 1;
 		} else {
+			if (user.id) {
+				await createAccountWithRetry({
+					email,
+					password,
+					subject_id: user.id,
+					account_type_id: userAccountTypeId,
+				});
+			}
 			existing += 1;
 		}
 	}

@@ -5,6 +5,12 @@ COPY packages/logging/package.json packages/logging/tsconfig.json ./
 COPY packages/logging/src ./src
 RUN npm install && npm run build
 
+WORKDIR /app/packages/demo-seed-data
+COPY packages/demo-seed-data/package.json packages/demo-seed-data/tsconfig.json ./
+COPY packages/demo-seed-data/src ./src
+COPY packages/demo-seed-data/scripts ./scripts
+RUN npm install && npm run build
+
 WORKDIR /app/mapbox-service
 
 COPY mapbox-service/package.json mapbox-service/tsconfig.json ./
