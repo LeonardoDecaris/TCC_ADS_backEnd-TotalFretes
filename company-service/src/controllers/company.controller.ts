@@ -19,6 +19,7 @@ import { translation } from "../utils/i18n";
 import { getLocaleFromRequest } from "../utils/locale";
 import { sendError, sendConflictError } from "../services/httpResponse";
 import { handleZodError } from "../utils/zodError";
+import { buildCompanyConflicts, buildCompanyUniqueConditions } from "../utils/buildConflicts";
 import { validateCompanyLogoPng } from "../utils/validateCompanyLogoPng";
 import { logger } from "../config/logging";
 import { logError } from "@total-fretes/logging";
@@ -109,24 +110,14 @@ export const createCompany = async (req: Request, res: Response) => {
 
 		const existingCompany = await Company.findOne({
 			where: {
-				[Op.or]: [{
-					email: body.email,
-					cnpj: body.cnpj,
-					phoneNumber: body.phoneNumber,
-				}],
+				[Op.or]: [{ email: body.email }, { cnpj: body.cnpj }, { phoneNumber: body.phoneNumber }],
 			},
 		});
 		if (existingCompany) {
-			return sendConflictError(res, "COMPANY.ALREADY_EXISTS", locale, [{
-				field: "email",
-				message: await translation("COMPANY.EMAIL_ALREADY_EXISTS", locale),
-			}, {
-				field: "cnpj",
-				message: await translation("COMPANY.CNPJ_ALREADY_EXISTS", locale),
-			}, {
-				field: "phoneNumber",
-				message: await translation("COMPANY.PHONE_NUMBER_ALREADY_EXISTS", locale),
-			}]);
+			const conflicts = await buildCompanyConflicts(existingCompany, body, locale);
+			if (conflicts.length > 0) {
+				return sendConflictError(res, "COMPANY.ALREADY_EXISTS", locale, conflicts);
+			}
 		}
 
 		const company = await Company.create(body);
@@ -182,6 +173,28 @@ export const updateCompany = async (req: Request, res: Response) => {
 			!(await companyOwnsImage(Number(company.id), body.company_image_id))
 		) {
 			return sendError(res, 403, "COMPANY_IMAGE.INVALID_OWNERSHIP", locale);
+		}
+
+		const uniqueConditions = buildCompanyUniqueConditions(body);
+		const existingCompany = uniqueConditions.length > 0
+			? await Company.findOne({
+				where: {
+					id: { [Op.ne]: req.params.id },
+					[Op.or]: uniqueConditions,
+				},
+			})
+			: null;
+
+		if (existingCompany) {
+			const conflicts = await buildCompanyConflicts(
+				existingCompany,
+				body,
+				locale,
+				uniqueConditions.flatMap((condition) => Object.keys(condition) as Array<'email' | 'cnpj' | 'phoneNumber'>),
+			);
+			if (conflicts.length > 0) {
+				return sendConflictError(res, "COMPANY.ALREADY_EXISTS", locale, conflicts);
+			}
 		}
 
 		await company.update(body);
@@ -289,16 +302,12 @@ export const createCompanyEndAccount = async (req: Request, res: Response) => {
 				[Op.or]: [{ email: body.email }, { cnpj: body.cnpj }, { phoneNumber: body.phoneNumber }],
 			},
 		});
-		if (existingCompany) return sendConflictError(res, 'USER.ALREADY_EXISTS', locale, [{
-			field: 'email',
-			message: await translation('USER.EMAIL_ALREADY_EXISTS', locale),
-		}, {
-			field: 'cnpj',
-			message: await translation('USER.CNPJ_ALREADY_EXISTS', locale),
-		}, {
-			field: 'phoneNumber',
-			message: await translation('USER.PHONE_NUMBER_ALREADY_EXISTS', locale),
-		}]);
+		if (existingCompany) {
+			const conflicts = await buildCompanyConflicts(existingCompany, body, locale);
+			if (conflicts.length > 0) {
+				return sendConflictError(res, 'COMPANY.ALREADY_EXISTS', locale, conflicts);
+			}
+		}
 
 
 		const address = await CompanyAddress.create(body);
@@ -323,17 +332,23 @@ export const createCompanyEndAccount = async (req: Request, res: Response) => {
 			return sendError(res, 500, "COMPANY.CREATE_FAILED", locale);
 		}
 
-		const accountCreated = await createAccountHttp({
+		const accountResult = await createAccountHttp({
 			email: body.email,
 			password: body.password,
 			subject_id: company.id,
 			account_type_id: body.account_type_id,
 		});
 
-		if (!accountCreated) {
+		if (!accountResult.ok) {
 			await company.destroy();
 			await address.destroy();
-			return sendError(res, 500, "COMPANY.CREATE_FAILED", locale);
+			if (accountResult.reason === 'exists') {
+				return sendConflictError(res, 'COMPANY.ALREADY_EXISTS', locale, [{
+					field: 'email',
+					message: await translation('USER.EMAIL_ALREADY_EXISTS', locale),
+				}]);
+			}
+			return sendError(res, 500, "COMPANY.ACCOUNT_CREATE_FAILED", locale);
 		}
 
 		const paymentToken = await company.issuePaymentToken();

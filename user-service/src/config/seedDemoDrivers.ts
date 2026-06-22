@@ -23,8 +23,8 @@ async function createAccountWithRetry(
 	maxAttempts = 5,
 ): Promise<boolean> {
 	for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-		const ok = await createAccountHttp(data);
-		if (ok) return true;
+		const result = await createAccountHttp(data);
+		if (result.ok) return true;
 		if (attempt < maxAttempts) {
 			logger.warn(`Demo driver seed: account attempt ${attempt} failed, retrying...`);
 			await sleep(2000 * attempt);
