@@ -1,4 +1,5 @@
 export type MockModelInstance = Record<string, unknown> & {
+  getDataValue: (key: string) => unknown;
   toJSON: () => Record<string, unknown>;
   update: jest.Mock;
   destroy: jest.Mock;
@@ -10,6 +11,7 @@ export function createMockModelInstance(
   const record = { ...data };
   return {
     ...record,
+    getDataValue: (key: string) => record[key],
     toJSON: () => ({ ...record }),
     update: jest.fn(async (updates: Record<string, unknown>) => {
       Object.assign(record, updates);
