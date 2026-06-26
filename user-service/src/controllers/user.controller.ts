@@ -8,6 +8,7 @@ import { createUserSchema, updateUserSchema, createUserEndAccountSchema } from '
 import { translation } from '../utils/i18n';
 import { getLocaleFromRequest } from '../utils/locale';
 import { handleZodError } from '../utils/zodError';
+import { buildUserConflicts } from '../utils/buildConflicts';
 import { sendError, sendConflictError } from '../services/httpResponse';
 import { Op } from 'sequelize';
 import type { UpdateUserInput } from '../schemas/user.schemas';
@@ -18,6 +19,14 @@ function buildUniqueUserConflictConditions(body: UpdateUserInput) {
 	return UNIQUE_USER_FIELDS
 		.filter((field) => body[field] !== undefined)
 		.map((field) => ({ [field]: body[field] }));
+}
+
+function fieldsFromUniqueConditions(
+	conditions: Array<Partial<Record<(typeof UNIQUE_USER_FIELDS)[number], string>>>,
+): Array<(typeof UNIQUE_USER_FIELDS)[number]> {
+	return conditions.flatMap((condition) =>
+		Object.keys(condition) as Array<(typeof UNIQUE_USER_FIELDS)[number]>,
+	);
 }
 
 export const createUser = async (req: Request, res: Response) => {
@@ -36,19 +45,12 @@ export const createUser = async (req: Request, res: Response) => {
 			},
 		});
 
-		if (existingUser) return sendConflictError(res, 'USER.ALREADY_EXISTS', locale, [{
-			field: 'email',
-			message: await translation('USER.EMAIL_ALREADY_EXISTS', locale),
-		}, {
-			field: 'phoneNumber',
-			message: await translation('USER.PHONE_ALREADY_EXISTS', locale),
-		}, {
-			field: 'cpf',
-			message: await translation('USER.CPF_ALREADY_EXISTS', locale),
-		}, {
-			field: 'cnhNumber',
-			message: await translation('USER.CNH_NUMBER_ALREADY_EXISTS', locale),
-		}]);
+		if (existingUser) {
+			const conflicts = await buildUserConflicts(existingUser, body, locale);
+			if (conflicts.length > 0) {
+				return sendConflictError(res, 'USER.ALREADY_EXISTS', locale, conflicts);
+			}
+		}
 
 		await User.create(body);
 		return res.status(201).json({ message: await translation('USER.CREATED_SUCCESSFULLY', locale) });
@@ -117,19 +119,17 @@ export const patchUser = async (req: Request, res: Response) => {
 			})
 			: null;
 
-		if (existingUser) return sendConflictError(res, 'USER.ALREADY_EXISTS', locale, [{
-			field: 'email',
-			message: await translation('USER.EMAIL_ALREADY_EXISTS', locale),
-		}, {
-			field: 'phoneNumber',
-			message: await translation('USER.PHONE_ALREADY_EXISTS', locale),
-		}, {
-			field: 'cpf',
-			message: await translation('USER.CPF_ALREADY_EXISTS', locale),
-		}, {
-			field: 'cnhNumber',
-			message: await translation('USER.CNH_NUMBER_ALREADY_EXISTS', locale),
-		}]);
+		if (existingUser) {
+			const conflicts = await buildUserConflicts(
+				existingUser,
+				body,
+				locale,
+				fieldsFromUniqueConditions(uniqueConditions),
+			);
+			if (conflicts.length > 0) {
+				return sendConflictError(res, 'USER.ALREADY_EXISTS', locale, conflicts);
+			}
+		}
 
 		await user.update(body);
 		return res.status(200).json({ message: await translation('USER.UPDATED_SUCCESSFULLY', locale) });
@@ -171,19 +171,12 @@ export const createUserEndAccount = async (req: Request, res: Response) => {
 				],
 			},
 		});
-		if (existingUser) return sendConflictError(res, 'USER.ALREADY_EXISTS', locale, [{
-			field: 'email',
-			message: await translation('USER.EMAIL_ALREADY_EXISTS', locale),
-		}, {
-			field: 'phoneNumber',
-			message: await translation('USER.PHONE_ALREADY_EXISTS', locale),
-		}, {
-			field: 'cpf',
-			message: await translation('USER.CPF_ALREADY_EXISTS', locale),
-		}, {
-			field: 'cnhNumber',
-			message: await translation('USER.CNH_NUMBER_ALREADY_EXISTS', locale),
-		}]);
+		if (existingUser) {
+			const conflicts = await buildUserConflicts(existingUser, body, locale);
+			if (conflicts.length > 0) {
+				return sendConflictError(res, 'USER.ALREADY_EXISTS', locale, conflicts);
+			}
+		}
 
 		const user = await User.create(body);
 
@@ -192,16 +185,22 @@ export const createUserEndAccount = async (req: Request, res: Response) => {
 			return sendError(res, 500, 'USER.CREATE_FAILED', locale);
 		}
 
-		const accountCreated = await createAccountHttp({
+		const accountResult = await createAccountHttp({
 			email: body.email,
 			password: body.password,
 			subject_id: user.id,
 			account_type_id: body.account_type_id,
 		});
 
-		if (!accountCreated) {
+		if (!accountResult.ok) {
 			await user.destroy();
-			return sendError(res, 500, 'USER.CREATE_FAILED', locale);
+			if (accountResult.reason === 'exists') {
+				return sendConflictError(res, 'USER.ALREADY_EXISTS', locale, [{
+					field: 'email',
+					message: await translation('USER.EMAIL_ALREADY_EXISTS', locale),
+				}]);
+			}
+			return sendError(res, 500, 'USER.ACCOUNT_CREATE_FAILED', locale);
 		}
 
 		return res.status(201).json({ message: await translation('USER.CREATED_WITH_ACCOUNT_SUCCESSFULLY', locale) });

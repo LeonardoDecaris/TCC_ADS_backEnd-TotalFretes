@@ -2,7 +2,7 @@ import http from "http";
 
 const PORT = Number(process.env.PORT || 9404);
 const SOCKET_PATH = "/var/run/docker.sock";
-const API_VERSION = "v1.41";
+const API_VERSION = "v1.44";
 const POLL_INTERVAL_MS = 10000;
 
 let metricsBody = [

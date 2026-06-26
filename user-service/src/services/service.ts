@@ -16,16 +16,20 @@ export type CreateAccountData = {
   account_type_id: number;
 };
 
-export async function createAccountHttp(data: CreateAccountData) {
+export type CreateAccountResult =
+  | { ok: true }
+  | { ok: false; reason: 'exists' | 'error' };
+
+export async function createAccountHttp(data: CreateAccountData): Promise<CreateAccountResult> {
   const baseURL = process.env.AUTH_SERVICE_URL ?? '';
   try {
     const response = await axios.post<{ ok?: boolean }>(`${baseURL}/account`, data);
-    return response.data?.ok === true;
+    return response.data?.ok === true ? { ok: true } : { ok: false, reason: 'error' };
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 409) {
-      return true;
+      return { ok: false, reason: 'exists' };
     }
-    return false;
+    return { ok: false, reason: 'error' };
   }
 }
 
